@@ -53,7 +53,7 @@ Six signals, all proven cycle indicators:
 |---|---|---|---|
 | **MVRV Z-Score** | < 1 | 1–3 | > 3 |
 | **200-Week Moving Average** | Price below 200WMA | Price 0–20% above | Price > 20% above |
-| **Monthly RSI** | < 40 | 40–60 | > 70 |
+| **Monthly RSI** | < 40 | 40–70 | > 70 |
 | **Pi Cycle Top/Bottom** | 111DMA below 2×350DMA | Converging | 111DMA crosses above 2×350DMA |
 | **Puell Multiple** | < 0.5 | 0.5–1.5 | > 1.5 |
 | **Fear & Greed Index** | < 25 (Extreme Fear) | 25–50 | > 50 |
