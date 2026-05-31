@@ -6,37 +6,37 @@
   },
   "signals": {
     "mvrv_zscore": {
-      "weight": 0.0498,
+      "weight": 0.3434,
       "precision": 1.0,
       "recall": 0.0334,
       "f1": 0.0646
     },
     "ma_200w": {
-      "weight": 0.1906,
+      "weight": 0.1717,
       "precision": 1.0,
       "recall": 0.141,
       "f1": 0.2472
     },
     "monthly_rsi": {
-      "weight": 0.0305,
+      "weight": 0.1717,
       "precision": 1.0,
       "recall": 0.0201,
       "f1": 0.0395
     },
     "pi_cycle": {
-      "weight": 0.4953,
+      "weight": 0.0903,
       "precision": 0.5261,
       "recall": 0.824,
       "f1": 0.6422
     },
     "puell": {
-      "weight": 0.1289,
+      "weight": 0.1602,
       "precision": 0.9329,
       "recall": 0.0918,
       "f1": 0.1672
     },
     "fear_greed": {
-      "weight": 0.1049,
+      "weight": 0.0627,
       "precision": 0.3651,
       "recall": 0.0836,
       "f1": 0.136

@@ -43,14 +43,21 @@ def test_label_good_entries_returns_true_when_return_exceeds_threshold():
 
 
 def test_derive_weights_sum_to_one():
-    stats = {name: {"f1": 0.5} for name in SIGNAL_NAMES}
+    stats = {name: {"precision": 0.5} for name in SIGNAL_NAMES}
     weights = derive_weights(stats)
     assert sum(weights.values()) == pytest.approx(1.0, abs=1e-3)
 
 
-def test_derive_weights_higher_f1_gets_higher_weight():
-    stats = {name: {"f1": 0.1} for name in SIGNAL_NAMES}
-    stats["mvrv_zscore"]["f1"] = 0.9
+def test_derive_weights_higher_precision_gets_higher_weight():
+    stats = {name: {"precision": 0.1} for name in SIGNAL_NAMES}
+    stats["ma_200w"]["precision"] = 0.9
+    weights = derive_weights(stats)
+    assert weights["ma_200w"] > weights["pi_cycle"]
+
+
+def test_derive_weights_mvrv_multiplier_applied():
+    # mvrv_zscore gets 2× multiplier, so equal-precision inputs give mvrv a higher weight
+    stats = {name: {"precision": 0.5} for name in SIGNAL_NAMES}
     weights = derive_weights(stats)
     assert weights["mvrv_zscore"] > weights["ma_200w"]
 

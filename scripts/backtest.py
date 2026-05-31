@@ -78,12 +78,21 @@ def compute_signal_stats(signals_df: pd.DataFrame, good_entries: pd.Series) -> d
     return stats
 
 
+# MVRV Z-Score is a fundamental valuation metric with perfect historical precision.
+# We apply a 2× multiplier so it anchors the composite score to on-chain value,
+# preventing high-sentiment / low-precision signals from dominating.
+MVRV_WEIGHT_MULTIPLIER = 2.0
+
+
 def derive_weights(stats: dict) -> dict:
-    total = sum(stats[s]["f1"] for s in SIGNAL_NAMES)
+    # Weight by precision (not F1) so rare, accurate signals outrank noisy ones.
+    raw = {s: stats[s]["precision"] for s in SIGNAL_NAMES}
+    raw["mvrv_zscore"] = raw["mvrv_zscore"] * MVRV_WEIGHT_MULTIPLIER
+    total = sum(raw.values())
     if total == 0:
         equal = round(1.0 / len(SIGNAL_NAMES), 4)
         return {s: equal for s in SIGNAL_NAMES}
-    return {s: round(stats[s]["f1"] / total, 4) for s in SIGNAL_NAMES}
+    return {s: round(raw[s] / total, 4) for s in SIGNAL_NAMES}
 
 
 def main():

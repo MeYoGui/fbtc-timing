@@ -1,11 +1,11 @@
 {
   "date": "2026-05-30",
-  "composite_score": 80.0,
-  "verdict": "STRONG BUY",
+  "composite_score": 57.6,
+  "verdict": "ACCUMULATE",
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": NaN,
+      "raw": null,
       "score": 50,
       "status": "neutral"
     },
@@ -29,7 +29,7 @@
     },
     "puell": {
       "display_name": "Puell Multiple",
-      "raw": NaN,
+      "raw": null,
       "score": 50,
       "status": "neutral"
     },
@@ -41,11 +41,11 @@
     }
   },
   "weights": {
-    "mvrv_zscore": 0.0498,
-    "ma_200w": 0.1906,
-    "monthly_rsi": 0.0305,
-    "pi_cycle": 0.4953,
-    "puell": 0.1289,
-    "fear_greed": 0.1049
+    "mvrv_zscore": 0.3434,
+    "ma_200w": 0.1717,
+    "monthly_rsi": 0.1717,
+    "pi_cycle": 0.0903,
+    "puell": 0.1602,
+    "fear_greed": 0.0627
   }
 }
