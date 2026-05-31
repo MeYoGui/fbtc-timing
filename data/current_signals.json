@@ -2,7 +2,7 @@
   "date": "2026-05-30",
   "signals": {
     "mvrv_zscore": {
-      "raw": NaN,
+      "raw": -0.24748779377828978,
       "score": 50
     },
     "ma_200w": {
@@ -18,7 +18,7 @@
       "score": 100
     },
     "puell": {
-      "raw": NaN,
+      "raw": null,
       "score": 50
     },
     "fear_greed": {
