@@ -15,7 +15,7 @@ SIGNAL_DISPLAY = {
 
 
 def get_verdict(score: float) -> str:
-    if score >= 75:
+    if score >= 72:
         return "STRONG BUY"
     if score >= 50:
         return "ACCUMULATE"

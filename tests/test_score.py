@@ -25,8 +25,12 @@ def test_get_verdict_avoid():
     assert get_verdict(10) == "AVOID"
 
 
-def test_get_verdict_boundary_75():
-    assert get_verdict(75) == "STRONG BUY"
+def test_get_verdict_boundary_72():
+    assert get_verdict(72) == "STRONG BUY"
+
+
+def test_get_verdict_below_72():
+    assert get_verdict(71.9) == "ACCUMULATE"
 
 
 def test_get_verdict_boundary_50():
