@@ -1,4 +1,5 @@
 import json
+import math
 from pathlib import Path
 
 DATA_DIR = Path(__file__).parent.parent / "data"
@@ -34,9 +35,27 @@ def compute_score(signals: dict, weights: dict) -> float:
     return round(weighted_sum / total_weight, 1)
 
 
+def _sanitize_float(v):
+    """Convert NaN/inf to None for valid JSON null output."""
+    if v is None:
+        return None
+    try:
+        f = float(v)
+        return None if not math.isfinite(f) else f
+    except (TypeError, ValueError):
+        return None
+
+
 def main():
     current = json.loads((DATA_DIR / "current_signals.json").read_text())
-    weights = json.loads((DATA_DIR / "weights.json").read_text())
+
+    weights_path = DATA_DIR / "weights.json"
+    if not weights_path.exists():
+        raise FileNotFoundError(
+            "data/weights.json not found — run 'python scripts/backtest.py' first "
+            "or trigger the 'Re-derive Signal Weights' workflow on GitHub Actions."
+        )
+    weights = json.loads(weights_path.read_text())
 
     composite = compute_score(current["signals"], weights)
     verdict = get_verdict(composite)
@@ -48,7 +67,7 @@ def main():
         "signals": {
             name: {
                 "display_name": SIGNAL_DISPLAY[name],
-                "raw": data["raw"],
+                "raw": _sanitize_float(data["raw"]),
                 "score": data["score"],
                 "status": "buy" if data["score"] == 100 else ("avoid" if data["score"] == 0 else "neutral"),
             }
@@ -57,7 +76,7 @@ def main():
         "weights": {name: weights["signals"][name]["weight"] for name in weights["signals"]},
     }
 
-    (DATA_DIR / "current_score.json").write_text(json.dumps(output, indent=2, default=str))
+    (DATA_DIR / "current_score.json").write_text(json.dumps(output, indent=2))
     print(f"Score: {composite}/100 — {verdict}")
     for name, d in output["signals"].items():
         print(f"  {d['display_name']}: {d['status'].upper()}")

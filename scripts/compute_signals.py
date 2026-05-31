@@ -1,9 +1,22 @@
 import json
+import math
 import numpy as np
 import pandas as pd
 from pathlib import Path
 
 DATA_DIR = Path(__file__).parent.parent / "data"
+
+
+def _sanitize_float(v):
+    """Convert NaN/inf to None so json.dumps produces valid JSON null."""
+    if v is None:
+        return None
+    try:
+        f = float(v)
+        return None if not math.isfinite(f) else f
+    except (TypeError, ValueError):
+        return None
+
 
 SIGNAL_NAMES = ["mvrv_zscore", "ma_200w", "monthly_rsi", "pi_cycle", "puell", "fear_greed"]
 
@@ -98,15 +111,15 @@ def main():
     current = {
         "date": str(latest["date"].date()),
         "signals": {
-            "mvrv_zscore": {"raw": latest["mvrv_zscore_raw"], "score": int(latest["mvrv_zscore"])},
-            "ma_200w":     {"raw": latest["ma_200w_ratio_raw"], "score": int(latest["ma_200w"])},
-            "monthly_rsi": {"raw": latest["monthly_rsi_raw"], "score": int(latest["monthly_rsi"])},
-            "pi_cycle":    {"raw": latest["pi_cycle_ratio_raw"], "score": int(latest["pi_cycle"])},
-            "puell":       {"raw": latest["puell_raw"], "score": int(latest["puell"])},
-            "fear_greed":  {"raw": latest["fear_greed_raw"], "score": int(latest["fear_greed"])},
+            "mvrv_zscore": {"raw": _sanitize_float(latest["mvrv_zscore_raw"]), "score": int(latest["mvrv_zscore"])},
+            "ma_200w":     {"raw": _sanitize_float(latest["ma_200w_ratio_raw"]), "score": int(latest["ma_200w"])},
+            "monthly_rsi": {"raw": _sanitize_float(latest["monthly_rsi_raw"]), "score": int(latest["monthly_rsi"])},
+            "pi_cycle":    {"raw": _sanitize_float(latest["pi_cycle_ratio_raw"]), "score": int(latest["pi_cycle"])},
+            "puell":       {"raw": _sanitize_float(latest["puell_raw"]), "score": int(latest["puell"])},
+            "fear_greed":  {"raw": _sanitize_float(latest["fear_greed_raw"]), "score": int(latest["fear_greed"])},
         },
     }
-    (DATA_DIR / "current_signals.json").write_text(json.dumps(current, indent=2, default=str))
+    (DATA_DIR / "current_signals.json").write_text(json.dumps(current, indent=2))
     print(f"Signals computed for {current['date']}")
     for name, data in current["signals"].items():
         raw = data["raw"]
