@@ -1,0 +1,29 @@
+{
+  "date": "2026-05-30",
+  "signals": {
+    "mvrv_zscore": {
+      "raw": NaN,
+      "score": 50
+    },
+    "ma_200w": {
+      "raw": 1.1975887196829011,
+      "score": 50
+    },
+    "monthly_rsi": {
+      "raw": 48.59232021553422,
+      "score": 50
+    },
+    "pi_cycle": {
+      "raw": 0.38691459620208224,
+      "score": 100
+    },
+    "puell": {
+      "raw": NaN,
+      "score": 50
+    },
+    "fear_greed": {
+      "raw": 23.0,
+      "score": 100
+    }
+  }
+}
