@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-05-30",
+  "good_entry_definition": {
+    "min_18mo_return": 0.5,
+    "cycle_bottom_pct": 0.4
+  },
+  "signals": {
+    "mvrv_zscore": {
+      "weight": 0.0498,
+      "precision": 1.0,
+      "recall": 0.0334,
+      "f1": 0.0646
+    },
+    "ma_200w": {
+      "weight": 0.1906,
+      "precision": 1.0,
+      "recall": 0.141,
+      "f1": 0.2472
+    },
+    "monthly_rsi": {
+      "weight": 0.0305,
+      "precision": 1.0,
+      "recall": 0.0201,
+      "f1": 0.0395
+    },
+    "pi_cycle": {
+      "weight": 0.4953,
+      "precision": 0.5261,
+      "recall": 0.824,
+      "f1": 0.6422
+    },
+    "puell": {
+      "weight": 0.1289,
+      "precision": 0.9329,
+      "recall": 0.0918,
+      "f1": 0.1672
+    },
+    "fear_greed": {
+      "weight": 0.1049,
+      "precision": 0.3651,
+      "recall": 0.0836,
+      "f1": 0.136
+    }
+  }
+}
