@@ -6,3 +6,13 @@ dist/
 .env
 venv/
 .venv/
+
+# Tool working directories
+.playwright-mcp/
+.superpowers/
+
+# Local replay artifacts
+docs/replay-*.html
+replay-*.png
+dashboard-*.png
+*.bak
