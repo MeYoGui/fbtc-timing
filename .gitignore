@@ -15,4 +15,5 @@ venv/
 docs/replay-*.html
 replay-*.png
 dashboard-*.png
+!specs/*.png
 *.bak

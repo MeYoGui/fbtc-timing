@@ -1,6 +1,12 @@
 # Dashboard Clarity — Design Spec
 **Date:** 2026-06-01
 
+## Visual Reference
+
+![Dashboard mockup](dashboard-clarity-reference.png)
+
+*Target output — score 57.6 (CLOSE zone, 14.4 pts from Invest). Implementation should match this layout exactly.*
+
 ## Goal
 
 Make the investment decision instantly legible. A visitor should know in under three seconds whether to act or wait, and how far they are from the threshold that would change that.
