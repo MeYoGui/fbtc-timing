@@ -15,18 +15,10 @@ from pathlib import Path
 
 ICONS_DIR = Path(__file__).parent.parent / "docs" / "icons"
 
-# The pulse-waveform + KAIROS wordmark, on a #0d0d0d rounded square.
-ICON_SVG = """
-<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 160 160">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%"   stop-color="#ff5252"/>
-      <stop offset="45%"  stop-color="#ffd740"/>
-      <stop offset="100%" stop-color="#00c853"/>
-    </linearGradient>
-  </defs>
-  <rect x="0" y="0" width="160" height="160" rx="34" fill="#0d0d0d"/>
-  <g transform="translate(0, 6)">
+# Shared inner artwork: waveform polyline, green dot, and KAIROS wordmark.
+# Embedded into both SVG templates via string concatenation so {size} can
+# still be resolved with a plain .format(size=size) call at render time.
+_ARTWORK = """
     <polyline points="14,65 36,65 50,22 64,108 78,40 92,65 128,65"
       fill="none" stroke="url(#grad)" stroke-width="6"
       stroke-linecap="round" stroke-linejoin="round"/>
@@ -39,39 +31,43 @@ ICON_SVG = """
       <tspan x="97"  y="140" fill="#00c853">O</tspan>
       <tspan x="112" y="140" fill="#00c853">S</tspan>
     </text>
-  </g>
-</svg>
 """
+
+_DEFS = """
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#ff5252"/>
+      <stop offset="45%"  stop-color="#ffd740"/>
+      <stop offset="100%" stop-color="#00c853"/>
+    </linearGradient>
+  </defs>
+"""
+
+# The pulse-waveform + KAIROS wordmark, on a #0d0d0d rounded square.
+# Differs from MASKABLE_SVG: rx="34" background rect, translate(0, 6) wrapper.
+ICON_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 160 160">'
+    + _DEFS
+    + '<rect x="0" y="0" width="160" height="160" rx="34" fill="#0d0d0d"/>'
+    + '<g transform="translate(0, 6)">'
+    + _ARTWORK
+    + '</g>'
+    + '</svg>'
+)
 
 # Maskable variant: same artwork scaled into the central ~72% safe zone,
 # full #0d0d0d background bleeding to all edges so Android's adaptive mask
 # never clips the waveform or wordmark.
-MASKABLE_SVG = """
-<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 160 160">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%"   stop-color="#ff5252"/>
-      <stop offset="45%"  stop-color="#ffd740"/>
-      <stop offset="100%" stop-color="#00c853"/>
-    </linearGradient>
-  </defs>
-  <rect x="0" y="0" width="160" height="160" fill="#0d0d0d"/>
-  <g transform="translate(22, 28) scale(0.72)">
-    <polyline points="14,65 36,65 50,22 64,108 78,40 92,65 128,65"
-      fill="none" stroke="url(#grad)" stroke-width="6"
-      stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="128" cy="65" r="7" fill="#00c853"/>
-    <text font-size="19" font-family="sans-serif" font-weight="700">
-      <tspan x="47"  y="140" fill="#ff6b3d">K</tspan>
-      <tspan x="61"  y="140" fill="#ffa033">A</tspan>
-      <tspan x="73"  y="140" fill="#ffd740">I</tspan>
-      <tspan x="82"  y="140" fill="#80d94a">R</tspan>
-      <tspan x="97"  y="140" fill="#00c853">O</tspan>
-      <tspan x="112" y="140" fill="#00c853">S</tspan>
-    </text>
-  </g>
-</svg>
-"""
+# Differs from ICON_SVG: no rx on background rect, translate(22, 28) scale(0.72) wrapper.
+MASKABLE_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" viewBox="0 0 160 160">'
+    + _DEFS
+    + '<rect x="0" y="0" width="160" height="160" fill="#0d0d0d"/>'
+    + '<g transform="translate(22, 28) scale(0.72)">'
+    + _ARTWORK
+    + '</g>'
+    + '</svg>'
+)
 
 
 def _render_cairosvg(svg: str, size: int, out_path: Path) -> None:
