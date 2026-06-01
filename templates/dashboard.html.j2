@@ -37,13 +37,28 @@
     .distance { margin-top: 0.85rem; font-size: 0.9rem; color: #888; }
     .distance strong { font-weight: 600; }
 
+    /* ── signal range bars ── */
+    .sig-bar-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .sig-status { display: inline-block; align-self: flex-start; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.04em; padding: 1px 7px; border-radius: 3px; }
+    .st-invest { background: #00c85318; color: #00c853; }
+    .st-wait   { background: #ffd74018; color: #ffd740; }
+    .st-avoid  { background: #ff525218; color: #ff5252; }
+    .bar-outer { position: relative; height: 26px; }
+    .bar-track { position: absolute; top: 50%; transform: translateY(-50%); left: 0; right: 0; height: 9px; border-radius: 5px; display: flex; overflow: hidden; }
+    .seg-avoid  { background: #ff525228; }
+    .seg-wait   { background: #ffd74022; }
+    .seg-invest { background: #00c85328; }
+    .thresh-line { position: absolute; top: 50%; transform: translateY(-50%); width: 1px; height: 13px; background: #484848; border-radius: 1px; }
+    .sig-cursor { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; border-radius: 2px; box-shadow: 0 0 7px rgba(255,255,255,0.85); transform: translateX(-50%); }
+    .sig-cursor::before { content: ''; position: absolute; top: -2px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 5px; height: 5px; background: #fff; box-shadow: 0 0 4px rgba(255,255,255,0.9); }
+    .bar-labels { position: relative; height: 14px; }
+    .bar-label { position: absolute; font-size: 0.7rem; color: #484848; transform: translateX(-50%); white-space: nowrap; }
+    .bar-label.edge-l { transform: translateX(0); color: #ff525277; font-size: 0.65rem; }
+    .bar-label.edge-r { transform: translateX(-100%); color: #00c85377; font-size: 0.65rem; }
+
     table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
     th { text-align: left; font-size: 0.75rem; font-weight: 500; color: #555; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.6rem 0.75rem; border-bottom: 1px solid #222; }
     td { padding: 0.85rem 0.75rem; border-bottom: 1px solid #1a1a1a; font-size: 0.9rem; }
-    .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 0.5rem; vertical-align: middle; }
-    .dot-buy     { background: #00c853; }
-    .dot-neutral { background: #ffd740; }
-    .dot-avoid   { background: #ff5252; }
     .chart-wrap { margin-bottom: 2rem; }
     details { border: 1px solid #222; border-radius: 8px; padding: 1.25rem; }
     summary { cursor: pointer; font-size: 0.9rem; color: #888; user-select: none; }
@@ -88,14 +103,42 @@
 
   <table>
     <thead>
-      <tr><th>Signal</th><th>Reading</th><th>Status</th></tr>
+      <tr>
+        <th>Signal</th>
+        <th>Reading</th>
+        <th><span style="color:#ff525255">← Avoid</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#00c85355">Invest →</span></th>
+      </tr>
     </thead>
     <tbody>
       {% for name, sig in signals.items() %}
       <tr>
         <td>{{ sig.display_name }}</td>
         <td>{{ sig.reading_formatted }}</td>
-        <td><span class="dot dot-{{ sig.status }}"></span>{{ sig.status_label }}</td>
+        <td>
+          {% if sig.bar.has_data %}
+          <div class="sig-bar-wrap">
+            <span class="sig-status {{ sig.bar.status_class }}">{{ sig.bar.status_text }}</span>
+            <div class="bar-outer">
+              <div class="bar-track">
+                <div class="seg-avoid" style="width:{{ sig.bar.avoid_pct }}%"></div>
+                <div class="seg-wait"  style="width:{{ sig.bar.wait_pct }}%"></div>
+                <div class="seg-invest"style="width:{{ sig.bar.invest_pct }}%"></div>
+              </div>
+              <div class="thresh-line" style="left:{{ sig.bar.thresh_avoid_pct }}%"></div>
+              <div class="thresh-line" style="left:{{ sig.bar.thresh_invest_pct }}%"></div>
+              <div class="sig-cursor"  style="left:{{ sig.bar.cursor_pct }}%"></div>
+            </div>
+            <div class="bar-labels">
+              <span class="bar-label edge-l">{{ sig.bar.edge_left }}</span>
+              <span class="bar-label" style="left:{{ sig.bar.thresh_avoid_pct }}%; color:#555">{{ sig.bar.thresh_avoid_lbl }}</span>
+              <span class="bar-label" style="left:{{ sig.bar.thresh_invest_pct }}%; color:#555">{{ sig.bar.thresh_invest_lbl }}</span>
+              <span class="bar-label edge-r" style="left:100%">{{ sig.bar.edge_right }}</span>
+            </div>
+          </div>
+          {% else %}
+          <span style="color:#444; font-size:0.8rem">No data</span>
+          {% endif %}
+        </td>
       </tr>
       {% endfor %}
     </tbody>
