@@ -139,6 +139,10 @@ def main() -> None:
     render(ICON_SVG, 192, "icon-192.png", renderer)
     render(ICON_SVG, 512, "icon-512.png", renderer)
     render(MASKABLE_SVG, 512, "icon-512-maskable.png", renderer)
+    # Browser-tab favicons — same locked icon, small sizes.
+    render(ICON_SVG, 48, "favicon-48.png", renderer)
+    render(ICON_SVG, 32, "favicon-32.png", renderer)
+    render(ICON_SVG, 16, "favicon-16.png", renderer)
     print("Done. Icons written to docs/icons/")
 
 
