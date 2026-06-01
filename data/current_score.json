@@ -5,7 +5,7 @@
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": null,
+      "raw": -0.24748779377828978,
       "score": 50,
       "status": "neutral"
     },
@@ -29,7 +29,7 @@
     },
     "puell": {
       "display_name": "Puell Multiple",
-      "raw": null,
+      "raw": 0.7411893525143094,
       "score": 50,
       "status": "neutral"
     },

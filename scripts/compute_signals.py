@@ -107,16 +107,33 @@ def main():
     signals = compute_all_signals(df)
     signals.to_csv(DATA_DIR / "signal_history.csv", index=False)
 
+    def _last_valid(raw_col: str, score_col: str) -> tuple:
+        """Return (raw, score) from the last row where raw is not NaN.
+        Falls back to (NaN, 50) if the column is entirely NaN.
+        Handles API lag: some sources (MVRV, Puell) publish 1-2 days late."""
+        valid = signals[raw_col].notna()
+        if not valid.any():
+            return float("nan"), 50
+        row = signals[valid].iloc[-1]
+        return row[raw_col], int(row[score_col])
+
     latest = signals.iloc[-1]
+    mvrv_raw,    mvrv_score    = _last_valid("mvrv_zscore_raw",    "mvrv_zscore")
+    ma200w_raw,  ma200w_score  = _last_valid("ma_200w_ratio_raw",  "ma_200w")
+    rsi_raw,     rsi_score     = _last_valid("monthly_rsi_raw",    "monthly_rsi")
+    pi_raw,      pi_score      = _last_valid("pi_cycle_ratio_raw", "pi_cycle")
+    puell_raw,   puell_score   = _last_valid("puell_raw",          "puell")
+    fg_raw,      fg_score      = _last_valid("fear_greed_raw",     "fear_greed")
+
     current = {
         "date": str(latest["date"].date()),
         "signals": {
-            "mvrv_zscore": {"raw": _sanitize_float(latest["mvrv_zscore_raw"]), "score": int(latest["mvrv_zscore"])},
-            "ma_200w":     {"raw": _sanitize_float(latest["ma_200w_ratio_raw"]), "score": int(latest["ma_200w"])},
-            "monthly_rsi": {"raw": _sanitize_float(latest["monthly_rsi_raw"]), "score": int(latest["monthly_rsi"])},
-            "pi_cycle":    {"raw": _sanitize_float(latest["pi_cycle_ratio_raw"]), "score": int(latest["pi_cycle"])},
-            "puell":       {"raw": _sanitize_float(latest["puell_raw"]), "score": int(latest["puell"])},
-            "fear_greed":  {"raw": _sanitize_float(latest["fear_greed_raw"]), "score": int(latest["fear_greed"])},
+            "mvrv_zscore": {"raw": _sanitize_float(mvrv_raw),   "score": mvrv_score},
+            "ma_200w":     {"raw": _sanitize_float(ma200w_raw), "score": ma200w_score},
+            "monthly_rsi": {"raw": _sanitize_float(rsi_raw),    "score": rsi_score},
+            "pi_cycle":    {"raw": _sanitize_float(pi_raw),     "score": pi_score},
+            "puell":       {"raw": _sanitize_float(puell_raw),  "score": puell_score},
+            "fear_greed":  {"raw": _sanitize_float(fg_raw),     "score": fg_score},
         },
     }
     (DATA_DIR / "current_signals.json").write_text(json.dumps(current, indent=2))
