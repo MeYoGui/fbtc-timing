@@ -22,11 +22,11 @@ _ARTWORK = """
     <polyline points="14,65 36,65 50,22 64,108 78,40 92,65 128,65"
       fill="none" stroke="url(#grad)" stroke-width="6"
       stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="128" cy="65" r="7" fill="#00c853"/>
+    <circle cx="128" cy="65" r="7" fill="#00c853" filter="url(#glow)"/>
     <text font-size="19" font-family="sans-serif" font-weight="700">
       <tspan x="47"  y="140" fill="#ff6b3d">K</tspan>
       <tspan x="61"  y="140" fill="#ffa033">A</tspan>
-      <tspan x="73"  y="140" fill="#ffd740">I</tspan>
+      <tspan x="73"  y="140" fill="#ffd740" filter="url(#glow-i)">I</tspan>
       <tspan x="82"  y="140" fill="#80d94a">R</tspan>
       <tspan x="97"  y="140" fill="#00c853">O</tspan>
       <tspan x="112" y="140" fill="#00c853">S</tspan>
@@ -40,6 +40,10 @@ _DEFS = """
       <stop offset="45%"  stop-color="#ffd740"/>
       <stop offset="100%" stop-color="#00c853"/>
     </linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="glow-i"><feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
   </defs>
 """
 
