@@ -1,8 +1,10 @@
 import json
 import numpy as np
 import pandas as pd
+from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
@@ -174,11 +176,15 @@ def main():
     else:
         distance_text = f"{72 - composite:.1f} pts from Invest zone"
 
+    # Wall-clock time the dashboard was refreshed, in Montreal time (handles DST).
+    updated_at = datetime.now(ZoneInfo("America/Toronto")).strftime("%Y-%m-%d %H:%M %Z")
+
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
     template = env.get_template("dashboard.html.j2")
     html = template.render(
         btc_price=btc_price,
         updated_date=current_score["date"],
+        updated_at=updated_at,
         composite_score=composite,
         verdict=verdict,
         score_color=get_score_color(verdict),

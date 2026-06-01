@@ -2,7 +2,9 @@ name: Daily Dashboard Update
 
 on:
   schedule:
-    - cron: '0 12 * * *'   # 8 am ET (UTC-4 summer / UTC-5 winter)
+    # Cron is UTC and has no DST awareness, so the local time drifts by an hour
+    # across the seasons: 13:00 UTC = 09:00 EDT (summer) / 08:00 EST (winter).
+    - cron: '0 13 * * *'
   workflow_dispatch:         # allow manual trigger
 
 permissions:
