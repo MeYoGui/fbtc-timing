@@ -15,10 +15,12 @@ SIGNAL_DISPLAY = {
 
 
 def get_verdict(score: float) -> str:
-    if score >= 72:
+    if score >= 80:
         return "STRONG BUY"
+    if score >= 72:
+        return "INVEST"
     if score >= 50:
-        return "ACCUMULATE"
+        return "CLOSE"
     if score >= 25:
         return "WAIT"
     return "AVOID"

@@ -9,32 +9,29 @@ EQUAL_WEIGHTS = {
 }
 
 
-def test_get_verdict_strong_buy():
-    assert get_verdict(80) == "STRONG BUY"
-
-
-def test_get_verdict_accumulate():
-    assert get_verdict(60) == "ACCUMULATE"
+def test_get_verdict_avoid():
+    assert get_verdict(0) == "AVOID"
+    assert get_verdict(24.9) == "AVOID"
 
 
 def test_get_verdict_wait():
-    assert get_verdict(40) == "WAIT"
+    assert get_verdict(25) == "WAIT"
+    assert get_verdict(49.9) == "WAIT"
 
 
-def test_get_verdict_avoid():
-    assert get_verdict(10) == "AVOID"
+def test_get_verdict_close():
+    assert get_verdict(50) == "CLOSE"
+    assert get_verdict(71.9) == "CLOSE"
 
 
-def test_get_verdict_boundary_72():
-    assert get_verdict(72) == "STRONG BUY"
+def test_get_verdict_invest():
+    assert get_verdict(72) == "INVEST"
+    assert get_verdict(79.9) == "INVEST"
 
 
-def test_get_verdict_below_72():
-    assert get_verdict(71.9) == "ACCUMULATE"
-
-
-def test_get_verdict_boundary_50():
-    assert get_verdict(50) == "ACCUMULATE"
+def test_get_verdict_strong_buy():
+    assert get_verdict(80) == "STRONG BUY"
+    assert get_verdict(100) == "STRONG BUY"
 
 
 def test_compute_score_all_buy():
@@ -50,4 +47,4 @@ def test_compute_score_all_avoid():
 def test_compute_score_mixed():
     signals = {name: {"score": 100 if i % 2 == 0 else 0} for i, name in enumerate(SIGNAL_DISPLAY)}
     score = compute_score(signals, EQUAL_WEIGHTS)
-    assert 40 < score < 60  # roughly 50
+    assert 40 < score < 60
