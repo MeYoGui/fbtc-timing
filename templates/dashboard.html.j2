@@ -15,6 +15,28 @@
     .score-number { font-size: 4.5rem; font-weight: 700; line-height: 1; color: {{ score_color }}; }
     .score-label { font-size: 0.9rem; color: #555; margin-top: 0.4rem; }
     .verdict { font-size: 1.6rem; font-weight: 600; margin-top: 0.75rem; color: {{ score_color }}; letter-spacing: 0.05em; }
+
+    /* ── zone strip (score card) ── */
+    .zone-strip-wrap { max-width: 480px; margin: 1.5rem auto 0; }
+    .zone-strip { display: flex; height: 34px; border-radius: 7px; overflow: hidden; position: relative; }
+    .zone { display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; }
+    .z-avoid  { flex: 25; background: #ff523218; color: #ff5252; }
+    .z-wait   { flex: 25; background: #ffd74018; color: #ffd740; }
+    .z-close  { flex: 22; background: #ff980022; color: #ff9800; }
+    .z-invest { flex: 8;  background: #00c85328; color: #00c853; }
+    .z-strong { flex: 20; background: #00c85448; color: #00e676; font-size: 0.55rem; }
+    .z-cursor {
+      position: absolute; top: 0; width: 2px; height: 100%;
+      background: #fff; border-radius: 2px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.9);
+    }
+    .strip-labels { position: relative; height: 18px; margin-top: 5px; }
+    .strip-label { position: absolute; font-size: 0.68rem; color: #3a3a3a; transform: translateX(-50%); white-space: nowrap; }
+    .strip-label.edge-l { transform: translateX(0); }
+    .strip-label.edge-r { transform: translateX(-100%); }
+    .distance { margin-top: 0.85rem; font-size: 0.9rem; color: #888; }
+    .distance strong { font-weight: 600; }
+
     table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
     th { text-align: left; font-size: 0.75rem; font-weight: 500; color: #555; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.6rem 0.75rem; border-bottom: 1px solid #222; }
     td { padding: 0.85rem 0.75rem; border-bottom: 1px solid #1a1a1a; font-size: 0.9rem; }
@@ -42,6 +64,26 @@
     <div class="score-number">{{ composite_score }}</div>
     <div class="score-label">out of 100</div>
     <div class="verdict">{{ verdict }}</div>
+
+    <div class="zone-strip-wrap">
+      <div class="zone-strip">
+        <div class="zone z-avoid">AVOID</div>
+        <div class="zone z-wait">WAIT</div>
+        <div class="zone z-close">CLOSE</div>
+        <div class="zone z-invest">INVEST</div>
+        <div class="zone z-strong">STRONG BUY</div>
+        <div class="z-cursor" style="left: {{ composite_score }}%"></div>
+      </div>
+      <div class="strip-labels">
+        <span class="strip-label edge-l" style="color:#ff5252">0</span>
+        <span class="strip-label" style="left:25%; color:#ffd740">25</span>
+        <span class="strip-label" style="left:50%; color:#ff9800">50</span>
+        <span class="strip-label" style="left:72%; color:#00c853">72</span>
+        <span class="strip-label" style="left:80%; color:#00e676">80</span>
+        <span class="strip-label edge-r" style="left:100%; color:#555">100</span>
+      </div>
+      <div class="distance"><strong style="color: {{ score_color }}">{{ distance_text }}</strong></div>
+    </div>
   </div>
 
   <table>
