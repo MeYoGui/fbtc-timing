@@ -51,7 +51,7 @@ def get_score_color(verdict: str) -> str:
 
 
 def compute_signal_bar(name: str, raw, score: int, meta: dict) -> dict:
-    if raw is None:
+    if raw is None or (isinstance(raw, float) and np.isnan(raw)):
         return {"has_data": False}
 
     span = meta["range_hi"] - meta["range_lo"]
