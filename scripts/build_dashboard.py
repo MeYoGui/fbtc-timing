@@ -17,9 +17,6 @@ SIGNAL_DISPLAY = {
     "fear_greed":  "Fear & Greed",
 }
 
-STATUS_LABELS = {"buy": "Buy Zone", "neutral": "Neutral", "avoid": "Avoid"}
-
-
 def format_reading(name: str, raw) -> str:
     if raw is None or (isinstance(raw, float) and np.isnan(raw)):
         return "N/A"
@@ -43,14 +40,63 @@ def format_reading(name: str, raw) -> str:
     return f"{raw:.3f}"
 
 
-def get_score_color(score: float) -> str:
-    if score >= 75:
-        return "#00c853"
-    if score >= 50:
-        return "#69f0ae"
-    if score >= 25:
-        return "#ffd740"
-    return "#ff5252"
+def get_score_color(verdict: str) -> str:
+    return {
+        "STRONG BUY": "#00e676",
+        "INVEST":     "#00c853",
+        "CLOSE":      "#ff9800",
+        "WAIT":       "#ffd740",
+        "AVOID":      "#ff5252",
+    }.get(verdict, "#ffd740")
+
+
+def compute_signal_bar(name: str, raw, score: int, meta: dict) -> dict:
+    if raw is None:
+        return {"has_data": False}
+
+    span = meta["range_hi"] - meta["range_lo"]
+    avoid_pct  = round((meta["range_hi"] - meta["avoid_thresh"])  / span * 100, 1)
+    wait_pct   = round((meta["avoid_thresh"] - meta["invest_thresh"]) / span * 100, 1)
+    invest_pct = round(100.0 - avoid_pct - wait_pct, 1)
+
+    cursor_pct = (meta["range_hi"] - float(raw)) / span * 100
+    cursor_pct = round(max(0.0, min(100.0, cursor_pct)), 1)
+
+    thresh_avoid_pct  = avoid_pct
+    thresh_invest_pct = round(avoid_pct + wait_pct, 1)
+
+    dist_invest = abs(float(raw) - meta["invest_thresh"])
+    dist_avoid  = abs(float(raw) - meta["avoid_thresh"])
+
+    if score == 100:
+        status_class = "st-invest"
+        status_text  = "INVEST"
+    elif score == 0:
+        status_class = "st-avoid"
+        status_text  = "AVOID"
+    elif dist_invest <= dist_avoid:
+        status_class = "st-wait"
+        status_text  = f"WAIT · {dist_invest:.2g} from invest"
+    else:
+        status_class = "st-wait"
+        status_text  = f"WAIT · {dist_avoid:.2g} from avoid ⚠️"
+
+    fmt = meta["fmt"]
+    return {
+        "has_data":          True,
+        "avoid_pct":         avoid_pct,
+        "wait_pct":          wait_pct,
+        "invest_pct":        invest_pct,
+        "cursor_pct":        cursor_pct,
+        "thresh_avoid_pct":  thresh_avoid_pct,
+        "thresh_invest_pct": thresh_invest_pct,
+        "edge_left":         fmt.format(meta["range_hi"]),
+        "edge_right":        fmt.format(meta["range_lo"]),
+        "thresh_avoid_lbl":  fmt.format(meta["avoid_thresh"]),
+        "thresh_invest_lbl": fmt.format(meta["invest_thresh"]),
+        "status_class":      status_class,
+        "status_text":       status_text,
+    }
 
 
 def compute_historical_scores(signals_df: pd.DataFrame, weights: dict) -> pd.Series:
@@ -89,13 +135,19 @@ def main():
 
     chart_data = build_chart_data(price_df, signals_df, weights)
 
+    signal_meta = current_score["signal_meta"]
+
     signals = {}
     for name, data in current_score["signals"].items():
         signals[name] = {
-            "display_name": data["display_name"],
+            "display_name":      data["display_name"],
             "reading_formatted": format_reading(name, data["raw"]),
-            "status": data["status"],
-            "status_label": STATUS_LABELS[data["status"]],
+            "bar": compute_signal_bar(
+                name,
+                data["raw"],
+                data["score"],
+                signal_meta[name],
+            ),
         }
 
     methodology = {
@@ -112,14 +164,25 @@ def main():
     # Use last row with valid price
     btc_price = price_df.dropna(subset=["price"])["price"].iloc[-1]
 
+    composite = current_score["composite_score"]
+    verdict   = current_score["verdict"]
+
+    if composite >= 80:
+        distance_text = "You are in the Strong Buy zone"
+    elif composite >= 72:
+        distance_text = "You are in the Invest Zone"
+    else:
+        distance_text = f"{72 - composite:.1f} pts from Invest zone"
+
     env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
     template = env.get_template("dashboard.html.j2")
     html = template.render(
         btc_price=btc_price,
         updated_date=current_score["date"],
-        composite_score=current_score["composite_score"],
-        verdict=current_score["verdict"],
-        score_color=get_score_color(current_score["composite_score"]),
+        composite_score=composite,
+        verdict=verdict,
+        score_color=get_score_color(verdict),
+        distance_text=distance_text,
         signals=signals,
         chart_data_json=json.dumps(chart_data),
         methodology=methodology,
