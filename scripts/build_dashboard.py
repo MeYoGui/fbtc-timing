@@ -109,6 +109,79 @@ def compute_historical_scores(signals_df: pd.DataFrame, weights: dict) -> pd.Ser
     return pd.Series(scores, index=signals_df.index)
 
 
+def _score_to_verdict(score: float) -> str:
+    if score >= 80: return "STRONG BUY"
+    if score >= 72: return "INVEST"
+    if score >= 50: return "CLOSE"
+    if score >= 25: return "WAIT"
+    return "AVOID"
+
+
+def _spark_label(date: pd.Timestamp, window: str) -> str:
+    month_day = f"{date.strftime('%b')} {date.day}"
+    if window == "week":
+        return f"wk {month_day}"
+    if window == "month":
+        return date.strftime("%b %Y")
+    return month_day  # day
+
+
+def build_trend_data(signals_df: pd.DataFrame, weights: dict) -> dict:
+    """Pre-compute Day/Week/Month trend data for embedding in the dashboard HTML.
+
+    Returns a dict keyed by window ("day", "week", "month"), each containing:
+      delta  – float, composite score change from N periods ago (positive = improving)
+      spark  – list of up to 7 dicts {"score", "label", "verdict"}, oldest first
+      arrows – dict signal_name -> int (1=up, 0=flat, -1=down)
+    """
+    df = signals_df.copy()
+    df["composite_score"] = compute_historical_scores(df, weights)
+    df = df.set_index("date").sort_index()
+
+    today_composite = float(df["composite_score"].iloc[-1])
+    today_date = df.index[-1]
+    today_signals = {sig: int(df[sig].iloc[-1]) for sig in SIGNAL_DISPLAY}
+
+    spark_frames = {
+        "day":   df.resample("D").last().dropna(subset=["composite_score"]),
+        "week":  df.resample("W").last().dropna(subset=["composite_score"]),
+        "month": df.resample("ME").last().dropna(subset=["composite_score"]),
+    }
+    lookback_days = {"day": 1, "week": 7, "month": 30}
+
+    result = {}
+    for win in ("day", "week", "month"):
+        lookback_date = today_date - pd.Timedelta(days=lookback_days[win])
+        prior = df[df.index <= lookback_date]
+
+        if len(prior) > 0:
+            ref = prior.iloc[-1]
+            delta = round(today_composite - float(ref["composite_score"]), 1)
+            arrows = {
+                sig: (1 if today_signals[sig] > int(ref[sig])
+                      else -1 if today_signals[sig] < int(ref[sig])
+                      else 0)
+                for sig in SIGNAL_DISPLAY
+            }
+        else:
+            delta = 0.0
+            arrows = {sig: 0 for sig in SIGNAL_DISPLAY}
+
+        spark_scores = spark_frames[win]["composite_score"].tail(7)
+        spark = [
+            {
+                "score":   round(float(s), 1),
+                "label":   _spark_label(d, win),
+                "verdict": _score_to_verdict(float(s)),
+            }
+            for d, s in spark_scores.items()
+        ]
+
+        result[win] = {"delta": delta, "spark": spark, "arrows": arrows}
+
+    return result
+
+
 def build_chart_data(price_df: pd.DataFrame, signals_df: pd.DataFrame, weights: dict) -> dict:
     score_series = compute_historical_scores(signals_df, weights)
     signals_df = signals_df.copy()

@@ -1,8 +1,11 @@
 import pytest
 import sys
+import numpy as np
+import pandas as pd
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 from build_dashboard import compute_signal_bar
+from build_dashboard import build_trend_data
 
 MVRV_META = {
     "range_lo": -3.0, "range_hi": 4.0,
@@ -80,3 +83,81 @@ def test_fear_greed_invest_labels():
     assert result["edge_right"] == "0"
     assert result["thresh_avoid_lbl"] == "50"
     assert result["thresh_invest_lbl"] == "25"
+
+
+# ── build_trend_data ─────────────────────────────────────────────────────────
+
+_SIGNAL_NAMES = ["mvrv_zscore", "ma_200w", "monthly_rsi", "pi_cycle", "puell", "fear_greed"]
+
+def _make_signals_df(n_days: int = 400, start_score: int = 40, end_score: int = 60):
+    """Minimal signals_df with linearly changing integer scores over n_days."""
+    dates = pd.date_range(end="2026-05-31", periods=n_days, freq="D")
+    scores = np.linspace(start_score, end_score, n_days).round().astype(int)
+    data: dict = {"date": dates}
+    for sig in _SIGNAL_NAMES:
+        data[f"{sig}_raw"] = np.ones(n_days)
+        data[sig] = scores
+    return pd.DataFrame(data)
+
+_EQUAL_WEIGHTS = {
+    "signals": {sig: {"weight": 1.0} for sig in _SIGNAL_NAMES}
+}
+
+
+def test_trend_data_returns_all_windows():
+    result = build_trend_data(_make_signals_df(), _EQUAL_WEIGHTS)
+    assert set(result.keys()) == {"day", "week", "month"}
+
+
+def test_trend_each_window_has_required_keys():
+    result = build_trend_data(_make_signals_df(), _EQUAL_WEIGHTS)
+    for win in ("day", "week", "month"):
+        assert "delta" in result[win]
+        assert "spark" in result[win]
+        assert "arrows" in result[win]
+
+
+def test_trend_spark_has_seven_entries():
+    result = build_trend_data(_make_signals_df(n_days=400), _EQUAL_WEIGHTS)
+    for win in ("day", "week", "month"):
+        assert len(result[win]["spark"]) == 7
+
+
+def test_trend_spark_entry_keys():
+    result = build_trend_data(_make_signals_df(), _EQUAL_WEIGHTS)
+    for entry in result["day"]["spark"]:
+        assert "score" in entry
+        assert "label" in entry
+        assert "verdict" in entry
+
+
+def test_trend_arrows_cover_all_signals():
+    result = build_trend_data(_make_signals_df(), _EQUAL_WEIGHTS)
+    for win in ("day", "week", "month"):
+        assert set(result[win]["arrows"].keys()) == set(_SIGNAL_NAMES)
+
+
+def test_trend_arrow_values_are_valid():
+    result = build_trend_data(_make_signals_df(), _EQUAL_WEIGHTS)
+    for win in ("day", "week", "month"):
+        for sig, val in result[win]["arrows"].items():
+            assert val in (-1, 0, 1), f"{win}.{sig} arrow={val}"
+
+
+def test_trend_uptrend_gives_positive_delta():
+    # Scores rise 40→60 → today > yesterday
+    result = build_trend_data(_make_signals_df(n_days=40, start_score=40, end_score=60), _EQUAL_WEIGHTS)
+    assert result["day"]["delta"] > 0
+
+
+def test_trend_downtrend_gives_negative_delta():
+    # Scores fall 60→40 → today < yesterday
+    result = build_trend_data(_make_signals_df(n_days=40, start_score=60, end_score=40), _EQUAL_WEIGHTS)
+    assert result["day"]["delta"] < 0
+
+
+def test_trend_no_prior_data_gives_zero_delta():
+    # Only 1 row — no prior day to compare
+    result = build_trend_data(_make_signals_df(n_days=1), _EQUAL_WEIGHTS)
+    assert result["day"]["delta"] == 0.0
+    assert all(v == 0 for v in result["day"]["arrows"].values())
