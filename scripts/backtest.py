@@ -1,52 +1,25 @@
 import json
+import sys
 import numpy as np
 import pandas as pd
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from assets.registry import ASSETS
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 SIGNAL_NAMES = ["mvrv_zscore", "ma_200w", "monthly_rsi", "pi_cycle", "puell", "fear_greed"]
 
-# Approximate halving dates + far-future cap for the current cycle
-HALVING_DATES = [
-    "2009-01-03",
-    "2012-11-28",
-    "2016-07-09",
-    "2020-05-11",
-    "2024-04-19",
-    "2030-01-01",
-]
-
-HOLDING_DAYS = 548        # ~18 months
-MIN_RETURN = 0.50         # 50%
-CYCLE_BOTTOM_PCT = 0.40   # bottom 40% of cycle range
-
-
-def get_cycle_ranges(df: pd.DataFrame) -> pd.DataFrame:
-    halvings = pd.to_datetime(HALVING_DATES)
-    df = df.copy()
-    dates_ts = pd.to_datetime(df["date"])
-    df["cycle"] = pd.cut(dates_ts, bins=halvings, labels=range(len(halvings) - 1), right=False)
-
-    completed_cycles = list(range(len(halvings) - 2))  # all but the current one
-    cycle_stats = (
-        df[df["cycle"].isin(completed_cycles)]
-        .groupby("cycle")["price"]
-        .agg(cycle_low="min", cycle_high="max")
-    )
-    df = df.join(cycle_stats, on="cycle")
-
-    # For the current (incomplete) cycle, use running max / running min
-    current = len(halvings) - 2
-    mask = df["cycle"] == current
-    df.loc[mask, "cycle_high"] = df.loc[mask, "price"].expanding().max()
-    df.loc[mask, "cycle_low"] = df.loc[mask, "price"].expanding().min()
-
-    df["cycle_range_40pct"] = df["cycle_low"] + CYCLE_BOTTOM_PCT * (df["cycle_high"] - df["cycle_low"])
-    return df
+HOLDING_DAYS = 548
+MIN_RETURN = 0.50
 
 
 def label_good_entries(df: pd.DataFrame) -> pd.Series:
+    """Generic: forward-return + a precomputed cheapness threshold column.
+
+    df must contain 'price' and 'cycle_range_40pct'. Retained for test back-compat;
+    asset-specific good-entry logic now lives in each asset's good_entry()."""
     prices = df["price"].values
     thresholds = df["cycle_range_40pct"].values
     n = len(prices)
@@ -60,9 +33,10 @@ def label_good_entries(df: pd.DataFrame) -> pd.Series:
     return pd.Series(good, index=df.index)
 
 
-def compute_signal_stats(signals_df: pd.DataFrame, good_entries: pd.Series) -> dict:
+def compute_signal_stats(signals_df: pd.DataFrame, good_entries: pd.Series,
+                         signal_names=SIGNAL_NAMES) -> dict:
     stats = {}
-    for name in SIGNAL_NAMES:
+    for name in signal_names:
         buy = signals_df[name] == 100
         tp = (buy & good_entries).sum()
         fp = (buy & ~good_entries).sum()
@@ -78,56 +52,49 @@ def compute_signal_stats(signals_df: pd.DataFrame, good_entries: pd.Series) -> d
     return stats
 
 
-# MVRV Z-Score is a fundamental valuation metric with perfect historical precision.
-# We apply a 2× multiplier so it anchors the composite score to on-chain value,
-# preventing high-sentiment / low-precision signals from dominating.
-MVRV_WEIGHT_MULTIPLIER = 2.0
-
-
-def derive_weights(stats: dict) -> dict:
-    # Weight by precision (not F1) so rare, accurate signals outrank noisy ones.
-    raw = {s: stats[s]["precision"] for s in SIGNAL_NAMES}
-    raw["mvrv_zscore"] = raw["mvrv_zscore"] * MVRV_WEIGHT_MULTIPLIER
+def derive_weights(stats: dict, signal_names=SIGNAL_NAMES, weight_overrides=None) -> dict:
+    """Weight by precision; apply optional per-signal multipliers (e.g. MVRV 2x)."""
+    raw = {s: stats[s]["precision"] for s in signal_names}
+    for key, mult in (weight_overrides or {}).items():
+        if key in raw:
+            raw[key] = raw[key] * mult
     total = sum(raw.values())
     if total == 0:
-        equal = round(1.0 / len(SIGNAL_NAMES), 4)
-        return {s: equal for s in SIGNAL_NAMES}
-    return {s: round(raw[s] / total, 4) for s in SIGNAL_NAMES}
+        equal = round(1.0 / len(signal_names), 4)
+        return {s: equal for s in signal_names}
+    return {s: round(raw[s] / total, 4) for s in signal_names}
 
 
-def main():
-    price_df = pd.read_csv(DATA_DIR / "btc_history.csv")
+def _backtest_asset(cfg) -> None:
+    hist_path = DATA_DIR / f"{cfg.id}_history.csv"
+    sig_path = DATA_DIR / f"{cfg.id}_signal_history.csv"
+    if not hist_path.exists() or not sig_path.exists():
+        print(f"  skip {cfg.id}: history/signal file missing", file=sys.stderr)
+        return
+    price_df = pd.read_csv(hist_path)
     price_df["date"] = pd.to_datetime(price_df["date"])
-
-    signals_df = pd.read_csv(DATA_DIR / "signal_history.csv")
+    signals_df = pd.read_csv(sig_path)
     signals_df["date"] = pd.to_datetime(signals_df["date"])
 
-    print("Labelling good entry days...")
-    price_with_cycles = get_cycle_ranges(price_df)
-    good_entries = label_good_entries(price_with_cycles)
-    print(f"  {good_entries.sum()} good-entry days out of {len(good_entries)}")
-
-    merged = price_df[["date"]].merge(signals_df[["date"] + SIGNAL_NAMES], on="date", how="left")
-
-    print("Computing signal precision / recall...")
-    stats = compute_signal_stats(merged, good_entries)
-    weights = derive_weights(stats)
+    signal_names = [s.key for s in cfg.signals]
+    good = cfg.good_entry(price_df)
+    merged = price_df[["date"]].merge(signals_df[["date"] + signal_names], on="date", how="left")
+    stats = compute_signal_stats(merged, good, signal_names)
+    weights = derive_weights(stats, signal_names, cfg.weight_overrides)
 
     output = {
         "generated_at": str(pd.Timestamp.now().date()),
-        "good_entry_definition": {
-            "min_18mo_return": MIN_RETURN,
-            "cycle_bottom_pct": CYCLE_BOTTOM_PCT,
-        },
-        "signals": {
-            name: {"weight": weights[name], **stats[name]}
-            for name in SIGNAL_NAMES
-        },
+        "good_entry_definition": {"min_18mo_return": MIN_RETURN, "holding_days": HOLDING_DAYS},
+        "signals": {name: {"weight": weights[name], **stats[name]} for name in signal_names},
     }
-    (DATA_DIR / "weights.json").write_text(json.dumps(output, indent=2))
-    print("\nWeights saved to data/weights.json:")
-    for name, d in output["signals"].items():
-        print(f"  {name}: weight={d['weight']:.3f}  precision={d['precision']:.3f}  recall={d['recall']:.3f}  f1={d['f1']:.3f}")
+    (DATA_DIR / f"{cfg.id}_weights.json").write_text(json.dumps(output, indent=2))
+    print(f"  {cfg.id}: {int(good.sum())} good-entry days; weights written")
+
+
+def main():
+    for cfg in ASSETS:
+        print(f"Backtesting {cfg.display_name}...")
+        _backtest_asset(cfg)
 
 
 if __name__ == "__main__":

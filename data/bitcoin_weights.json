@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-05-30",
+  "generated_at": "2026-06-02",
   "good_entry_definition": {
     "min_18mo_return": 0.5,
-    "cycle_bottom_pct": 0.4
+    "holding_days": 548
   },
   "signals": {
     "mvrv_zscore": {
@@ -25,9 +25,9 @@
     },
     "pi_cycle": {
       "weight": 0.0903,
-      "precision": 0.5261,
+      "precision": 0.526,
       "recall": 0.824,
-      "f1": 0.6422
+      "f1": 0.6421
     },
     "puell": {
       "weight": 0.1602,
