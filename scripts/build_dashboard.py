@@ -168,13 +168,14 @@ def build_trend_data(signals_df: pd.DataFrame, weights: dict) -> dict:
             arrows = {sig: 0 for sig in SIGNAL_DISPLAY}
 
         spark_scores = spark_frames[win]["composite_score"].tail(7)
+        entries = list(spark_scores.items())
         spark = [
             {
                 "score":   round(float(s), 1),
-                "label":   _spark_label(d, win),
+                "label":   _spark_label(today_date if i == len(entries) - 1 else d, win),
                 "verdict": _score_to_verdict(float(s)),
             }
-            for d, s in spark_scores.items()
+            for i, (d, s) in enumerate(entries)
         ]
 
         result[win] = {"delta": delta, "spark": spark, "arrows": arrows}
