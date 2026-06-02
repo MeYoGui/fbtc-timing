@@ -210,6 +210,7 @@ def main():
     signals_df["date"] = pd.to_datetime(signals_df["date"])
 
     chart_data = build_chart_data(price_df, signals_df, weights)
+    trend_data = build_trend_data(signals_df, weights)
 
     signal_meta = current_score["signal_meta"]
 
@@ -265,6 +266,7 @@ def main():
         distance_text=distance_text,
         signals=signals,
         chart_data_json=json.dumps(chart_data),
+        trend_data_json=json.dumps(trend_data),
         methodology=methodology,
     )
 
