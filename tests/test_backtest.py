@@ -56,9 +56,10 @@ def test_derive_weights_higher_precision_gets_higher_weight():
 
 
 def test_derive_weights_mvrv_multiplier_applied():
-    # mvrv_zscore gets 2× multiplier, so equal-precision inputs give mvrv a higher weight
+    # mvrv_zscore's 2× multiplier now comes from the asset config's weight_overrides,
+    # so equal-precision inputs give mvrv a higher weight only when the override is passed.
     stats = {name: {"precision": 0.5} for name in SIGNAL_NAMES}
-    weights = derive_weights(stats)
+    weights = derive_weights(stats, weight_overrides={"mvrv_zscore": 2.0})
     assert weights["mvrv_zscore"] > weights["ma_200w"]
 
 

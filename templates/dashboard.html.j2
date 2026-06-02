@@ -28,9 +28,9 @@
     header h1 span:nth-child(6) { color: #00c853; } /* S */
     .meta { font-size: 0.85rem; color: #666; }
     .score-card { background: #161616; border-radius: 12px; padding: 2.5rem; text-align: center; margin-bottom: 2rem; }
-    .score-number { font-size: 4.5rem; font-weight: 700; line-height: 1; color: {{ score_color }}; }
+    .score-number { font-size: 4.5rem; font-weight: 700; line-height: 1; color: #f0f0f0; }
     .score-label { font-size: 0.9rem; color: #555; margin-top: 0.4rem; }
-    .verdict { font-size: 1.6rem; font-weight: 600; margin-top: 0.75rem; color: {{ score_color }}; letter-spacing: 0.05em; }
+    .verdict { font-size: 1.6rem; font-weight: 600; margin-top: 0.75rem; color: #f0f0f0; letter-spacing: 0.05em; }
 
     /* ── zone strip (score card) ── */
     .zone-strip-wrap { max-width: 480px; margin: 1.5rem auto 0; }
@@ -73,6 +73,19 @@
     td.trend-col { width: 28px; text-align: center; padding: 0.85rem 0.25rem; }
     th.trend-col { width: 28px; text-align: center; color: #333; font-size: 0.65rem; padding: 0.6rem 0.25rem; }
 
+    /* ── asset score-chip switcher ── */
+    .chip-row { display: flex; gap: 8px; margin-bottom: 1.2rem; }
+    .chip { flex: 0 0 auto; min-width: 150px; background: #161616; border: 1.5px solid transparent; border-radius: 11px; padding: 11px 12px; cursor: pointer; transition: background .15s; text-align: left; }
+    .chip:hover { background: #1a1a1a; }
+    .chip.active { background: #1a1a1a; }
+    .chip-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 4px; }
+    .chip-name { font-size: 0.82rem; font-weight: 600; color: #bbb; }
+    .chip-verdict { font-size: 0.6rem; font-weight: 700; letter-spacing: .03em; }
+    .chip-score { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+    .chip-spark { display: flex; align-items: flex-end; gap: 2px; height: 16px; margin-top: 6px; }
+    .chip-spark div { flex: 1; border-radius: 1px 1px 0 0; background: #333; }
+    .chip-add { flex: 0 0 auto; min-width: 130px; background: transparent; border: 1.5px dashed #2a2a2a; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: #3a3a3a; font-size: 0.8rem; font-weight: 600; }
+
     /* ── signal range bars ── */
     .sig-bar-wrap { display: flex; flex-direction: column; gap: 4px; }
     .sig-status { display: inline-block; align-self: flex-start; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.04em; padding: 1px 7px; border-radius: 3px; }
@@ -105,11 +118,12 @@
   </style>
 </head>
 <body>
-
   <header>
     <h1><span>K</span><span>A</span><span>I</span><span>R</span><span>O</span><span>S</span></h1>
-    <div class="meta">BTC ${{ "{:,.0f}".format(btc_price) }}&ensp;·&ensp;Updated {{ updated_at }}</div>
+    <div class="meta" id="meta"></div>
   </header>
+
+  <div class="chip-row" id="chip-row"></div>
 
   <div class="trend-toggle">
     <button id="tw-day"   onclick="setTrendWindow('day')">Day</button>
@@ -118,11 +132,10 @@
   </div>
 
   <div class="score-card">
-    <div class="score-number">{{ composite_score }}</div>
+    <div class="score-number" id="score-number"></div>
     <div class="score-label">out of 100</div>
-    <div class="verdict">{{ verdict }}</div>
+    <div class="verdict" id="verdict"></div>
     <div id="trend-delta" class="trend-delta"></div>
-
     <div class="zone-strip-wrap">
       <div class="zone-strip">
         <div class="zone z-avoid">AVOID</div>
@@ -130,7 +143,7 @@
         <div class="zone z-close">CLOSE</div>
         <div class="zone z-invest">INVEST</div>
         <div class="zone z-strong">STRONG BUY</div>
-        <div class="z-cursor" aria-hidden="true" style="left: {{ composite_score }}%"></div>
+        <div class="z-cursor" id="zone-cursor" aria-hidden="true"></div>
       </div>
       <div class="strip-labels">
         <span class="strip-label edge-l" style="color:#ff5252">0</span>
@@ -140,9 +153,8 @@
         <span class="strip-label" style="left:80%; color:#00e676">80</span>
         <span class="strip-label edge-r" style="left:100%; color:#555">100</span>
       </div>
-      <div class="distance"><strong style="color: {{ score_color }}">{{ distance_text }}</strong></div>
+      <div class="distance" id="distance"></div>
     </div>
-
     <div class="sparkline-wrap">
       <div id="sparkline" class="sparkline"></div>
       <div id="spark-lbl" class="spark-lbl"></div>
@@ -152,195 +164,180 @@
   <table>
     <thead>
       <tr>
-        <th>Signal</th>
-        <th>Reading</th>
-        <th class="trend-col">▲▼</th>
+        <th>Signal</th><th>Reading</th><th class="trend-col">▲▼</th>
         <th><span style="color:#ff525255">← Avoid</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#00c85355">Invest →</span></th>
       </tr>
     </thead>
-    <tbody>
-      {% for name, sig in signals.items() %}
-      <tr>
-        <td>{{ sig.display_name }}</td>
-        <td>{{ sig.reading_formatted }}</td>
-        <td class="trend-col"><span class="trend-arrow" data-sig="{{ name }}"></span></td>
-        <td>
-          {% if sig.bar.has_data %}
-          <div class="sig-bar-wrap">
-            <span class="sig-status {{ sig.bar.status_class }}">{{ sig.bar.status_text }}</span>
-            <div class="bar-outer">
-              <div class="bar-track">
-                <div class="seg-avoid" style="width:{{ sig.bar.avoid_pct }}%"></div>
-                <div class="seg-wait"  style="width:{{ sig.bar.wait_pct }}%"></div>
-                <div class="seg-invest" style="width:{{ sig.bar.invest_pct }}%"></div>
-              </div>
-              <div class="thresh-line" style="left:{{ sig.bar.thresh_avoid_pct }}%"></div>
-              <div class="thresh-line" style="left:{{ sig.bar.thresh_invest_pct }}%"></div>
-              <div class="sig-cursor"  style="left:{{ sig.bar.cursor_pct }}%"></div>
-            </div>
-            <div class="bar-labels">
-              <span class="bar-label edge-l">{{ sig.bar.edge_left }}</span>
-              <span class="bar-label" style="left:{{ sig.bar.thresh_avoid_pct }}%; color:#555">{{ sig.bar.thresh_avoid_lbl }}</span>
-              <span class="bar-label" style="left:{{ sig.bar.thresh_invest_pct }}%; color:#555">{{ sig.bar.thresh_invest_lbl }}</span>
-              <span class="bar-label edge-r" style="left:100%">{{ sig.bar.edge_right }}</span>
-            </div>
-          </div>
-          {% else %}
-          <span style="color:#444; font-size:0.8rem">No data</span>
-          {% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
+    <tbody id="signal-tbody"></tbody>
   </table>
 
-  <div class="chart-wrap">
-    <canvas id="chart" height="120"></canvas>
-  </div>
+  <div class="chart-wrap"><canvas id="chart" height="120"></canvas></div>
 
   <details>
     <summary>Methodology ›</summary>
     <table class="meth-table">
-      <thead>
-        <tr><th>Signal</th><th>Weight</th><th>Precision</th><th>Recall</th><th>F1</th></tr>
-      </thead>
-      <tbody>
-        {% for name, m in methodology.items() %}
-        <tr>
-          <td>{{ m.display_name }}</td>
-          <td>{{ "%.0f%%"|format(m.weight * 100) }}</td>
-          <td>{{ "%.0f%%"|format(m.precision * 100) }}</td>
-          <td>{{ "%.0f%%"|format(m.recall * 100) }}</td>
-          <td>{{ "%.2f"|format(m.f1) }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
+      <thead><tr><th>Signal</th><th>Weight</th><th>Precision</th><th>Recall</th><th>F1</th></tr></thead>
+      <tbody id="meth-tbody"></tbody>
     </table>
     <p class="def-note">
-      Good entry: 18-month forward return ≥ 50% and entry price within bottom 40% of the Bitcoin cycle range.
-      Weights are derived from the F1 score of each signal against historical good-entry days (2013–present).
+      Good entry: 18-month forward return ≥ 50% and entry price within bottom 40% of the cycle range.
+      Weights are derived from the precision of each signal against historical good-entry days.
     </p>
   </details>
 
   <script>
-    const d = {{ chart_data_json }};
-    new Chart(document.getElementById('chart'), {
-      type: 'line',
-      data: {
-        labels: d.dates,
-        datasets: [
-          {
-            label: 'BTC Price (USD)',
-            data: d.prices,
-            yAxisID: 'yPrice',
-            borderColor: '#f7931a',
-            borderWidth: 1.5,
-            pointRadius: 0,
-            tension: 0.1,
-          },
-          {
-            label: 'Composite Score',
-            data: d.scores,
-            yAxisID: 'yScore',
-            borderColor: '#69f0ae',
-            borderWidth: 1.5,
-            pointRadius: 0,
-            tension: 0.1,
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: { labels: { color: '#888', font: { size: 11 } } },
-        },
-        scales: {
-          x: {
-            ticks: { color: '#555', maxTicksLimit: 8, font: { size: 10 } },
-            grid: { color: '#1a1a1a' },
-          },
-          yPrice: {
-            type: 'logarithmic',
-            position: 'left',
-            ticks: { color: '#f7931a', font: { size: 10 } },
-            grid: { color: '#1a1a1a' },
-          },
-          yScore: {
-            position: 'right',
-            min: 0,
-            max: 100,
-            ticks: { color: '#69f0ae', font: { size: 10 } },
-            grid: { drawOnChartArea: false },
-          },
-        },
-      },
-    });
-  </script>
-
-  <script>
-    (function () {
-      const TREND = {{ trend_data_json }};
-
-      function zoneColor(s) {
-        return s >= 80 ? '#00e676' : s >= 72 ? '#00c853' : s >= 50 ? '#ff9800' : s >= 25 ? '#ffd740' : '#ff5252';
-      }
-
-      function setTrendWindow(w) {
-        const d = TREND[w];
-
-        // Delta line
-        const sign   = d.delta >= 0 ? '+' : '';
-        const arr    = d.delta > 0.5 ? '↑' : d.delta < -0.5 ? '↓' : '→';
-        const col    = d.delta > 0.5 ? '#00c853' : d.delta < -0.5 ? '#ff5252' : '#888';
-        const lbl    = { day: 'yesterday', week: 'last week', month: 'last month' }[w];
-        const deltaEl = document.getElementById('trend-delta');
-        deltaEl.textContent = arr + ' ' + sign + d.delta.toFixed(1) + ' pts vs ' + lbl;
-        deltaEl.style.color = col;
-
-        // Sparkline
-        const scores = d.spark.map(function(p) { return p.score; });
-        const mx = Math.max.apply(null, scores);
-        const mn = Math.min.apply(null, scores) - 3;
-        document.getElementById('sparkline').innerHTML = d.spark.map(function(p, i) {
-          var h    = Math.round(((p.score - mn) / (mx - mn)) * 30) + 4;
-          var last = i === d.spark.length - 1;
-          var opacity = (0.35 + 0.65 * (i / Math.max(1, d.spark.length - 1))).toFixed(2);
-          var bg   = last ? zoneColor(p.score) : '#2a2a2a';
-          var w_px = last ? 10 : 8;
-          return '<div class="spark-bar" style="width:' + w_px + 'px;height:' + h + 'px;background:' + bg + ';opacity:' + opacity + ';">'
-               + '<div class="spark-tip">' + p.label + '<br><strong style="color:' + zoneColor(p.score) + '">' + p.score + ' — ' + p.verdict + '</strong></div>'
-               + '</div>';
-        }).join('');
-        var sparkLbls = { day: 'last 7 days', week: 'last 7 weeks', month: 'last 7 months' };
-        document.getElementById('spark-lbl').textContent = sparkLbls[w];
-
-        // Signal arrows
-        var arrowChar  = { '1': '↑', '0': '→', '-1': '↓' };
-        var arrowColor = { '1': '#00c853', '0': '#ffd740', '-1': '#ff5252' };
-        document.querySelectorAll('.trend-arrow[data-sig]').forEach(function(el) {
-          var sig = el.getAttribute('data-sig');
-          var v   = String(d.arrows[sig]);
-          el.textContent  = arrowChar[v]  || '→';
-          el.style.color  = arrowColor[v] || '#ffd740';
-        });
-
-        // Toggle button active state
-        ['day', 'week', 'month'].forEach(function(k) {
-          document.getElementById('tw-' + k).classList.toggle('active', k === w);
-        });
-
-        try { localStorage.setItem('kairos-trend-window', w); } catch(e) {}
-      }
-
-      // Restore last-used window (default: day)
-      var saved = '';
-      try { saved = localStorage.getItem('kairos-trend-window') || ''; } catch(e) {}
-      var init = ['day', 'week', 'month'].indexOf(saved) !== -1 ? saved : 'day';
-      setTrendWindow(init);
-
-      window.setTrendWindow = setTrendWindow;
+    const ASSETS = {{ assets_json }};
+    const BY_ID = Object.fromEntries(ASSETS.map(a => [a.id, a]));
+    const UPDATED_AT = {{ updated_at | tojson }};
+    let currentId = (function () {
+      try { const s = localStorage.getItem('kairos-asset'); if (s && BY_ID[s]) return s; } catch (e) {}
+      return {{ default_asset | tojson }};
     })();
+    let currentWindow = (function () {
+      try { const w = localStorage.getItem('kairos-trend-window'); if (['day','week','month'].includes(w)) return w; } catch (e) {}
+      return 'day';
+    })();
+    let chart = null;
+
+    function zoneColor(s) {
+      return s >= 80 ? '#00e676' : s >= 72 ? '#00c853' : s >= 50 ? '#ff9800' : s >= 25 ? '#ffd740' : '#ff5252';
+    }
+
+    function renderChips() {
+      const row = document.getElementById('chip-row');
+      row.innerHTML = ASSETS.map(function (a) {
+        const col = zoneColor(a.composite);
+        const sp = a.trend.day.spark;
+        const mx = Math.max.apply(null, sp.map(p => p.score));
+        const mn = Math.min.apply(null, sp.map(p => p.score)) - 3;
+        const bars = sp.map(function (p, i) {
+          const h = Math.max(Math.round(((p.score - mn) / (mx - mn)) * 100), 12);
+          const last = i === sp.length - 1;
+          return '<div style="height:' + h + '%;' + (last ? 'background:' + col + ';' : '') + '"></div>';
+        }).join('');
+        const active = a.id === currentId;
+        return '<div class="chip' + (active ? ' active' : '') + '" style="' + (active ? 'border-color:' + a.accent_color : '') + '" onclick="setAsset(\'' + a.id + '\')">'
+          + '<div class="chip-top"><span class="chip-name">' + a.short_label + '</span><span class="chip-verdict" style="color:' + col + '">' + a.verdict + '</span></div>'
+          + '<div class="chip-score" style="color:' + col + '">' + Math.round(a.composite) + '</div>'
+          + '<div class="chip-spark">' + bars + '</div></div>';
+      }).join('') + '<div class="chip-add">+ more coming</div>';
+    }
+
+    function signalBarHTML(sig) {
+      const b = sig.bar;
+      if (!b.has_data) return '<span style="color:#444;font-size:0.8rem">No data</span>';
+      return '<div class="sig-bar-wrap">'
+        + '<span class="sig-status ' + b.status_class + '">' + b.status_text + '</span>'
+        + '<div class="bar-outer"><div class="bar-track">'
+        + '<div class="seg-avoid" style="width:' + b.avoid_pct + '%"></div>'
+        + '<div class="seg-wait" style="width:' + b.wait_pct + '%"></div>'
+        + '<div class="seg-invest" style="width:' + b.invest_pct + '%"></div></div>'
+        + '<div class="thresh-line" style="left:' + b.thresh_avoid_pct + '%"></div>'
+        + '<div class="thresh-line" style="left:' + b.thresh_invest_pct + '%"></div>'
+        + '<div class="sig-cursor" style="left:' + b.cursor_pct + '%"></div></div>'
+        + '<div class="bar-labels">'
+        + '<span class="bar-label edge-l">' + b.edge_left + '</span>'
+        + '<span class="bar-label" style="left:' + b.thresh_avoid_pct + '%;color:#555">' + b.thresh_avoid_lbl + '</span>'
+        + '<span class="bar-label" style="left:' + b.thresh_invest_pct + '%;color:#555">' + b.thresh_invest_lbl + '</span>'
+        + '<span class="bar-label edge-r" style="left:100%">' + b.edge_right + '</span></div></div>';
+    }
+
+    function renderTable(a) {
+      document.getElementById('signal-tbody').innerHTML = a.signals.map(function (sig) {
+        return '<tr><td>' + sig.display_name + '</td><td>' + sig.reading + '</td>'
+          + '<td class="trend-col"><span class="trend-arrow" data-key="' + sig.key + '"></span></td>'
+          + '<td>' + signalBarHTML(sig) + '</td></tr>';
+      }).join('');
+      document.getElementById('meth-tbody').innerHTML = a.methodology.map(function (m) {
+        return '<tr><td>' + m.display_name + '</td><td>' + Math.round(m.weight * 100) + '%</td>'
+          + '<td>' + Math.round(m.precision * 100) + '%</td><td>' + Math.round(m.recall * 100) + '%</td>'
+          + '<td>' + m.f1.toFixed(2) + '</td></tr>';
+      }).join('');
+    }
+
+    function renderChart(a) {
+      const d = a.chart;
+      if (chart) chart.destroy();
+      chart = new Chart(document.getElementById('chart'), {
+        type: 'line',
+        data: { labels: d.dates, datasets: [
+          { label: a.display_name + ' Price (USD)', data: d.prices, yAxisID: 'yPrice', borderColor: a.accent_color, borderWidth: 1.5, pointRadius: 0, tension: 0.1 },
+          { label: 'Composite Score', data: d.scores, yAxisID: 'yScore', borderColor: '#4dd0a7', borderWidth: 1.5, pointRadius: 0, tension: 0.1 },
+        ]},
+        options: {
+          responsive: true, interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: '#888', boxWidth: 12, font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: '#555', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: '#1a1a1a' } },
+            yPrice: { type: 'logarithmic', position: 'left', ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
+            yScore: { position: 'right', min: 0, max: 100, ticks: { color: '#555', font: { size: 10 } }, grid: { drawOnChartArea: false } },
+          },
+        },
+      });
+    }
+
+    function applyTrend(a) {
+      const t = a.trend[currentWindow];
+      const sign = t.delta >= 0 ? '+' : '';
+      const arr = t.delta > 0.5 ? '↑' : t.delta < -0.5 ? '↓' : '→';
+      const col = t.delta > 0.5 ? '#00c853' : t.delta < -0.5 ? '#ff5252' : '#888';
+      const lbl = { day: 'yesterday', week: 'last week', month: 'last month' }[currentWindow];
+      const de = document.getElementById('trend-delta');
+      de.textContent = arr + ' ' + sign + t.delta.toFixed(1) + ' pts vs ' + lbl;
+      de.style.color = col;
+
+      const scores = t.spark.map(p => p.score);
+      const mx = Math.max.apply(null, scores), mn = Math.min.apply(null, scores) - 3;
+      document.getElementById('sparkline').innerHTML = t.spark.map(function (p, i) {
+        const h = Math.round(((p.score - mn) / (mx - mn)) * 30) + 4;
+        const last = i === t.spark.length - 1;
+        const op = (0.35 + 0.65 * (i / Math.max(1, t.spark.length - 1))).toFixed(2);
+        return '<div class="spark-bar" style="width:' + (last ? 10 : 8) + 'px;height:' + h + 'px;background:' + (last ? zoneColor(p.score) : '#2a2a2a') + ';opacity:' + op + ';">'
+          + '<div class="spark-tip">' + p.label + '<br><strong style="color:' + zoneColor(p.score) + '">' + p.score + ' — ' + p.verdict + '</strong></div></div>';
+      }).join('');
+      document.getElementById('spark-lbl').textContent = { day: 'last 7 days', week: 'last 7 weeks', month: 'last 7 months' }[currentWindow];
+
+      const arrowChar = { '1': '↑', '0': '→', '-1': '↓' }, arrowCol = { '1': '#00c853', '0': '#ffd740', '-1': '#ff5252' };
+      document.querySelectorAll('.trend-arrow[data-key]').forEach(function (el) {
+        const v = String(t.arrows[el.getAttribute('data-key')]);
+        el.textContent = arrowChar[v] || '→';
+        el.style.color = arrowCol[v] || '#ffd740';
+      });
+      ['day', 'week', 'month'].forEach(function (k) {
+        document.getElementById('tw-' + k).classList.toggle('active', k === currentWindow);
+      });
+    }
+
+    function setTrendWindow(w) {
+      currentWindow = w;
+      try { localStorage.setItem('kairos-trend-window', w); } catch (e) {}
+      applyTrend(BY_ID[currentId]);
+    }
+    window.setTrendWindow = setTrendWindow;
+
+    function renderAsset(a) {
+      document.getElementById('meta').innerHTML = a.price_unit + a.price.toLocaleString() + '&ensp;·&ensp;Updated ' + UPDATED_AT;
+      const sn = document.getElementById('score-number');
+      sn.textContent = a.composite; sn.style.color = a.score_color;
+      const vd = document.getElementById('verdict');
+      vd.textContent = a.verdict; vd.style.color = a.score_color;
+      document.getElementById('zone-cursor').style.left = a.composite + '%';
+      document.getElementById('distance').innerHTML = '<strong style="color:' + a.score_color + '">' + a.distance_text + '</strong>';
+      renderTable(a);
+      renderChart(a);
+      applyTrend(a);
+    }
+
+    function setAsset(id) {
+      currentId = id;
+      try { localStorage.setItem('kairos-asset', id); } catch (e) {}
+      renderChips();
+      renderAsset(BY_ID[id]);
+    }
+    window.setAsset = setAsset;
+
+    renderChips();
+    renderAsset(BY_ID[currentId]);
   </script>
 
   <script>
