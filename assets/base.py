@@ -1,5 +1,5 @@
 """Typed config interface every asset must satisfy."""
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, Optional
 
 import pandas as pd
@@ -30,6 +30,6 @@ class AssetConfig:
     accent_color: str      # "#f7931a"
     price_unit: str        # "$" — header price prefix
     fetch: Callable[[], pd.DataFrame]               # returns history DataFrame (has "date")
-    signals: list                                   # list[SignalSpec], ordered for display
+    signals: list[SignalSpec]                      # ordered for display
     good_entry: Callable[[pd.DataFrame], pd.Series]  # backtest target (bool Series)
-    weight_overrides: Optional[dict] = None          # e.g. {"mvrv_zscore": 2.0} precision multiplier
+    weight_overrides: Optional[dict[str, float]] = None  # e.g. {"mvrv_zscore": 2.0} precision multiplier
