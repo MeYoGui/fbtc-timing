@@ -41,3 +41,34 @@ def test_bitcoin_scoring_parity():
     assert get_verdict(composite) == GOLDEN_VERDICT
     for key, expected in GOLDEN_SIGNAL_SCORES.items():
         assert current["signals"][key]["score"] == expected, key
+
+
+# ── assets/base.py ────────────────────────────────────────────────────────────
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from assets.base import AssetConfig, SignalSpec
+
+
+def _dummy_spec():
+    return SignalSpec(
+        key="x", display_name="X", compute=lambda df: df["x"],
+        invest_thresh=1.0, avoid_thresh=2.0,
+        range_lo=0.0, range_hi=3.0, fmt="{:.1f}",
+    )
+
+
+def test_signalspec_fields():
+    s = _dummy_spec()
+    assert s.key == "x"
+    assert s.invest_thresh < s.avoid_thresh
+    assert callable(s.compute)
+
+
+def test_assetconfig_requires_core_fields():
+    cfg = AssetConfig(
+        id="dummy", display_name="Dummy", short_label="D", accent_color="#fff",
+        price_unit="$", fetch=lambda: None, signals=[_dummy_spec()],
+        good_entry=lambda df: None,
+    )
+    assert cfg.id == "dummy"
+    assert cfg.weight_overrides is None
+    assert len(cfg.signals) == 1
