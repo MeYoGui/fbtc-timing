@@ -3,7 +3,7 @@ import sys
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from jinja2 import Environment, FileSystemLoader, Undefined
+from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -273,37 +273,6 @@ def _assemble_asset(cfg) -> dict:
     }
 
 
-class _SilentUndefined(Undefined):
-    """Undefined that silently degrades for all legacy-template access patterns.
-
-    The old template uses undefined variables in several ways that the default
-    Jinja Undefined would raise on:
-      • ``"{:,.0f}".format(btc_price)``  → TypeError in str.__format__
-      • ``{% for name, sig in signals.items() %}`` → UndefinedError
-      • ``{% for name, m in methodology.items() %}`` → UndefinedError
-
-    This class returns '' for format, itself (chainable) for attribute/item
-    access, and an empty iterator for iteration — keeping the build working
-    until Task 10 rewrites the template.
-    """
-    def __format__(self, fmt: str) -> str:  # type: ignore[override]
-        return ""
-
-    def __getattr__(self, name: str) -> "_SilentUndefined":  # type: ignore[override]
-        if name.startswith("_"):
-            raise AttributeError(name)
-        return self
-
-    def __getitem__(self, key: object) -> "_SilentUndefined":  # type: ignore[override]
-        return self
-
-    def __iter__(self):  # type: ignore[override]
-        return iter([])
-
-    def __call__(self, *args, **kwargs) -> "_SilentUndefined":  # type: ignore[override]
-        return self
-
-
 def main():
     updated_at = datetime.now(ZoneInfo("America/Toronto")).strftime("%Y-%m-%d %H:%M %Z")
     assets = []
@@ -314,10 +283,7 @@ def main():
     if not assets:
         raise RuntimeError("no assets could be assembled — aborting dashboard build")
 
-    env = Environment(
-        loader=FileSystemLoader(str(TEMPLATES_DIR)),
-        undefined=_SilentUndefined,
-    )
+    env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
     template = env.get_template("dashboard.html.j2")
     html = template.render(
         updated_at=updated_at,
