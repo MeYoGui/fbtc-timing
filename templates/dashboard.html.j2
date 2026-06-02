@@ -305,7 +305,7 @@
         document.getElementById('sparkline').innerHTML = d.spark.map(function(p, i) {
           var h    = Math.round(((p.score - mn) / (mx - mn)) * 30) + 4;
           var last = i === d.spark.length - 1;
-          var opacity = (0.35 + 0.65 * (i / (d.spark.length - 1))).toFixed(2);
+          var opacity = (0.35 + 0.65 * (i / Math.max(1, d.spark.length - 1))).toFixed(2);
           var bg   = last ? zoneColor(p.score) : '#2a2a2a';
           var w_px = last ? 10 : 8;
           return '<div class="spark-bar" style="width:' + w_px + 'px;height:' + h + 'px;background:' + bg + ';opacity:' + opacity + ';">'
