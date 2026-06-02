@@ -108,7 +108,7 @@
 
   <header>
     <h1><span>K</span><span>A</span><span>I</span><span>R</span><span>O</span><span>S</span></h1>
-    <div class="meta">BTC $73,600&ensp;·&ensp;Updated 2026-06-01 21:28 EDT</div>
+    <div class="meta">BTC $73,600&ensp;·&ensp;Updated 2026-06-01 21:31 EDT</div>
   </header>
 
   <div class="trend-toggle">
@@ -459,6 +459,71 @@
         },
       },
     });
+  </script>
+
+  <script>
+    (function () {
+      const TREND = {"day": {"delta": -3.1, "spark": [{"score": 45.9, "label": "May 25", "verdict": "WAIT"}, {"score": 45.9, "label": "May 26", "verdict": "WAIT"}, {"score": 49.1, "label": "May 27", "verdict": "WAIT"}, {"score": 57.6, "label": "May 28", "verdict": "CLOSE"}, {"score": 57.6, "label": "May 29", "verdict": "CLOSE"}, {"score": 57.6, "label": "May 30", "verdict": "CLOSE"}, {"score": 54.5, "label": "May 31", "verdict": "CLOSE"}], "arrows": {"mvrv_zscore": 0, "ma_200w": 0, "monthly_rsi": 0, "pi_cycle": 0, "puell": 0, "fear_greed": -1}}, "week": {"delta": 5.5, "spark": [{"score": 45.9, "label": "wk Apr 19", "verdict": "WAIT"}, {"score": 45.9, "label": "wk Apr 26", "verdict": "WAIT"}, {"score": 45.9, "label": "wk May 3", "verdict": "WAIT"}, {"score": 45.9, "label": "wk May 10", "verdict": "WAIT"}, {"score": 45.9, "label": "wk May 17", "verdict": "WAIT"}, {"score": 49.1, "label": "wk May 24", "verdict": "WAIT"}, {"score": 54.5, "label": "wk May 31", "verdict": "CLOSE"}], "arrows": {"mvrv_zscore": 0, "ma_200w": 1, "monthly_rsi": 0, "pi_cycle": 0, "puell": 0, "fear_greed": -1}}, "month": {"delta": 8.6, "spark": [{"score": 45.9, "label": "Nov 2025", "verdict": "WAIT"}, {"score": 49.1, "label": "Dec 2025", "verdict": "WAIT"}, {"score": 49.1, "label": "Jan 2026", "verdict": "WAIT"}, {"score": 57.6, "label": "Feb 2026", "verdict": "CLOSE"}, {"score": 57.6, "label": "Mar 2026", "verdict": "CLOSE"}, {"score": 45.9, "label": "Apr 2026", "verdict": "WAIT"}, {"score": 54.5, "label": "May 2026", "verdict": "CLOSE"}], "arrows": {"mvrv_zscore": 0, "ma_200w": 1, "monthly_rsi": 0, "pi_cycle": 0, "puell": 0, "fear_greed": 0}}};
+
+      function zoneColor(s) {
+        return s >= 80 ? '#00e676' : s >= 72 ? '#00c853' : s >= 50 ? '#ff9800' : s >= 25 ? '#ffd740' : '#ff5252';
+      }
+
+      function setTrendWindow(w) {
+        const d = TREND[w];
+
+        // Delta line
+        const sign   = d.delta >= 0 ? '+' : '';
+        const arr    = d.delta > 0.5 ? '↑' : d.delta < -0.5 ? '↓' : '→';
+        const col    = d.delta > 0.5 ? '#00c853' : d.delta < -0.5 ? '#ff5252' : '#888';
+        const lbl    = { day: 'yesterday', week: 'last week', month: 'last month' }[w];
+        const deltaEl = document.getElementById('trend-delta');
+        deltaEl.textContent = arr + ' ' + sign + d.delta.toFixed(1) + ' pts vs ' + lbl;
+        deltaEl.style.color = col;
+
+        // Sparkline
+        const scores = d.spark.map(function(p) { return p.score; });
+        const mx = Math.max.apply(null, scores);
+        const mn = Math.min.apply(null, scores) - 3;
+        document.getElementById('sparkline').innerHTML = d.spark.map(function(p, i) {
+          var h    = Math.round(((p.score - mn) / (mx - mn)) * 30) + 4;
+          var last = i === d.spark.length - 1;
+          var opacity = (0.35 + 0.65 * (i / (d.spark.length - 1))).toFixed(2);
+          var bg   = last ? zoneColor(p.score) : '#2a2a2a';
+          var w_px = last ? 10 : 8;
+          return '<div class="spark-bar" style="width:' + w_px + 'px;height:' + h + 'px;background:' + bg + ';opacity:' + opacity + ';">'
+               + '<div class="spark-tip">' + p.label + '<br><strong style="color:' + zoneColor(p.score) + '">' + p.score + ' — ' + p.verdict + '</strong></div>'
+               + '</div>';
+        }).join('');
+        var sparkLbls = { day: 'last 7 days', week: 'last 7 weeks', month: 'last 7 months' };
+        document.getElementById('spark-lbl').textContent = sparkLbls[w];
+
+        // Signal arrows
+        var arrowChar  = { '1': '↑', '0': '→', '-1': '↓' };
+        var arrowColor = { '1': '#00c853', '0': '#ffd740', '-1': '#ff5252' };
+        document.querySelectorAll('.trend-arrow[data-sig]').forEach(function(el) {
+          var sig = el.getAttribute('data-sig');
+          var v   = String(d.arrows[sig]);
+          el.textContent  = arrowChar[v]  || '→';
+          el.style.color  = arrowColor[v] || '#ffd740';
+        });
+
+        // Toggle button active state
+        ['day', 'week', 'month'].forEach(function(k) {
+          document.getElementById('tw-' + k).classList.toggle('active', k === w);
+        });
+
+        try { localStorage.setItem('kairos-trend-window', w); } catch(e) {}
+      }
+
+      // Restore last-used window (default: day)
+      var saved = '';
+      try { saved = localStorage.getItem('kairos-trend-window') || ''; } catch(e) {}
+      var init = ['day', 'week', 'month'].indexOf(saved) !== -1 ? saved : 'day';
+      setTrendWindow(init);
+
+      window.setTrendWindow = setTrendWindow;
+    })();
   </script>
 
   <script>
