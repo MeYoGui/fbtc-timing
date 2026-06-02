@@ -1,11 +1,8 @@
-import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 from score import compute_score, get_verdict
-
-DATA = Path(__file__).parent.parent / "data"
 
 # Golden values snapshotted from data/current_score.json on 2026-05-31.
 # These pin Bitcoin's scoring behaviour across the multi-asset refactor.
@@ -20,27 +17,29 @@ GOLDEN_SIGNAL_SCORES = {
     "fear_greed": 50,
 }
 
-
-def _load(name_candidates):
-    """Read the first data file that exists from a list of candidate names."""
-    for name in name_candidates:
-        p = DATA / name
-        if p.exists():
-            return json.loads(p.read_text())
-    raise FileNotFoundError(f"none of {name_candidates} found in {DATA}")
+# 2026-05-31 reference weights (precision-derived, MVRV 2× applied). Pinned here so
+# this regression test stays valid as the daily workflow refreshes live data files.
+GOLDEN_WEIGHTS = {
+    "signals": {
+        "mvrv_zscore": {"weight": 0.3434},
+        "ma_200w":     {"weight": 0.1717},
+        "monthly_rsi": {"weight": 0.1717},
+        "pi_cycle":    {"weight": 0.0903},
+        "puell":       {"weight": 0.1602},
+        "fear_greed":  {"weight": 0.0627},
+    }
+}
 
 
 def test_bitcoin_scoring_parity():
-    # current_signals.json is renamed to bitcoin_current_signals.json in Task 6;
-    # accept either so this test passes before and after the rename.
-    current = _load(["bitcoin_current_signals.json", "current_signals.json"])
-    weights = _load(["bitcoin_weights.json", "weights.json"])
+    """Data-independent regression guard for Bitcoin's scoring math.
 
-    composite = compute_score(current["signals"], weights)
+    Pins the 2026-05-31 signal scores + derived weights → composite 54.5 / CLOSE.
+    Uses inline fixtures (not the mutable data files) so it survives daily refreshes."""
+    signals = {key: {"score": score} for key, score in GOLDEN_SIGNAL_SCORES.items()}
+    composite = compute_score(signals, GOLDEN_WEIGHTS)
     assert composite == GOLDEN_COMPOSITE
     assert get_verdict(composite) == GOLDEN_VERDICT
-    for key, expected in GOLDEN_SIGNAL_SCORES.items():
-        assert current["signals"][key]["score"] == expected, key
 
 
 # ── assets/base.py ────────────────────────────────────────────────────────────
@@ -100,3 +99,17 @@ def test_bitcoin_thresholds_match_legacy():
 
 def test_bitcoin_weight_override_mvrv():
     assert bitcoin.CONFIG.weight_overrides == {"mvrv_zscore": 2.0}
+
+
+def test_adding_a_config_appears_in_registry(monkeypatch):
+    """A second AssetConfig appended to ASSETS is picked up generically."""
+    import assets.registry as reg
+    from assets.base import AssetConfig
+    from assets import bitcoin
+    extra = AssetConfig(
+        id="testcoin", display_name="TestCoin", short_label="T", accent_color="#abc",
+        price_unit="$", fetch=bitcoin.fetch, signals=bitcoin.CONFIG.signals,
+        good_entry=bitcoin.good_entry, weight_overrides=None,
+    )
+    monkeypatch.setattr(reg, "ASSETS", reg.ASSETS + [extra])
+    assert [a.id for a in reg.ASSETS] == ["bitcoin", "testcoin"]
