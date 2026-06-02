@@ -21,10 +21,10 @@ DATA_DIR = ROOT / "data"
 DOCS_DIR = ROOT / "docs"
 
 BACKED_UP = [
-    DATA_DIR / "btc_history.csv",
-    DATA_DIR / "signal_history.csv",
-    DATA_DIR / "current_signals.json",
-    DATA_DIR / "current_score.json",
+    DATA_DIR / "bitcoin_history.csv",
+    DATA_DIR / "bitcoin_signal_history.csv",
+    DATA_DIR / "bitcoin_current_signals.json",
+    DATA_DIR / "bitcoin_score.json",
 ]
 
 
@@ -33,9 +33,9 @@ def main():
     parser.add_argument("--date", required=True, help="Target date (YYYY-MM-DD)")
     args = parser.parse_args()
 
-    df = pd.read_csv(DATA_DIR / "btc_history.csv")
+    df = pd.read_csv(DATA_DIR / "bitcoin_history.csv")
     if args.date not in df["date"].values:
-        print(f"Error: {args.date} not found in btc_history.csv", file=sys.stderr)
+        print(f"Error: {args.date} not found in bitcoin_history.csv", file=sys.stderr)
         sys.exit(1)
 
     print(f"\n=== Replaying pipeline as of {args.date} ===\n")
@@ -49,8 +49,8 @@ def main():
 
     try:
         filtered = df[df["date"] <= args.date].copy()
-        filtered.to_csv(DATA_DIR / "btc_history.csv", index=False)
-        print(f"btc_history.csv filtered to {len(filtered)} rows (up to {args.date})\n")
+        filtered.to_csv(DATA_DIR / "bitcoin_history.csv", index=False)
+        print(f"bitcoin_history.csv filtered to {len(filtered)} rows (up to {args.date})\n")
 
         for script in ["compute_signals", "score", "build_dashboard"]:
             print(f"--- {script}.py ---")
