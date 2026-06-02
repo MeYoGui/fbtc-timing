@@ -53,6 +53,26 @@
     .distance { margin-top: 0.85rem; font-size: 0.9rem; color: #888; }
     .distance strong { font-weight: 600; }
 
+    /* ── trend toggle ── */
+    .trend-toggle { display: flex; justify-content: center; gap: 6px; margin-bottom: 1rem; }
+    .trend-toggle button { background: #1e1e1e; color: #555; border: none; border-radius: 20px; padding: 5px 18px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s, color .15s; }
+    .trend-toggle button.active { background: #fff; color: #000; }
+
+    /* ── trend delta + sparkline ── */
+    .trend-delta { margin-top: 0.6rem; font-size: 0.95rem; font-weight: 600; min-height: 1.2em; }
+    .sparkline-wrap { margin-top: 0.9rem; }
+    .sparkline { display: flex; align-items: flex-end; justify-content: center; gap: 4px; height: 44px; padding-top: 8px; }
+    .spark-bar { border-radius: 2px 2px 0 0; cursor: pointer; position: relative; flex-shrink: 0; }
+    .spark-bar:hover .spark-tip, .spark-bar.tip-open .spark-tip { display: block; }
+    .spark-tip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 5px; padding: 3px 8px; white-space: nowrap; font-size: 0.72rem; color: #e0e0e0; pointer-events: none; z-index: 10; }
+    .spark-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 4px solid transparent; border-top-color: #3a3a3a; }
+    .spark-lbl { font-size: 0.7rem; color: #444; margin-top: 4px; }
+
+    /* ── signal trend arrow column ── */
+    .trend-arrow { font-size: 1.05rem; font-weight: 700; }
+    td.trend-col { width: 28px; text-align: center; padding: 0.85rem 0.25rem; }
+    th.trend-col { width: 28px; text-align: center; color: #333; font-size: 0.65rem; padding: 0.6rem 0.25rem; }
+
     /* ── signal range bars ── */
     .sig-bar-wrap { display: flex; flex-direction: column; gap: 4px; }
     .sig-status { display: inline-block; align-self: flex-start; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.04em; padding: 1px 7px; border-radius: 3px; }
@@ -88,13 +108,20 @@
 
   <header>
     <h1><span>K</span><span>A</span><span>I</span><span>R</span><span>O</span><span>S</span></h1>
-    <div class="meta">BTC $73,600&ensp;·&ensp;Updated 2026-06-01 21:22 EDT</div>
+    <div class="meta">BTC $73,600&ensp;·&ensp;Updated 2026-06-01 21:28 EDT</div>
   </header>
+
+  <div class="trend-toggle">
+    <button id="tw-day"   onclick="setTrendWindow('day')">Day</button>
+    <button id="tw-week"  onclick="setTrendWindow('week')">Week</button>
+    <button id="tw-month" onclick="setTrendWindow('month')">Month</button>
+  </div>
 
   <div class="score-card">
     <div class="score-number">54.5</div>
     <div class="score-label">out of 100</div>
     <div class="verdict">CLOSE</div>
+    <div id="trend-delta" class="trend-delta"></div>
 
     <div class="zone-strip-wrap">
       <div class="zone-strip">
@@ -115,6 +142,11 @@
       </div>
       <div class="distance"><strong style="color: #ff9800">17.5 pts from Invest zone</strong></div>
     </div>
+
+    <div class="sparkline-wrap">
+      <div id="sparkline" class="sparkline"></div>
+      <div id="spark-lbl" class="spark-lbl"></div>
+    </div>
   </div>
 
   <table>
@@ -122,6 +154,7 @@
       <tr>
         <th>Signal</th>
         <th>Reading</th>
+        <th class="trend-col">▲▼</th>
         <th><span style="color:#ff525255">← Avoid</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#00c85355">Invest →</span></th>
       </tr>
     </thead>
@@ -130,6 +163,7 @@
       <tr>
         <td>MVRV Z-Score</td>
         <td>-0.25</td>
+        <td class="trend-col"><span class="trend-arrow" data-sig="mvrv_zscore"></span></td>
         <td>
           
           <div class="sig-bar-wrap">
@@ -158,6 +192,7 @@
       <tr>
         <td>200-Week MA</td>
         <td>+19.5% vs 200WMA</td>
+        <td class="trend-col"><span class="trend-arrow" data-sig="ma_200w"></span></td>
         <td>
           
           <div class="sig-bar-wrap">
@@ -186,6 +221,7 @@
       <tr>
         <td>Monthly RSI</td>
         <td>47</td>
+        <td class="trend-col"><span class="trend-arrow" data-sig="monthly_rsi"></span></td>
         <td>
           
           <div class="sig-bar-wrap">
@@ -214,6 +250,7 @@
       <tr>
         <td>Pi Cycle</td>
         <td>111DMA -61.3% vs 2×350DMA</td>
+        <td class="trend-col"><span class="trend-arrow" data-sig="pi_cycle"></span></td>
         <td>
           
           <div class="sig-bar-wrap">
@@ -242,6 +279,7 @@
       <tr>
         <td>Puell Multiple</td>
         <td>0.74</td>
+        <td class="trend-col"><span class="trend-arrow" data-sig="puell"></span></td>
         <td>
           
           <div class="sig-bar-wrap">
@@ -270,6 +308,7 @@
       <tr>
         <td>Fear & Greed</td>
         <td>28 / 100</td>
+        <td class="trend-col"><span class="trend-arrow" data-sig="fear_greed"></span></td>
         <td>
           
           <div class="sig-bar-wrap">
