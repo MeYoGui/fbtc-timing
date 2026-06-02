@@ -3,6 +3,16 @@ import math
 import numpy as np
 import pandas as pd
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from assets.signals import (
+    compute_mvrv_zscore,
+    compute_200w_ma_ratio,
+    compute_monthly_rsi,
+    compute_pi_cycle_ratio,
+    compute_puell_multiple,
+    compute_fear_greed,
+)
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 
@@ -19,42 +29,6 @@ def _sanitize_float(v):
 
 
 SIGNAL_NAMES = ["mvrv_zscore", "ma_200w", "monthly_rsi", "pi_cycle", "puell", "fear_greed"]
-
-
-def compute_mvrv_zscore(df: pd.DataFrame) -> pd.Series:
-    """Z-score of the MVRV ratio (market cap / realized cap) over its full history."""
-    mvrv = df["mvrv"]
-    std = mvrv.std()
-    if std == 0:
-        return pd.Series(np.zeros(len(df)), index=df.index)
-    return (mvrv - mvrv.mean()) / std
-
-
-def compute_200w_ma_ratio(df: pd.DataFrame) -> pd.Series:
-    ma = df["price"].rolling(window=1400, min_periods=200).mean()
-    return df["price"] / ma
-
-
-def compute_monthly_rsi(df: pd.DataFrame, period: int = 14) -> np.ndarray:
-    daily_idx = pd.to_datetime(df["date"])
-    monthly = df.set_index(daily_idx)["price"].resample("ME").last()
-    delta = monthly.diff()
-    gain = delta.clip(lower=0).ewm(com=period - 1, adjust=False).mean()
-    loss = (-delta.clip(upper=0)).ewm(com=period - 1, adjust=False).mean()
-    rs = gain / loss.replace(0, np.nan)
-    rsi = 100 - (100 / (1 + rs))
-    return rsi.reindex(daily_idx, method="ffill").values
-
-
-def compute_pi_cycle_ratio(df: pd.DataFrame) -> pd.Series:
-    ma_111 = df["price"].rolling(111).mean()
-    ma_350_x2 = df["price"].rolling(350).mean() * 2
-    return ma_111 / ma_350_x2
-
-
-def compute_puell_multiple(df: pd.DataFrame) -> pd.Series:
-    ma_365 = df["miner_revenue"].rolling(365).mean()
-    return df["miner_revenue"] / ma_365
 
 
 def signal_score(value: float, buy_threshold: float, avoid_threshold: float) -> int:
@@ -82,11 +56,8 @@ def compute_all_signals(df: pd.DataFrame) -> pd.DataFrame:
     out["ma_200w_ratio_raw"] = compute_200w_ma_ratio(df)
     out["ma_200w"] = score_series(out["ma_200w_ratio_raw"], 1.0, 1.2)
 
-    rsi = compute_monthly_rsi(df)
-    out["monthly_rsi_raw"] = rsi
-    out["monthly_rsi"] = pd.Series(rsi, index=df.index).apply(
-        lambda v: signal_score(v, 40.0, 70.0) if pd.notna(v) else 50
-    )
+    out["monthly_rsi_raw"] = compute_monthly_rsi(df)
+    out["monthly_rsi"] = score_series(out["monthly_rsi_raw"], 40.0, 70.0)
 
     out["pi_cycle_ratio_raw"] = compute_pi_cycle_ratio(df)
     out["pi_cycle"] = score_series(out["pi_cycle_ratio_raw"], 0.9, 1.0)
