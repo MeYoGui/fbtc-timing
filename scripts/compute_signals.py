@@ -1,6 +1,5 @@
 import json
 import math
-import numpy as np
 import pandas as pd
 from pathlib import Path
 import sys
