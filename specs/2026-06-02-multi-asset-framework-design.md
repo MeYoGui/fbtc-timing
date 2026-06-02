@@ -7,6 +7,10 @@ Convert the Kairos dashboard from a hard-coded single-asset (Bitcoin) pipeline i
 
 This is the foundation-only slice of a larger multi-asset vision. Non-crypto assets (e.g., gold) and the new data sources / signal types / backtest semantics they require are explicitly **out of scope** here and will be designed separately when a non-crypto asset is actually added.
 
+## Visual Reference
+
+The chosen UI is locked. See `specs/2026-06-02-multi-asset-ui-reference.png` — the in-scope layout: a single zone-colored **Bitcoin** score chip (score, verdict, mini-sparkline) selected with its accent-colored border, followed by a dimmed dashed **"+ more coming"** placeholder chip, expanding into the full existing dashboard (trend toggle, score card, zone strip, sparkline, signal table) below. The implementation should match this.
+
 ---
 
 ## Background — current architecture
