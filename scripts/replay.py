@@ -4,7 +4,7 @@ Simulate the daily GHA pipeline as of a specific historical date.
 Usage:
     python scripts/replay.py --date 2026-05-29
 
-Filters btc_history.csv to the target date, runs compute_signals →
+Filters bitcoin_history.csv to the target date, runs compute_signals →
 score → build_dashboard exactly as the workflow does, then restores
 all original data files so the working state is unchanged.
 """
