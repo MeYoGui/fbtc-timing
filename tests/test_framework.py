@@ -72,3 +72,31 @@ def test_assetconfig_requires_core_fields():
     assert cfg.id == "dummy"
     assert cfg.weight_overrides is None
     assert len(cfg.signals) == 1
+
+
+# ── assets/bitcoin.py + registry ──────────────────────────────────────────────
+from assets.registry import ASSETS
+from assets import bitcoin
+
+
+def test_registry_contains_bitcoin():
+    assert any(a.id == "bitcoin" for a in ASSETS)
+
+
+def test_bitcoin_has_six_signals():
+    keys = [s.key for s in bitcoin.CONFIG.signals]
+    assert keys == ["mvrv_zscore", "ma_200w", "monthly_rsi", "pi_cycle", "puell", "fear_greed"]
+
+
+def test_bitcoin_thresholds_match_legacy():
+    by_key = {s.key: s for s in bitcoin.CONFIG.signals}
+    assert by_key["mvrv_zscore"].invest_thresh == -0.5
+    assert by_key["mvrv_zscore"].avoid_thresh == 1.5
+    assert by_key["fear_greed"].invest_thresh == 25.0
+    assert by_key["fear_greed"].avoid_thresh == 50.0
+    assert by_key["pi_cycle"].invest_thresh == 0.9
+    assert by_key["pi_cycle"].avoid_thresh == 1.0
+
+
+def test_bitcoin_weight_override_mvrv():
+    assert bitcoin.CONFIG.weight_overrides == {"mvrv_zscore": 2.0}
