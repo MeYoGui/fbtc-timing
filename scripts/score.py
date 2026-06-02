@@ -42,6 +42,7 @@ def compute_score(signals: dict, weights: dict) -> float:
 
 
 def _sanitize_float(v):
+    """Convert NaN/inf to None for valid JSON null output."""
     if v is None:
         return None
     try:
@@ -70,7 +71,8 @@ def _score_asset(cfg) -> None:
         return
     if not weights_path.exists():
         raise FileNotFoundError(
-            f"{weights_path.name} not found — run 'python scripts/backtest.py' first."
+            f"{weights_path.name} not found — run 'python scripts/backtest.py' first "
+            "or trigger the 'Re-derive Signal Weights' workflow on GitHub Actions."
         )
     current = json.loads(current_path.read_text())
     weights = json.loads(weights_path.read_text())
