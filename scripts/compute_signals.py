@@ -4,6 +4,7 @@ import pandas as pd
 from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
+from assets.base import AssetConfig
 from assets.signals import (
     compute_mvrv_zscore,
     compute_200w_ma_ratio,
@@ -48,7 +49,7 @@ def score_series(series: pd.Series, buy_threshold: float, avoid_threshold: float
 from assets.registry import ASSETS
 
 
-def compute_all_signals(df, signals) -> pd.DataFrame:
+def compute_all_signals(df: pd.DataFrame, signals: list) -> pd.DataFrame:
     """Build a {key}_raw + {key} score column per SignalSpec."""
     out = pd.DataFrame({"date": df["date"]})
     for spec in signals:
@@ -57,7 +58,7 @@ def compute_all_signals(df, signals) -> pd.DataFrame:
     return out
 
 
-def _process_asset(cfg) -> None:
+def _process_asset(cfg: AssetConfig) -> None:
     hist_path = DATA_DIR / f"{cfg.id}_history.csv"
     if not hist_path.exists():
         print(f"  skip {cfg.id}: {hist_path.name} missing", file=sys.stderr)
@@ -68,7 +69,10 @@ def _process_asset(cfg) -> None:
     signals = compute_all_signals(df, cfg.signals)
     signals.to_csv(DATA_DIR / f"{cfg.id}_signal_history.csv", index=False)
 
-    def _last_valid(raw_col, score_col):
+    def _last_valid(raw_col: str, score_col: str) -> tuple:
+        """Return (raw, score) from the last row where raw is not NaN.
+        Falls back to (NaN, 50) if the column is entirely NaN.
+        Handles API lag: some sources (MVRV, Puell) publish 1-2 days late."""
         valid = signals[raw_col].notna()
         if not valid.any():
             return float("nan"), 50
