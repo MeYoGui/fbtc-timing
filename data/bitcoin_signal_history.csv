@@ -1,4 +1,4 @@
-date,mvrv_zscore_raw,mvrv_zscore,ma_200w_ratio_raw,ma_200w,monthly_rsi_raw,monthly_rsi,pi_cycle_ratio_raw,pi_cycle,puell_raw,puell,fear_greed_raw,fear_greed
+date,mvrv_zscore_raw,mvrv_zscore,ma_200w_raw,ma_200w,monthly_rsi_raw,monthly_rsi,pi_cycle_raw,pi_cycle,puell_raw,puell,fear_greed_raw,fear_greed
 2010-07-18,58.422213425912766,0,,50,,50,,50,,50,,50
 2010-07-19,24.571197703149284,0,,50,,50,,50,,50,,50
 2010-07-20,17.491225582068623,0,,50,,50,,50,,50,,50
