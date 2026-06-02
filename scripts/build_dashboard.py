@@ -1,10 +1,14 @@
 import json
+import sys
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, Undefined
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from assets.registry import ASSETS
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
@@ -201,78 +205,128 @@ def build_chart_data(price_df: pd.DataFrame, signals_df: pd.DataFrame, weights: 
     }
 
 
-def main():
-    current_score = json.loads((DATA_DIR / "current_score.json").read_text())
-    weights = json.loads((DATA_DIR / "weights.json").read_text())
-    price_df = pd.read_csv(DATA_DIR / "btc_history.csv")
+def _assemble_asset(cfg) -> dict:
+    """Build the full client-render blob for one asset, or None if data is missing."""
+    score_path = DATA_DIR / f"{cfg.id}_score.json"
+    hist_path = DATA_DIR / f"{cfg.id}_history.csv"
+    sig_path = DATA_DIR / f"{cfg.id}_signal_history.csv"
+    weights_path = DATA_DIR / f"{cfg.id}_weights.json"
+    if not all(p.exists() for p in (score_path, hist_path, sig_path, weights_path)):
+        print(f"  skip {cfg.id}: missing data files", file=sys.stderr)
+        return None
+
+    current_score = json.loads(score_path.read_text())
+    weights = json.loads(weights_path.read_text())
+    price_df = pd.read_csv(hist_path)
     price_df["date"] = pd.to_datetime(price_df["date"])
-    signals_df = pd.read_csv(DATA_DIR / "signal_history.csv")
+    signals_df = pd.read_csv(sig_path)
     signals_df["date"] = pd.to_datetime(signals_df["date"])
 
-    chart_data = build_chart_data(price_df, signals_df, weights)
-    trend_data = build_trend_data(signals_df, weights)
-
     signal_meta = current_score["signal_meta"]
-
-    signals = {}
-    for name, data in current_score["signals"].items():
-        signals[name] = {
-            "display_name":      data["display_name"],
-            "reading_formatted": format_reading(name, data["raw"]),
-            "bar": compute_signal_bar(
-                name,
-                data["raw"],
-                data["score"],
-                signal_meta[name],
-            ),
-        }
-
-    methodology = {
-        name: {
-            "display_name": SIGNAL_DISPLAY[name],
-            "weight":    weights["signals"][name]["weight"],
-            "precision": weights["signals"][name]["precision"],
-            "recall":    weights["signals"][name]["recall"],
-            "f1":        weights["signals"][name]["f1"],
-        }
-        for name in SIGNAL_DISPLAY
-    }
-
-    # Use last row with valid price
-    btc_price = price_df.dropna(subset=["price"])["price"].iloc[-1]
+    signals = []
+    for spec in cfg.signals:
+        data = current_score["signals"][spec.key]
+        signals.append({
+            "key": spec.key,
+            "display_name": data["display_name"],
+            "reading": format_reading(spec.key, data["raw"]),
+            "bar": compute_signal_bar(spec.key, data["raw"], data["score"], signal_meta[spec.key]),
+        })
 
     composite = current_score["composite_score"]
-    verdict   = current_score["verdict"]
-
+    verdict = current_score["verdict"]
     if composite >= 80:
         distance_text = "You are in the Strong Buy zone"
     elif composite >= 72:
-        distance_text = "You are in the Invest Zone"
+        distance_text = "You are in the Invest zone"
     else:
         distance_text = f"{72 - composite:.1f} pts from Invest zone"
 
-    # Wall-clock time the dashboard was refreshed, in Montreal time (handles DST).
-    updated_at = datetime.now(ZoneInfo("America/Toronto")).strftime("%Y-%m-%d %H:%M %Z")
+    btc_price = price_df.dropna(subset=["price"])["price"].iloc[-1]
 
-    env = Environment(loader=FileSystemLoader(str(TEMPLATES_DIR)))
+    methodology = [
+        {
+            "display_name": next(s.display_name for s in cfg.signals if s.key == name),
+            "weight": weights["signals"][name]["weight"],
+            "precision": weights["signals"][name]["precision"],
+            "recall": weights["signals"][name]["recall"],
+            "f1": weights["signals"][name]["f1"],
+        }
+        for name in (s.key for s in cfg.signals)
+    ]
+
+    return {
+        "id": cfg.id,
+        "display_name": cfg.display_name,
+        "short_label": cfg.short_label,
+        "accent_color": cfg.accent_color,
+        "price_unit": cfg.price_unit,
+        "price": round(float(btc_price)),
+        "composite": composite,
+        "verdict": verdict,
+        "score_color": get_score_color(verdict),
+        "distance_text": distance_text,
+        "signals": signals,
+        "chart": build_chart_data(price_df, signals_df, weights),
+        "trend": build_trend_data(signals_df, weights),
+        "methodology": methodology,
+    }
+
+
+class _SilentUndefined(Undefined):
+    """Undefined that silently degrades for all legacy-template access patterns.
+
+    The old template uses undefined variables in several ways that the default
+    Jinja Undefined would raise on:
+      • ``"{:,.0f}".format(btc_price)``  → TypeError in str.__format__
+      • ``{% for name, sig in signals.items() %}`` → UndefinedError
+      • ``{% for name, m in methodology.items() %}`` → UndefinedError
+
+    This class returns '' for format, itself (chainable) for attribute/item
+    access, and an empty iterator for iteration — keeping the build working
+    until Task 10 rewrites the template.
+    """
+    def __format__(self, fmt: str) -> str:  # type: ignore[override]
+        return ""
+
+    def __getattr__(self, name: str) -> "_SilentUndefined":  # type: ignore[override]
+        if name.startswith("_"):
+            raise AttributeError(name)
+        return self
+
+    def __getitem__(self, key: object) -> "_SilentUndefined":  # type: ignore[override]
+        return self
+
+    def __iter__(self):  # type: ignore[override]
+        return iter([])
+
+    def __call__(self, *args, **kwargs) -> "_SilentUndefined":  # type: ignore[override]
+        return self
+
+
+def main():
+    updated_at = datetime.now(ZoneInfo("America/Toronto")).strftime("%Y-%m-%d %H:%M %Z")
+    assets = []
+    for cfg in ASSETS:
+        blob = _assemble_asset(cfg)
+        if blob is not None:
+            assets.append(blob)
+    if not assets:
+        raise RuntimeError("no assets could be assembled — aborting dashboard build")
+
+    env = Environment(
+        loader=FileSystemLoader(str(TEMPLATES_DIR)),
+        undefined=_SilentUndefined,
+    )
     template = env.get_template("dashboard.html.j2")
     html = template.render(
-        btc_price=btc_price,
-        updated_date=current_score["date"],
         updated_at=updated_at,
-        composite_score=composite,
-        verdict=verdict,
-        score_color=get_score_color(verdict),
-        distance_text=distance_text,
-        signals=signals,
-        chart_data_json=json.dumps(chart_data),
-        trend_data_json=json.dumps(trend_data),
-        methodology=methodology,
+        assets_json=json.dumps(assets),
+        default_asset=assets[0]["id"],
     )
-
     DOCS_DIR.mkdir(exist_ok=True)
     (DOCS_DIR / "index.html").write_text(html, encoding="utf-8")
-    print(f"Dashboard written to docs/index.html ({len(html):,} bytes)")
+    print(f"Dashboard written to docs/index.html ({len(html):,} bytes; {len(assets)} asset(s))")
 
 
 if __name__ == "__main__":

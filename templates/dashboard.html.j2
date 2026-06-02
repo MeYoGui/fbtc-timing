@@ -350,5 +350,9 @@
       });
     }
   </script>
+
+  {# Task 9: per-asset data blobs for client render (Task 10 will consume these) #}
+  <script id="assets-data" type="application/json">{{ assets_json }}</script>
+  <script>window.__DEFAULT_ASSET__ = {{ default_asset | tojson }};</script>
 </body>
 </html>
