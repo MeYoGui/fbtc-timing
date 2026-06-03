@@ -15,3 +15,22 @@ def test_generate_returns_appkey_and_pem():
     # private key: unencrypted PKCS8 PEM
     assert priv_pem.startswith("-----BEGIN PRIVATE KEY-----")
     assert priv_pem.strip().endswith("-----END PRIVATE KEY-----")
+
+
+import build_dashboard
+
+
+def test_notify_entries_shape():
+    assets = [
+        {
+            "id": "bitcoin", "display_name": "Bitcoin",
+            "composite": 54.5, "verdict": "CLOSE",
+            "trend": {"day": {"delta": 2.1, "spark": [], "arrows": {}}},
+            "short_label": "₿ Bitcoin", "accent_color": "#f7931a",
+        }
+    ]
+    entries = build_dashboard._notify_entries(assets)
+    assert entries == [
+        {"id": "bitcoin", "display_name": "Bitcoin",
+         "composite": 54.5, "verdict": "CLOSE", "delta_1d": 2.1}
+    ]
