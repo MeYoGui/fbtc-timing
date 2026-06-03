@@ -35,3 +35,71 @@ def build_payload(entries: list) -> dict:
         "body": "\n".join(format_digest_line(e) for e in entries),
         "url": DASHBOARD_URL,
     }
+
+
+def load_subscriptions() -> list:
+    raw = os.environ.get("PUSH_SUBSCRIPTIONS", "").strip()
+    if not raw:
+        return []
+    try:
+        subs = json.loads(raw)
+    except json.JSONDecodeError as e:
+        print(f"PUSH_SUBSCRIPTIONS is not valid JSON: {e}", file=sys.stderr)
+        return []
+    return subs if isinstance(subs, list) else []
+
+
+def _short(sub: dict) -> str:
+    return (sub.get("endpoint", "") or "")[:48]
+
+
+def send_all(payload: dict, subscriptions: list, vapid_private_key: str, vapid_subject: str) -> None:
+    """Send the payload to every subscription. Logs and continues on any failure."""
+    data = json.dumps(payload)
+    # pywebpush accepts a PEM file path for vapid_private_key; write the secret to a temp file.
+    with tempfile.NamedTemporaryFile("w", suffix=".pem", delete=False) as fh:
+        fh.write(vapid_private_key)
+        pem_path = fh.name
+    try:
+        for sub in subscriptions:
+            try:
+                webpush(
+                    subscription_info=sub,
+                    data=data,
+                    vapid_private_key=pem_path,
+                    vapid_claims={"sub": vapid_subject},
+                )
+                print(f"sent to {_short(sub)}")
+            except WebPushException as e:
+                code = getattr(getattr(e, "response", None), "status_code", None)
+                if code in (404, 410):
+                    print(f"  device gone (rotated/expired): {_short(sub)} [{code}]", file=sys.stderr)
+                else:
+                    print(f"  send failed: {_short(sub)} [{code}]: {e}", file=sys.stderr)
+    finally:
+        os.unlink(pem_path)
+
+
+def main() -> None:
+    if not NOTIFY_PATH.exists():
+        print("notify.json missing — run build_dashboard.py first; skipping", file=sys.stderr)
+        return
+    entries = json.loads(NOTIFY_PATH.read_text(encoding="utf-8"))
+    if not entries:
+        print("no assets in notify.json; nothing to send")
+        return
+    subscriptions = load_subscriptions()
+    if not subscriptions:
+        print("no subscribers; nothing to send")
+        return
+    vapid_private_key = os.environ.get("VAPID_PRIVATE_KEY", "").strip()
+    vapid_subject = os.environ.get("VAPID_SUBJECT", "").strip()
+    if not vapid_private_key or not vapid_subject:
+        print("VAPID_PRIVATE_KEY / VAPID_SUBJECT not set; skipping", file=sys.stderr)
+        return
+    payload = build_payload(entries)
+    send_all(payload, subscriptions, vapid_private_key, vapid_subject)
+
+
+if __name__ == "__main__":
+    main()

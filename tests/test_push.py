@@ -4,6 +4,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 import gen_vapid
+from pywebpush import WebPushException
 
 
 def test_generate_returns_appkey_and_pem():
@@ -68,3 +69,35 @@ def test_build_payload():
     assert p["title"] == "Kairos — daily scores"
     assert p["body"] == "Bitcoin 54.5 ↑ +2.1 — CLOSE\nGold 70.2 ↑ +4.0 — INVEST"
     assert p["url"] == "/fbtc-timing/"
+
+
+from types import SimpleNamespace
+
+
+def test_load_subscriptions_empty(monkeypatch):
+    monkeypatch.delenv("PUSH_SUBSCRIPTIONS", raising=False)
+    assert send_push.load_subscriptions() == []
+
+
+def test_load_subscriptions_parses_json(monkeypatch):
+    monkeypatch.setenv("PUSH_SUBSCRIPTIONS", '[{"endpoint":"https://x/1","keys":{}}]')
+    subs = send_push.load_subscriptions()
+    assert subs == [{"endpoint": "https://x/1", "keys": {}}]
+
+
+def test_send_all_calls_webpush_per_subscription(monkeypatch):
+    calls = []
+    monkeypatch.setattr(send_push, "webpush", lambda **kw: calls.append(kw))
+    subs = [{"endpoint": "https://x/1", "keys": {}}, {"endpoint": "https://x/2", "keys": {}}]
+    send_push.send_all({"title": "T", "body": "B", "url": "/u"}, subs, "PEM", "mailto:a@b.c")
+    assert len(calls) == 2
+    assert calls[0]["vapid_claims"] == {"sub": "mailto:a@b.c"}
+
+
+def test_send_all_swallows_410(monkeypatch):
+    def boom(**kw):
+        raise WebPushException("gone", response=SimpleNamespace(status_code=410))
+    monkeypatch.setattr(send_push, "webpush", boom)
+    # must not raise
+    send_push.send_all({"title": "T", "body": "B", "url": "/u"},
+                       [{"endpoint": "https://x/1", "keys": {}}], "PEM", "mailto:a@b.c")
