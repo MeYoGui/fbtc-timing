@@ -3,8 +3,8 @@ name: Daily Dashboard Update
 on:
   schedule:
     # Cron is UTC and has no DST awareness, so the local time drifts by an hour
-    # across the seasons: 12:00 UTC = 08:00 EDT (summer) / 07:00 EST (winter).
-    - cron: '0 12 * * *'
+    # across the seasons: 07:00 UTC = 08:00 BST (summer) / 07:00 GMT (winter).
+    - cron: '0 7 * * *'
   workflow_dispatch:         # allow manual trigger
 
 permissions:
