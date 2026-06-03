@@ -115,6 +115,9 @@
     .meth-table { margin-top: 1.25rem; }
     .meth-table td, .meth-table th { font-size: 0.8rem; }
     .def-note { font-size: 0.8rem; color: #555; margin-top: 1rem; line-height: 1.5; }
+    .site-footer { text-align: center; margin: 2rem 0 1rem; }
+    .site-footer a { font-size: 0.8rem; color: #555; text-decoration: none; }
+    .site-footer a:hover { color: #888; }
   </style>
 </head>
 <body>
@@ -184,6 +187,10 @@
       Weights are derived from the precision of each signal against historical good-entry days.
     </p>
   </details>
+
+  <footer class="site-footer">
+    <a href="enable-alerts.html">🔔 alerts</a>
+  </footer>
 
   <script>
     const ASSETS = {{ assets_json }};
