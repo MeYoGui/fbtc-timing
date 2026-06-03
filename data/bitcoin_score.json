@@ -1,17 +1,17 @@
 {
-  "date": "2026-06-01",
-  "composite_score": 54.5,
+  "date": "2026-06-02",
+  "composite_score": 57.6,
   "verdict": "CLOSE",
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.265051622075336,
+      "raw": -0.29964232829681803,
       "score": 50,
       "status": "neutral"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 1.1572428935022352,
+      "raw": 1.0790173289525526,
       "score": 50,
       "status": "neutral"
     },
@@ -23,21 +23,21 @@
     },
     "pi_cycle": {
       "display_name": "Pi Cycle",
-      "raw": 0.38800360644679927,
+      "raw": 0.38843335937266077,
       "score": 100,
       "status": "buy"
     },
     "puell": {
       "display_name": "Puell Multiple",
-      "raw": 0.7254332727711355,
+      "raw": 0.5538839707358444,
       "score": 50,
       "status": "neutral"
     },
     "fear_greed": {
       "display_name": "Fear & Greed",
-      "raw": 29.0,
-      "score": 50,
-      "status": "neutral"
+      "raw": 23.0,
+      "score": 100,
+      "status": "buy"
     }
   },
   "weights": {
