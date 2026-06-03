@@ -3,8 +3,8 @@ name: Daily Dashboard Update
 on:
   schedule:
     # Cron is UTC and has no DST awareness, so the local time drifts by an hour
-    # across the seasons: 12:00 UTC = 08:00 EDT (summer) / 07:00 EST (winter).
-    - cron: '0 12 * * *'
+    # across the seasons: 07:00 UTC = 08:00 BST (summer) / 07:00 GMT (winter).
+    - cron: '0 7 * * *'
   workflow_dispatch:         # allow manual trigger
 
 permissions:
@@ -42,3 +42,11 @@ jobs:
           git add data/ docs/index.html
           git diff --cached --quiet || git commit -m "chore: daily update $(date -u +%Y-%m-%d)"
           git push
+
+      - name: Send push notifications
+        continue-on-error: true
+        env:
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+          PUSH_SUBSCRIPTIONS: ${{ secrets.PUSH_SUBSCRIPTIONS }}
+        run: python scripts/send_push.py

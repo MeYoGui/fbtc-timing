@@ -10,9 +10,11 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from assets.registry import ASSETS
 
-DATA_DIR = Path(__file__).parent.parent / "data"
-TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
-DOCS_DIR = Path(__file__).parent.parent / "docs"
+ROOT = Path(__file__).parent.parent
+DATA_DIR = ROOT / "data"
+TEMPLATES_DIR = ROOT / "templates"
+DOCS_DIR = ROOT / "docs"
+NOTIFY_PATH = ROOT / "notify.json"
 
 SIGNAL_DISPLAY = {
     "mvrv_zscore": "MVRV Z-Score",
@@ -273,6 +275,20 @@ def _assemble_asset(cfg) -> dict:
     }
 
 
+def _notify_entries(assets: list) -> list:
+    """Compact per-asset digest for the daily push (id, name, composite, verdict, day-delta)."""
+    return [
+        {
+            "id": a["id"],
+            "display_name": a["display_name"],
+            "composite": a["composite"],
+            "verdict": a["verdict"],
+            "delta_1d": a["trend"]["day"]["delta"],
+        }
+        for a in assets
+    ]
+
+
 def main():
     updated_at = datetime.now(ZoneInfo("America/Toronto")).strftime("%Y-%m-%d %H:%M %Z")
     assets = []
@@ -292,6 +308,7 @@ def main():
     )
     DOCS_DIR.mkdir(exist_ok=True)
     (DOCS_DIR / "index.html").write_text(html, encoding="utf-8")
+    NOTIFY_PATH.write_text(json.dumps(_notify_entries(assets)), encoding="utf-8")
     print(f"Dashboard written to docs/index.html ({len(html):,} bytes; {len(assets)} asset(s))")
 
 

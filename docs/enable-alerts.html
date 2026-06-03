@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kairos — Enable alerts</title>
+  <link rel="manifest" href="/fbtc-timing/manifest.json">
+  <meta name="theme-color" content="#0d0d0d">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,sans-serif;background:#0d0d0d;color:#d0d0d0;max-width:480px;margin:0 auto;padding:2rem 1.5rem}
+    .kwm{font-size:1.2rem;font-weight:700;letter-spacing:.08em;margin-bottom:1.8rem}
+    .kwm .k{color:#ff6b3d}.kwm .a{color:#ffa033}.kwm .i{color:#ffd740;text-shadow:0 0 7px rgba(255,215,64,.85)}.kwm .r{color:#80d94a}.kwm .o{color:#00c853}.kwm .s{color:#00c853}
+    h1{font-size:1.25rem;color:#f0f0f0;margin-bottom:.6rem}
+    p{color:#9a9aa6;font-size:.92rem;line-height:1.55;margin-bottom:1.1rem}
+    button{display:block;width:100%;text-align:center;border:none;border-radius:10px;padding:14px;font-size:1rem;font-weight:700;cursor:pointer}
+    .primary{background:#1f6f43;color:#eafff1}
+    .secondary{background:#1a1a1a;color:#cfcfd6;border:1px solid #2a2a2a;margin-top:.6rem}
+    .ios{margin-top:1.2rem;padding:12px 13px;background:#141414;border:1px solid #232323;border-radius:9px;color:#8a8a96;font-size:.8rem;line-height:1.5}
+    .ios b{color:#c9c9d2}
+    .ok{color:#46d17f;font-weight:700;margin-bottom:.7rem}
+    .err{color:#ff6b6b;font-weight:600;margin-top:.8rem}
+    .blob{background:#08080a;border:1px solid #242424;border-radius:8px;padding:11px;color:#7fd1a3;font-family:ui-monospace,Menlo,monospace;font-size:.72rem;line-height:1.45;white-space:pre-wrap;word-break:break-all;max-height:180px;overflow:auto;margin-bottom:.6rem}
+    .hidden{display:none}
+    .row{display:flex;gap:.6rem}
+    .row button{margin-top:0}
+  </style>
+</head>
+<body>
+  <div class="kwm"><span class="k">K</span><span class="a">A</span><span class="i">I</span><span class="r">R</span><span class="o">O</span><span class="s">S</span></div>
+
+  <div id="setup">
+    <h1>Enable daily alerts</h1>
+    <p>Get one notification each morning with the current score &amp; verdict for every ticker. This registers <b style="color:#c9c9d2">this device</b> only.</p>
+    <button id="enable" class="primary">🔔 Enable daily alerts</button>
+    <p id="error" class="err hidden"></p>
+    <div class="ios"><b>On iPhone/iPad:</b> first tap <b>Share → Add to Home Screen</b>, open Kairos from your home screen, then return here and tap Enable. (iOS 16.4+)</div>
+  </div>
+
+  <div id="done" class="hidden">
+    <p class="ok">✓ This device is subscribed</p>
+    <p>Copy the code below and send it to yourself, then add it to the project's <b style="color:#c9c9d2">PUSH_SUBSCRIPTIONS</b> secret (a JSON array).</p>
+    <div id="blob" class="blob"></div>
+    <div class="row">
+      <button id="copy" class="primary">📋 Copy</button>
+      <button id="share" class="secondary">✉️ Email / Share</button>
+    </div>
+  </div>
+
+  <script>
+    // Filled in Task 9 with the output of `python scripts/gen_vapid.py`.
+    const VAPID_PUBLIC_KEY = "BNrQO8azG_03InN9ajqDD5hTQhAg8foxWUti3X_YratzQtIXB9wOa_YO4wcGdClgGksWwz6264YJujrgXs0_2yU";
+
+    function urlBase64ToUint8Array(base64String) {
+      const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+      const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+      const raw = atob(base64);
+      const out = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+      return out;
+    }
+
+    function showError(msg) {
+      const el = document.getElementById("error");
+      el.textContent = msg;
+      el.classList.remove("hidden");
+    }
+
+    let subJson = "";
+
+    document.getElementById("enable").addEventListener("click", async () => {
+      try {
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+          return showError("This browser doesn't support push notifications.");
+        }
+        const perm = await Notification.requestPermission();
+        if (perm !== "granted") return showError("Notification permission was not granted.");
+        const reg = await navigator.serviceWorker.register("/fbtc-timing/sw.js");
+        await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+        subJson = JSON.stringify(sub.toJSON(), null, 2);
+        document.getElementById("blob").textContent = subJson;
+        document.getElementById("setup").classList.add("hidden");
+        document.getElementById("done").classList.remove("hidden");
+      } catch (e) {
+        showError("Could not subscribe: " + e.message);
+      }
+    });
+
+    document.getElementById("copy").addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(subJson); alert("Copied."); }
+      catch (e) { alert("Copy failed — select the text manually."); }
+    });
+
+    document.getElementById("share").addEventListener("click", async () => {
+      if (navigator.share) {
+        try { await navigator.share({ title: "Kairos push subscription", text: subJson }); return; }
+        catch (e) { /* fall through to mailto */ }
+      }
+      window.location.href =
+        "mailto:?subject=" + encodeURIComponent("Kairos push subscription") +
+        "&body=" + encodeURIComponent(subJson);
+    });
+  </script>
+</body>
+</html>
