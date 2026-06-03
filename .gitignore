@@ -17,3 +17,6 @@ replay-*.png
 dashboard-*.png
 !specs/*.png
 *.bak
+
+# Ephemeral push digest (consumed in-job, never committed)
+notify.json
