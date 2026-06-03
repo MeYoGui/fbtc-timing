@@ -76,6 +76,8 @@ def send_all(payload: dict, subscriptions: list, vapid_private_key: str, vapid_s
                     print(f"  device gone (rotated/expired): {_short(sub)} [{code}]", file=sys.stderr)
                 else:
                     print(f"  send failed: {_short(sub)} [{code}]: {e}", file=sys.stderr)
+            except Exception as e:  # network/timeout/bad-key — never let one device abort the rest
+                print(f"  send error: {_short(sub)}: {e}", file=sys.stderr)
     finally:
         os.unlink(pem_path)
 
@@ -84,7 +86,11 @@ def main() -> None:
     if not NOTIFY_PATH.exists():
         print("notify.json missing — run build_dashboard.py first; skipping", file=sys.stderr)
         return
-    entries = json.loads(NOTIFY_PATH.read_text(encoding="utf-8"))
+    try:
+        entries = json.loads(NOTIFY_PATH.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"could not read notify.json ({e}); skipping", file=sys.stderr)
+        return
     if not entries:
         print("no assets in notify.json; nothing to send")
         return
