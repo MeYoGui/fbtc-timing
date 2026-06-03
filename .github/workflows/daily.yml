@@ -42,3 +42,11 @@ jobs:
           git add data/ docs/index.html
           git diff --cached --quiet || git commit -m "chore: daily update $(date -u +%Y-%m-%d)"
           git push
+
+      - name: Send push notifications
+        continue-on-error: true
+        env:
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+          PUSH_SUBSCRIPTIONS: ${{ secrets.PUSH_SUBSCRIPTIONS }}
+        run: python scripts/send_push.py
