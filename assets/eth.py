@@ -16,7 +16,7 @@ from assets.signals import (
 # ── good-entry definition ─────────────────────────────────────────────────────
 # ETH has no halving cycle, so "good entry" = deep drawdown from the running
 # all-time high AND a strong 18-month forward return. Both tunable.
-DRAWDOWN = 0.55       # price must be >= 55% below its running ATH
+DRAWDOWN = 0.55       # drawdown from running ATH must be >= 55% (price <= ATH * 0.45)
 HOLDING_DAYS = 548    # 18 months forward window (same as Bitcoin)
 MIN_RETURN = 0.50     # >= 50% forward return to count as a good entry
 

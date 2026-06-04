@@ -28,3 +28,13 @@ def test_good_entry_rejects_shallow_drawdown():
     df = pd.DataFrame({"price": prices})
     good = eth.good_entry(df)
     assert int(good.sum()) == 0
+
+
+def test_good_entry_qualifies_exactly_at_threshold():
+    # Price exactly at ATH*(1-DRAWDOWN) = 100*0.45 = 45 -> must qualify (<=),
+    # guarding against a `<` vs `<=` off-by-one in the drawdown condition.
+    prices = [100.0] * 51 + [45.0] + list(np.linspace(46.0, 200.0, 548))
+    df = pd.DataFrame({"price": prices})
+    good = eth.good_entry(df)
+    assert bool(good.iloc[51]) is True
+    assert int(good.sum()) == 1
