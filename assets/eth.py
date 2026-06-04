@@ -115,17 +115,25 @@ CONFIG = AssetConfig(
     good_entry=good_entry,
     weight_overrides=None,   # start neutral; calibration/validation decides any boost
     signals=[
+        # Calibrated 2026-06-04: BTC-anchored per-signal quantiles (K=2.0 looseness)
+        # -> composite STRONG BUY ~3.5% (target 3-5%). See scripts/calibrate_eth_thresholds.py.
         SignalSpec("mvrv_zscore", "MVRV Z-Score", compute_mvrv_zscore,
-                   invest_thresh=-0.5, avoid_thresh=1.5, range_lo=-3.0, range_hi=4.0, fmt="{:.1f}"),
+                   invest_thresh=-1.3209, avoid_thresh=3.5901,
+                   range_lo=-3.0, range_hi=5.0, fmt="{:.1f}"),
         SignalSpec("ma_200w", "200-Week MA", compute_200w_ma_ratio,
-                   invest_thresh=1.0, avoid_thresh=1.2, range_lo=0.5, range_hi=3.0, fmt="{:.1f}×"),
+                   invest_thresh=0.8669, avoid_thresh=0.9567,
+                   range_lo=0.5, range_hi=3.0, fmt="{:.1f}×"),
         SignalSpec("monthly_rsi", "Monthly RSI", compute_monthly_rsi,
-                   invest_thresh=40.0, avoid_thresh=70.0, range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
+                   invest_thresh=40.0, avoid_thresh=70.0,
+                   range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
         SignalSpec("eth_btc_ratio", "ETH/BTC Ratio", compute_eth_btc_ratio_z,
-                   invest_thresh=-0.5, avoid_thresh=1.0, range_lo=-3.0, range_hi=4.0, fmt="{:.1f}"),
+                   invest_thresh=-1.0799, avoid_thresh=0.8833,
+                   range_lo=-2.0, range_hi=3.0, fmt="{:.1f}"),
         SignalSpec("mayer_multiple", "Mayer Multiple", compute_mayer_multiple,
-                   invest_thresh=0.8, avoid_thresh=2.4, range_lo=0.0, range_hi=4.0, fmt="{:.1f}×"),
+                   invest_thresh=0.6451, avoid_thresh=1.4605,
+                   range_lo=0.0, range_hi=4.0, fmt="{:.1f}×"),
         SignalSpec("fear_greed", "Fear & Greed", compute_fear_greed,
-                   invest_thresh=25.0, avoid_thresh=50.0, range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
+                   invest_thresh=25.0, avoid_thresh=50.0,
+                   range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
     ],
 )
