@@ -59,6 +59,6 @@ def compute_eth_btc_ratio_z(df: pd.DataFrame) -> pd.Series:
     Requires a 'btc_price' column (provided by the Ethereum fetch)."""
     ratio = df["price"] / df["btc_price"]
     std = ratio.std()
-    if std == 0:
+    if std == 0 or pd.isna(std):
         return pd.Series(np.zeros(len(df)), index=df.index)
     return (ratio - ratio.mean()) / std

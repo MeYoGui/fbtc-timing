@@ -34,3 +34,11 @@ def test_eth_btc_ratio_z_handles_zero_variance():
     df = pd.DataFrame({"price": [2.0, 2.0], "btc_price": [1.0, 1.0]})
     z = compute_eth_btc_ratio_z(df)
     assert list(z.values) == [0.0, 0.0]
+
+
+def test_eth_btc_ratio_z_handles_nonfinite_ratio():
+    # A zero in btc_price makes the ratio non-finite -> std is NaN.
+    # The guard should still return all zeros, not all NaN.
+    df = pd.DataFrame({"price": [1.0, 2.0, 3.0], "btc_price": [1.0, 0.0, 1.0]})
+    z = compute_eth_btc_ratio_z(df)
+    assert list(z.values) == [0.0, 0.0, 0.0]
