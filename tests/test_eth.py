@@ -44,22 +44,28 @@ def test_good_entry_threshold_located_near_45pct_of_ath():
 
 
 def test_pivot_coinmetrics_joins_eth_and_btc_by_date():
+    # Records are deliberately interleaved/out-of-order so the sort is exercised,
+    # and a BTC-only date (01-03, no ETH) is included to confirm it is dropped
+    # rather than emitted as a phantom row with price=NaN.
     records = [
-        {"asset": "eth", "time": "2020-01-01T00:00:00.000000000Z",
-         "PriceUSD": "130.0", "CapMrktCurUSD": "14000000000", "CapMVRVCur": "1.5"},
-        {"asset": "btc", "time": "2020-01-01T00:00:00.000000000Z",
-         "PriceUSD": "7200.0", "CapMrktCurUSD": "130000000000", "CapMVRVCur": "2.0"},
         {"asset": "eth", "time": "2020-01-02T00:00:00.000000000Z",
          "PriceUSD": "135.0", "CapMrktCurUSD": "14500000000", "CapMVRVCur": "1.6"},
+        {"asset": "btc", "time": "2020-01-01T00:00:00.000000000Z",
+         "PriceUSD": "7200.0", "CapMrktCurUSD": "130000000000", "CapMVRVCur": "2.0"},
+        {"asset": "eth", "time": "2020-01-01T00:00:00.000000000Z",
+         "PriceUSD": "130.0", "CapMrktCurUSD": "14000000000", "CapMVRVCur": "1.5"},
         {"asset": "btc", "time": "2020-01-02T00:00:00.000000000Z",
          "PriceUSD": "6900.0", "CapMrktCurUSD": "125000000000", "CapMVRVCur": "1.9"},
+        {"asset": "btc", "time": "2020-01-03T00:00:00.000000000Z",
+         "PriceUSD": "7000.0", "CapMrktCurUSD": "126000000000", "CapMVRVCur": "1.95"},
     ]
     df = eth._pivot_coinmetrics(records)
 
     assert list(df.columns) == ["date", "price", "market_cap", "mvrv", "btc_price"]
-    assert len(df) == 2
-    first = df.iloc[0]
+    assert len(df) == 2                       # BTC-only 01-03 dropped, no phantom row
+    assert df["date"].is_monotonic_increasing
+    first = df.iloc[0]                         # earliest date after sort = 01-01
     assert first["price"] == 130.0
+    assert first["market_cap"] == 14000000000.0
     assert first["btc_price"] == 7200.0
     assert first["mvrv"] == 1.5
-    assert df["date"].is_monotonic_increasing

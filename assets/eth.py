@@ -21,8 +21,8 @@ def _pivot_coinmetrics(records: list) -> pd.DataFrame:
     df = pd.DataFrame(records)
     df["date"] = pd.to_datetime(df["time"]).dt.tz_localize(None).dt.normalize()
     df["PriceUSD"] = pd.to_numeric(df["PriceUSD"], errors="coerce")
-    df["CapMrktCurUSD"] = pd.to_numeric(df.get("CapMrktCurUSD"), errors="coerce")
-    df["CapMVRVCur"] = pd.to_numeric(df.get("CapMVRVCur"), errors="coerce")
+    df["CapMrktCurUSD"] = pd.to_numeric(df["CapMrktCurUSD"], errors="coerce")
+    df["CapMVRVCur"] = pd.to_numeric(df["CapMVRVCur"], errors="coerce")
 
     eth_rows = df[df["asset"] == "eth"].set_index("date")
     btc_rows = df[df["asset"] == "btc"].set_index("date")
@@ -33,6 +33,7 @@ def _pivot_coinmetrics(records: list) -> pd.DataFrame:
         "mvrv": eth_rows["CapMVRVCur"],
         "btc_price": btc_rows["PriceUSD"],
     })
+    out = out[out["price"].notna()]   # keep only ETH-anchored dates (drop BTC-only days)
     return out.reset_index().sort_values("date").reset_index(drop=True)
 
 
