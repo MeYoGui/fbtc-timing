@@ -1,13 +1,13 @@
 {
   "date": "2026-06-03",
-  "composite_score": 95.4,
-  "verdict": "STRONG BUY",
+  "composite_score": 68.9,
+  "verdict": "CLOSE",
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
       "raw": -0.8154272932016592,
-      "score": 100,
-      "status": "buy"
+      "score": 50,
+      "status": "neutral"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
@@ -24,14 +24,14 @@
     "eth_btc_ratio": {
       "display_name": "ETH/BTC Ratio",
       "raw": -0.6375476460721758,
-      "score": 100,
-      "status": "buy"
+      "score": 50,
+      "status": "neutral"
     },
     "mayer_multiple": {
       "display_name": "Mayer Multiple",
       "raw": 0.7324654788178573,
-      "score": 100,
-      "status": "buy"
+      "score": 50,
+      "status": "neutral"
     },
     "fear_greed": {
       "display_name": "Fear & Greed",
@@ -41,26 +41,26 @@
     }
   },
   "weights": {
-    "mvrv_zscore": 0.2421,
-    "ma_200w": 0.238,
-    "monthly_rsi": 0.0915,
-    "eth_btc_ratio": 0.1508,
-    "mayer_multiple": 0.1474,
-    "fear_greed": 0.1303
+    "mvrv_zscore": 0.3062,
+    "ma_200w": 0.2549,
+    "monthly_rsi": 0.0867,
+    "eth_btc_ratio": 0.0991,
+    "mayer_multiple": 0.1296,
+    "fear_greed": 0.1235
   },
   "signal_meta": {
     "mvrv_zscore": {
       "range_lo": -3.0,
-      "range_hi": 4.0,
-      "invest_thresh": -0.5,
-      "avoid_thresh": 1.5,
+      "range_hi": 5.0,
+      "invest_thresh": -1.3209,
+      "avoid_thresh": 3.5901,
       "fmt": "{:.1f}"
     },
     "ma_200w": {
       "range_lo": 0.5,
       "range_hi": 3.0,
-      "invest_thresh": 1.0,
-      "avoid_thresh": 1.2,
+      "invest_thresh": 0.8669,
+      "avoid_thresh": 0.9567,
       "fmt": "{:.1f}\u00d7"
     },
     "monthly_rsi": {
@@ -71,17 +71,17 @@
       "fmt": "{:.0f}"
     },
     "eth_btc_ratio": {
-      "range_lo": -3.0,
-      "range_hi": 4.0,
-      "invest_thresh": -0.5,
-      "avoid_thresh": 1.0,
+      "range_lo": -2.0,
+      "range_hi": 3.0,
+      "invest_thresh": -1.0799,
+      "avoid_thresh": 0.8833,
       "fmt": "{:.1f}"
     },
     "mayer_multiple": {
       "range_lo": 0.0,
       "range_hi": 4.0,
-      "invest_thresh": 0.8,
-      "avoid_thresh": 2.4,
+      "invest_thresh": 0.6451,
+      "avoid_thresh": 1.4605,
       "fmt": "{:.1f}\u00d7"
     },
     "fear_greed": {

@@ -3,7 +3,7 @@
   "signals": {
     "mvrv_zscore": {
       "raw": -0.8154272932016592,
-      "score": 100
+      "score": 50
     },
     "ma_200w": {
       "raw": 0.7349697102068982,
@@ -15,11 +15,11 @@
     },
     "eth_btc_ratio": {
       "raw": -0.6375476460721758,
-      "score": 100
+      "score": 50
     },
     "mayer_multiple": {
       "raw": 0.7324654788178573,
-      "score": 100
+      "score": 50
     },
     "fear_greed": {
       "raw": 11.0,
