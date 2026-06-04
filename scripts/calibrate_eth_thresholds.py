@@ -6,6 +6,10 @@ then maps each ETH signal to a target quantile of ETH's own distribution.
 Run: python scripts/calibrate_eth_thresholds.py
 Not part of daily CI — run manually when recalibration is needed.
 
+Note: the STRONG BUY % reported here excludes rows where any signal is NaN
+(early warm-up period). The live pipeline treats NaN signals as neutral (50),
+so the live frequency is slightly higher. Both are consistent with K=2.0 -> ~2.7-3.5% SB.
+
 Calibration rule
 ----------------
 K = 2.0 (invest-side looseness multiplier — found by sweep to hit 3-5% SB)

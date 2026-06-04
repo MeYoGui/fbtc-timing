@@ -8,10 +8,11 @@ from calibrate_eth_thresholds import anchored_threshold
 
 
 def test_anchored_threshold_returns_correct_quantile():
-    # Uniform 0..99; target_buy_rate=0.10 -> 10th percentile = 9.9
+    # Uniform 0..99; method="higher" rounds up to the next observed value,
+    # so 10th percentile (linear=9.9) snaps to 10.0.
     series = pd.Series(range(100), dtype=float)
     result = anchored_threshold(series, target_buy_rate=0.10)
-    assert abs(result - 9.9) < 0.5
+    assert abs(result - 10.0) < 0.01
 
 
 def test_anchored_threshold_clamps_rate_below_45pct():
