@@ -161,3 +161,27 @@ def test_trend_no_prior_data_gives_zero_delta():
     result = build_trend_data(_make_signals_df(n_days=1), _EQUAL_WEIGHTS)
     assert result["day"]["delta"] == 0.0
     assert all(v == 0 for v in result["day"]["arrows"].values())
+
+
+# ── per-asset signal keys + new ETH readings ─────────────────────────────────
+from build_dashboard import compute_historical_scores, format_reading
+
+
+def test_compute_historical_scores_uses_passed_signal_names():
+    signals_df = pd.DataFrame({
+        "eth_btc_ratio":  [100, 0],
+        "mayer_multiple": [0, 100],
+    })
+    weights = {"signals": {
+        "eth_btc_ratio":  {"weight": 0.75},
+        "mayer_multiple": {"weight": 0.25},
+    }}
+    names = ["eth_btc_ratio", "mayer_multiple"]
+    result = compute_historical_scores(signals_df, weights, names)
+    # row0: (100*.75 + 0*.25)/1.0 = 75 ; row1: (0*.75 + 100*.25)/1.0 = 25
+    assert list(result.round(1)) == [75.0, 25.0]
+
+
+def test_format_reading_handles_new_eth_signals():
+    assert format_reading("mayer_multiple", 1.234) == "1.23× 200DMA"
+    assert format_reading("eth_btc_ratio", -0.5) == "-0.50 z (ETH/BTC)"
