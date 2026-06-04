@@ -112,4 +112,63 @@ def test_adding_a_config_appears_in_registry(monkeypatch):
         good_entry=bitcoin.good_entry, weight_overrides=None,
     )
     monkeypatch.setattr(reg, "ASSETS", reg.ASSETS + [extra])
-    assert [a.id for a in reg.ASSETS] == ["bitcoin", "testcoin"]
+    assert [a.id for a in reg.ASSETS] == ["bitcoin", "ethereum", "testcoin"]
+
+
+# ── assets/eth.py + registry ──────────────────────────────────────────────────
+from assets import eth
+
+
+def test_registry_contains_ethereum_after_bitcoin():
+    ids = [a.id for a in ASSETS]
+    assert "ethereum" in ids
+    assert ids.index("bitcoin") < ids.index("ethereum")
+
+
+def test_ethereum_has_expected_six_signals():
+    keys = [s.key for s in eth.CONFIG.signals]
+    assert keys == ["mvrv_zscore", "ma_200w", "monthly_rsi",
+                    "eth_btc_ratio", "mayer_multiple", "fear_greed"]
+
+
+def test_ethereum_signals_all_lower_is_invest():
+    # The scorer treats lower raw values as more invest-favorable, so every
+    # ETH signal must have invest_thresh < avoid_thresh.
+    for s in eth.CONFIG.signals:
+        assert s.invest_thresh < s.avoid_thresh, s.key
+
+
+def test_ethereum_display_metadata():
+    assert eth.CONFIG.id == "ethereum"
+    assert eth.CONFIG.display_name == "Ethereum"
+    assert eth.CONFIG.accent_color == "#627eea"
+
+
+# ── ETH scoring parity (data-independent) ─────────────────────────────────────
+ETH_GOLDEN_SIGNAL_SCORES = {
+    "mvrv_zscore":    100,
+    "ma_200w":         50,
+    "monthly_rsi":     50,
+    "eth_btc_ratio":    0,
+    "mayer_multiple": 100,
+    "fear_greed":      50,
+}
+ETH_GOLDEN_WEIGHTS = {
+    "signals": {
+        "mvrv_zscore":    {"weight": 0.30},
+        "ma_200w":        {"weight": 0.15},
+        "monthly_rsi":    {"weight": 0.15},
+        "eth_btc_ratio":  {"weight": 0.10},
+        "mayer_multiple": {"weight": 0.20},
+        "fear_greed":     {"weight": 0.10},
+    }
+}
+
+
+def test_ethereum_scoring_parity():
+    """Inline-fixture guard for ETH's composite math (survives daily refreshes).
+    100*.30 + 50*.15 + 50*.15 + 0*.10 + 100*.20 + 50*.10 = 70.0 -> CLOSE."""
+    signals = {key: {"score": score} for key, score in ETH_GOLDEN_SIGNAL_SCORES.items()}
+    composite = compute_score(signals, ETH_GOLDEN_WEIGHTS)
+    assert composite == 70.0
+    assert get_verdict(composite) == "CLOSE"

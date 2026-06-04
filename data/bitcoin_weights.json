@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-06-02",
+  "generated_at": "2026-06-04",
   "good_entry_definition": {
     "min_18mo_return": 0.5,
     "holding_days": 548
   },
   "signals": {
     "mvrv_zscore": {
-      "weight": 0.3434,
+      "weight": 0.3435,
       "precision": 1.0,
       "recall": 0.0334,
       "f1": 0.0646
@@ -25,9 +25,9 @@
     },
     "pi_cycle": {
       "weight": 0.0903,
-      "precision": 0.5259,
+      "precision": 0.5257,
       "recall": 0.824,
-      "f1": 0.642
+      "f1": 0.6419
     },
     "puell": {
       "weight": 0.1602,
@@ -36,10 +36,10 @@
       "f1": 0.1672
     },
     "fear_greed": {
-      "weight": 0.0627,
-      "precision": 0.3651,
+      "weight": 0.0625,
+      "precision": 0.364,
       "recall": 0.0836,
-      "f1": 0.136
+      "f1": 0.1359
     }
   }
 }

@@ -44,3 +44,21 @@ def compute_puell_multiple(df: pd.DataFrame) -> pd.Series:
 def compute_fear_greed(df: pd.DataFrame) -> pd.Series:
     """Pass-through: fear & greed is already a 0-100 reading in the history."""
     return df["fear_greed"]
+
+
+def compute_mayer_multiple(df: pd.DataFrame) -> pd.Series:
+    """Price relative to its 200-day moving average (Mayer Multiple).
+    Low (<1) = price below its long-run trend = cheaper entry."""
+    ma_200d = df["price"].rolling(window=200, min_periods=200).mean()
+    return df["price"] / ma_200d
+
+
+def compute_eth_btc_ratio_z(df: pd.DataFrame) -> pd.Series:
+    """Z-score of the ETH/BTC price ratio over full history.
+    Low (negative) = ETH historically cheap relative to BTC.
+    Requires a 'btc_price' column (provided by the Ethereum fetch)."""
+    ratio = df["price"] / df["btc_price"]
+    std = ratio.std()
+    if std == 0 or pd.isna(std):
+        return pd.Series(np.zeros(len(df)), index=df.index)
+    return (ratio - ratio.mean()) / std

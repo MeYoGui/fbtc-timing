@@ -1,0 +1,99 @@
+{
+  "asset": "ethereum",
+  "in_sample": {
+    "bands": {
+      "STRONG BUY": {
+        "days": 477,
+        "mean_fwd_return": 10.1448,
+        "median_fwd_return": 9.1587,
+        "pct_positive": 0.9392
+      },
+      "INVEST": {
+        "days": 150,
+        "mean_fwd_return": 17.031,
+        "median_fwd_return": 3.0593,
+        "pct_positive": 0.94
+      },
+      "CLOSE": {
+        "days": 641,
+        "mean_fwd_return": 40.7647,
+        "median_fwd_return": 1.3663,
+        "pct_positive": 0.78
+      },
+      "WAIT": {
+        "days": 1835,
+        "mean_fwd_return": 9.4914,
+        "median_fwd_return": 0.2336,
+        "pct_positive": 0.5662
+      },
+      "AVOID": {
+        "days": 302,
+        "mean_fwd_return": 0.0232,
+        "median_fwd_return": -0.5069,
+        "pct_positive": 0.298
+      }
+    },
+    "invest_precision": {
+      "precision": 0.6784,
+      "recall": 0.4679,
+      "f1": 0.5538,
+      "tp": 561,
+      "fp": 266,
+      "fn": 638
+    },
+    "timing_edge": {
+      "invest_mean_fwd_return": 11.7922,
+      "buy_and_hold_mean_fwd_return": 14.9626,
+      "edge": -3.1704,
+      "invest_days": 627
+    }
+  },
+  "out_of_sample": {
+    "bands": {
+      "STRONG BUY": {
+        "days": 297,
+        "mean_fwd_return": 12.6604,
+        "median_fwd_return": 13.1287,
+        "pct_positive": 1.0
+      },
+      "INVEST": {
+        "days": 100,
+        "mean_fwd_return": 11.4399,
+        "median_fwd_return": 14.9305,
+        "pct_positive": 0.98
+      },
+      "CLOSE": {
+        "days": 303,
+        "mean_fwd_return": 2.2519,
+        "median_fwd_return": 0.6699,
+        "pct_positive": 0.7954
+      },
+      "WAIT": {
+        "days": 1038,
+        "mean_fwd_return": 0.7999,
+        "median_fwd_return": 0.1367,
+        "pct_positive": 0.5588
+      },
+      "AVOID": {
+        "days": 207,
+        "mean_fwd_return": -0.1812,
+        "median_fwd_return": -0.3958,
+        "pct_positive": 0.3478
+      }
+    },
+    "invest_precision": {
+      "precision": 0.9723,
+      "recall": 0.4515,
+      "f1": 0.6166,
+      "tp": 386,
+      "fp": 11,
+      "fn": 469
+    },
+    "timing_edge": {
+      "invest_mean_fwd_return": 12.3529,
+      "buy_and_hold_mean_fwd_return": 3.2798,
+      "edge": 9.0731,
+      "invest_days": 397
+    }
+  }
+}

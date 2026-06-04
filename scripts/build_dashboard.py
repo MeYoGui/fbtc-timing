@@ -45,6 +45,10 @@ def format_reading(name: str, raw) -> str:
         return f"{raw:.2f}"
     if name == "fear_greed":
         return f"{raw:.0f} / 100"
+    if name == "mayer_multiple":
+        return f"{raw:.2f}× 200DMA"
+    if name == "eth_btc_ratio":
+        return f"{raw:.2f} z (ETH/BTC)"
     return f"{raw:.3f}"
 
 
@@ -107,10 +111,13 @@ def compute_signal_bar(name: str, raw, score: int, meta: dict) -> dict:
     }
 
 
-def compute_historical_scores(signals_df: pd.DataFrame, weights: dict) -> pd.Series:
-    signal_names = list(SIGNAL_DISPLAY.keys())
+def compute_historical_scores(signals_df: pd.DataFrame, weights: dict, signal_names: list = None) -> pd.Series:
+    if signal_names is None:
+        signal_names = list(SIGNAL_DISPLAY.keys())   # legacy Bitcoin default
     w = np.array([weights["signals"][s]["weight"] for s in signal_names])
     total_w = w.sum()
+    if total_w == 0:
+        return pd.Series(np.zeros(len(signals_df)), index=signals_df.index)
     scores = signals_df[signal_names].values @ w / total_w
     return pd.Series(scores, index=signals_df.index)
 
@@ -132,7 +139,7 @@ def _spark_label(date: pd.Timestamp, window: str) -> str:
     return month_day  # day
 
 
-def build_trend_data(signals_df: pd.DataFrame, weights: dict) -> dict:
+def build_trend_data(signals_df: pd.DataFrame, weights: dict, signal_names: list = None) -> dict:
     """Pre-compute Day/Week/Month trend data for embedding in the dashboard HTML.
 
     Returns a dict keyed by window ("day", "week", "month"), each containing:
@@ -140,13 +147,15 @@ def build_trend_data(signals_df: pd.DataFrame, weights: dict) -> dict:
       spark  – list of up to 7 dicts {"score", "label", "verdict"}, oldest first
       arrows – dict signal_name -> int (1=up, 0=flat, -1=down)
     """
+    if signal_names is None:
+        signal_names = list(SIGNAL_DISPLAY.keys())   # legacy Bitcoin default
     df = signals_df.copy()
-    df["composite_score"] = compute_historical_scores(df, weights)
+    df["composite_score"] = compute_historical_scores(df, weights, signal_names)
     df = df.set_index("date").sort_index()
 
     today_composite = float(df["composite_score"].iloc[-1])
     today_date = df.index[-1]
-    today_signals = {sig: int(df[sig].iloc[-1]) for sig in SIGNAL_DISPLAY}
+    today_signals = {sig: int(df[sig].iloc[-1]) for sig in signal_names}
 
     spark_frames = {
         "day":   df.resample("D").last().dropna(subset=["composite_score"]),
@@ -167,11 +176,11 @@ def build_trend_data(signals_df: pd.DataFrame, weights: dict) -> dict:
                 sig: (1 if today_signals[sig] > int(ref[sig])
                       else -1 if today_signals[sig] < int(ref[sig])
                       else 0)
-                for sig in SIGNAL_DISPLAY
+                for sig in signal_names
             }
         else:
             delta = 0.0
-            arrows = {sig: 0 for sig in SIGNAL_DISPLAY}
+            arrows = {sig: 0 for sig in signal_names}
 
         spark_scores = spark_frames[win]["composite_score"].tail(7)
         entries = list(spark_scores.items())
@@ -189,8 +198,10 @@ def build_trend_data(signals_df: pd.DataFrame, weights: dict) -> dict:
     return result
 
 
-def build_chart_data(price_df: pd.DataFrame, signals_df: pd.DataFrame, weights: dict) -> dict:
-    score_series = compute_historical_scores(signals_df, weights)
+def build_chart_data(price_df: pd.DataFrame, signals_df: pd.DataFrame, weights: dict, signal_names: list = None) -> dict:
+    if signal_names is None:
+        signal_names = list(SIGNAL_DISPLAY.keys())   # legacy Bitcoin default
+    score_series = compute_historical_scores(signals_df, weights, signal_names)
     signals_df = signals_df.copy()
     signals_df["composite_score"] = score_series
 
@@ -223,6 +234,7 @@ def _assemble_asset(cfg) -> dict:
     price_df["date"] = pd.to_datetime(price_df["date"])
     signals_df = pd.read_csv(sig_path)
     signals_df["date"] = pd.to_datetime(signals_df["date"])
+    signal_names = [s.key for s in cfg.signals]
 
     signal_meta = current_score["signal_meta"]
     signals = []
@@ -244,7 +256,7 @@ def _assemble_asset(cfg) -> dict:
     else:
         distance_text = f"{72 - composite:.1f} pts from Invest zone"
 
-    btc_price = price_df.dropna(subset=["price"])["price"].iloc[-1]
+    current_price = price_df.dropna(subset=["price"])["price"].iloc[-1]
 
     methodology = [
         {
@@ -263,14 +275,14 @@ def _assemble_asset(cfg) -> dict:
         "short_label": cfg.short_label,
         "accent_color": cfg.accent_color,
         "price_unit": cfg.price_unit,
-        "price": round(float(btc_price)),
+        "price": round(float(current_price)),
         "composite": composite,
         "verdict": verdict,
         "score_color": get_score_color(verdict),
         "distance_text": distance_text,
         "signals": signals,
-        "chart": build_chart_data(price_df, signals_df, weights),
-        "trend": build_trend_data(signals_df, weights),
+        "chart": build_chart_data(price_df, signals_df, weights, signal_names),
+        "trend": build_trend_data(signals_df, weights, signal_names),
         "methodology": methodology,
     }
 
