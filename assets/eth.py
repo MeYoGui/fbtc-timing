@@ -117,6 +117,8 @@ CONFIG = AssetConfig(
     signals=[
         # Calibrated 2026-06-04: BTC-anchored per-signal quantiles (K=2.0 looseness)
         # -> composite STRONG BUY ~3.5% (target 3-5%). See scripts/calibrate_eth_thresholds.py.
+        # range_hi also widened for mvrv_zscore (4->5, new avoid_thresh=3.59 needs headroom)
+        # and range trimmed for eth_btc_ratio (-3/4 -> -2/3, matching ETH's actual distribution).
         SignalSpec("mvrv_zscore", "MVRV Z-Score", compute_mvrv_zscore,
                    invest_thresh=-1.3209, avoid_thresh=3.5901,
                    range_lo=-3.0, range_hi=5.0, fmt="{:.1f}"),
