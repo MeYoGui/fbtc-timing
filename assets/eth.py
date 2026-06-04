@@ -13,6 +13,71 @@ from assets.signals import (
     compute_fear_greed,
 )
 
+# ── data fetch (keyless: CoinMetrics community + alternative.me) ───────────────
+
+def _pivot_coinmetrics(records: list) -> pd.DataFrame:
+    """Pivot raw multi-asset CoinMetrics records into one row per date with
+    ETH price/market cap/MVRV plus BTC price (for the ETH/BTC ratio signal)."""
+    df = pd.DataFrame(records)
+    df["date"] = pd.to_datetime(df["time"]).dt.tz_localize(None).dt.normalize()
+    df["PriceUSD"] = pd.to_numeric(df["PriceUSD"], errors="coerce")
+    df["CapMrktCurUSD"] = pd.to_numeric(df.get("CapMrktCurUSD"), errors="coerce")
+    df["CapMVRVCur"] = pd.to_numeric(df.get("CapMVRVCur"), errors="coerce")
+
+    eth_rows = df[df["asset"] == "eth"].set_index("date")
+    btc_rows = df[df["asset"] == "btc"].set_index("date")
+
+    out = pd.DataFrame({
+        "price": eth_rows["PriceUSD"],
+        "market_cap": eth_rows["CapMrktCurUSD"],
+        "mvrv": eth_rows["CapMVRVCur"],
+        "btc_price": btc_rows["PriceUSD"],
+    })
+    return out.reset_index().sort_values("date").reset_index(drop=True)
+
+
+def _fetch_coinmetrics() -> pd.DataFrame:
+    url = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
+    params = {
+        "assets": "eth,btc",
+        "metrics": "PriceUSD,CapMrktCurUSD,CapMVRVCur",
+        "frequency": "1d",
+        "start_time": "2015-01-01",
+        "page_size": 10000,
+    }
+    records = []
+    while True:
+        resp = requests.get(url, params=params, timeout=60)
+        resp.raise_for_status()
+        payload = resp.json()
+        records.extend(payload["data"])
+        next_token = payload.get("next_page_token")
+        if not next_token:
+            break
+        params["next_page_token"] = next_token
+    return _pivot_coinmetrics(records)
+
+
+def _fetch_fear_greed() -> pd.DataFrame:
+    resp = requests.get(
+        "https://api.alternative.me/fng/",
+        params={"limit": 0, "format": "json"},
+        timeout=30,
+    )
+    resp.raise_for_status()
+    df = pd.DataFrame(resp.json()["data"])
+    df["date"] = pd.to_datetime(df["timestamp"].astype(int), unit="s").astype("datetime64[ns]").dt.normalize()
+    df["fear_greed"] = pd.to_numeric(df["value"])
+    return df[["date", "fear_greed"]].sort_values("date").reset_index(drop=True)
+
+
+def fetch() -> pd.DataFrame:
+    """Full Ethereum history: price, market cap, MVRV, BTC price, fear & greed."""
+    cm = _fetch_coinmetrics()
+    fg = _fetch_fear_greed()
+    return cm.merge(fg, on="date", how="left")
+
+
 # ── good-entry definition ─────────────────────────────────────────────────────
 # ETH has no halving cycle, so "good entry" = deep drawdown from the running
 # all-time high AND a strong 18-month forward return. Both tunable.
