@@ -63,6 +63,9 @@ def band_report(composite: pd.Series, fwd: pd.Series) -> dict:
 
 
 def invest_precision(composite: pd.Series, good_entries: pd.Series, thresh: float = INVEST_THRESHOLD) -> dict:
+    # Positional alignment after reset_index requires equal length; assert it so a
+    # future refactor passing a filtered subset fails loudly instead of silently.
+    assert len(composite) == len(good_entries), "composite/good_entries length mismatch"
     invest = (composite >= thresh).reset_index(drop=True)
     good = good_entries.reset_index(drop=True).astype(bool)
     tp = int((invest & good).sum())
@@ -100,7 +103,12 @@ def _good_aligned_to(merged: pd.DataFrame, price_df: pd.DataFrame, good: pd.Seri
 def walk_forward(price_df: pd.DataFrame, signals_df: pd.DataFrame, cfg, signal_names: list,
                  step_days: int = STEP_DAYS) -> tuple:
     """Expanding-window OOS: at each step derive weights from data strictly older
-    than the forward window, then score the next `step_days` out-of-sample."""
+    than the forward window, then score the next `step_days` out-of-sample.
+
+    Causality: at decision time t we score window [t, t+step). Training uses rows
+    [0, cutoff) with cutoff = t - HOLDING_DAYS, so the newest training label (row
+    cutoff-1) depends on price[(cutoff-1)+HOLDING_DAYS] = price[t-1] — strictly
+    before t. No future price leaks into the weights used to score from t onward."""
     merged = price_df[["date", "price"]].merge(signals_df, on="date", how="inner").reset_index(drop=True)
     good = _good_aligned_to(merged, price_df, cfg.good_entry(price_df))
 
@@ -114,6 +122,8 @@ def walk_forward(price_df: pd.DataFrame, signals_df: pd.DataFrame, cfg, signal_n
             train_good = good.iloc[:cutoff]
             stats = compute_signal_stats(train, train_good, signal_names)
             weights = derive_weights(stats, signal_names, getattr(cfg, "weight_overrides", None))
+            # Slim weights dict in the shape composite_series expects ({"signals":
+            # {key: {"weight": w}}}); stats fields aren't needed for OOS scoring.
             wdict = {"signals": {s: {"weight": weights[s]} for s in signal_names}}
             window = merged.iloc[t:t + step_days]
             oos.iloc[t:t + step_days] = composite_series(window, wdict, signal_names).values

@@ -72,3 +72,6 @@ def test_walk_forward_produces_some_out_of_sample_scores():
     oos, good = vc.walk_forward(price_df, signals_df, _Cfg(), ["s1", "s2"])
     assert oos.notna().sum() > 0
     assert len(good) == len(oos)
+    # Warm-up rows must never be scored — guards against a causality regression
+    # that accidentally back-fills in-sample rows.
+    assert oos.iloc[: vc.WARMUP_DAYS].isna().all()
