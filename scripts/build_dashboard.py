@@ -256,7 +256,7 @@ def _assemble_asset(cfg) -> dict:
     else:
         distance_text = f"{72 - composite:.1f} pts from Invest zone"
 
-    btc_price = price_df.dropna(subset=["price"])["price"].iloc[-1]
+    current_price = price_df.dropna(subset=["price"])["price"].iloc[-1]
 
     methodology = [
         {
@@ -275,7 +275,7 @@ def _assemble_asset(cfg) -> dict:
         "short_label": cfg.short_label,
         "accent_color": cfg.accent_color,
         "price_unit": cfg.price_unit,
-        "price": round(float(btc_price)),
+        "price": round(float(current_price)),
         "composite": composite,
         "verdict": verdict,
         "score_color": get_score_color(verdict),

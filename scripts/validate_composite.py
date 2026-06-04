@@ -5,6 +5,12 @@ Produces, per asset:
   - walk-forward out-of-sample: weights derived only on past data, scored on later data
 Writes data/{id}_validation.json and prints a PASS/REVIEW gate line.
 Run manually / via workflow dispatch — NOT part of the daily CI job.
+
+Caveat: the walk-forward derives WEIGHTS only from past data (causal), but the
+signal FEATURES it reads from {id}_signal_history.csv were precomputed once over
+full history (e.g. z-score mean/std span the whole series). So OOS metrics carry
+a mild optimistic bias from feature-level look-ahead and should be read as an
+upper-ish bound, not a pure held-out estimate.
 """
 import json
 import sys
@@ -155,9 +161,13 @@ def validate_asset(cfg) -> dict:
         "timing_edge": timing_edge(comp, fwd),
     }
     oos_comp, oos_good = walk_forward(price_df, signals_df, cfg, signal_names)
+    # Restrict OOS precision/recall to the actually-scored rows: warm-up and the
+    # trailing gap have no composite, and counting them as non-invest would inflate
+    # false negatives and understate recall. (Precision is unaffected either way.)
+    scored = oos_comp.notna()
     out_of_sample = {
         "bands": band_report(oos_comp, fwd),
-        "invest_precision": invest_precision(oos_comp.fillna(-1), oos_good),
+        "invest_precision": invest_precision(oos_comp[scored], oos_good[scored]),
         "timing_edge": timing_edge(oos_comp, fwd),
     }
 

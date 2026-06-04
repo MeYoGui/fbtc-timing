@@ -83,11 +83,11 @@
     },
     "invest_precision": {
       "precision": 0.9723,
-      "recall": 0.3219,
-      "f1": 0.4837,
+      "recall": 0.4515,
+      "f1": 0.6166,
       "tp": 386,
       "fp": 11,
-      "fn": 813
+      "fn": 469
     },
     "timing_edge": {
       "invest_mean_fwd_return": 12.3529,
