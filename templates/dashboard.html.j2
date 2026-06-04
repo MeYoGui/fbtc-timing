@@ -16,7 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #0d0d0d; color: #d0d0d0; max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #0d0d0d; color: #d0d0d0; max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; overflow-x: hidden; }
     header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2rem; }
     /* KAIROS wordmark — per-letter palette matches the app icon */
     header h1 { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.08em; }
@@ -74,7 +74,8 @@
     th.trend-col { width: 28px; text-align: center; color: #333; font-size: 0.65rem; padding: 0.6rem 0.25rem; }
 
     /* ── asset score-chip switcher ── */
-    .chip-row { display: flex; gap: 8px; margin-bottom: 1.2rem; }
+    .chip-row { display: flex; gap: 8px; margin-bottom: 1.2rem; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+    .chip-row::-webkit-scrollbar { display: none; }
     .chip { flex: 0 0 auto; min-width: 150px; background: #161616; border: 1.5px solid transparent; border-radius: 11px; padding: 11px 12px; cursor: pointer; transition: background .15s; text-align: left; }
     .chip:hover { background: #1a1a1a; }
     .chip.active { background: #1a1a1a; }
@@ -105,7 +106,9 @@
     .bar-label.edge-l { transform: translateX(0); color: #ff525277; font-size: 0.65rem; }
     .bar-label.edge-r { transform: translateX(-100%); color: #00c85377; font-size: 0.65rem; }
 
-    table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-bottom: 2rem; }
+    .table-scroll::-webkit-scrollbar { display: none; }
+    table { width: 100%; border-collapse: collapse; }
     th { text-align: left; font-size: 0.75rem; font-weight: 500; color: #555; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.6rem 0.75rem; border-bottom: 1px solid #222; }
     td { padding: 0.85rem 0.75rem; border-bottom: 1px solid #1a1a1a; font-size: 0.9rem; }
     .chart-wrap { margin-bottom: 2rem; }
@@ -164,15 +167,17 @@
     </div>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Signal</th><th>Reading</th><th class="trend-col">▲▼</th>
-        <th><span style="color:#ff525255">← Avoid</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="color:#00c85355">Invest →</span></th>
-      </tr>
-    </thead>
-    <tbody id="signal-tbody"></tbody>
-  </table>
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Signal</th><th>Reading</th><th class="trend-col">▲▼</th>
+          <th style="min-width:120px"><div style="display:flex;justify-content:space-between"><span style="color:#ff525255">← Avoid</span><span style="color:#00c85355">Invest →</span></div></th>
+        </tr>
+      </thead>
+      <tbody id="signal-tbody"></tbody>
+    </table>
+  </div>
 
   <div class="chart-wrap"><canvas id="chart" height="120"></canvas></div>
 
