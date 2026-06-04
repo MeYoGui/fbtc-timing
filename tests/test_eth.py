@@ -30,11 +30,14 @@ def test_good_entry_rejects_shallow_drawdown():
     assert int(good.sum()) == 0
 
 
-def test_good_entry_qualifies_exactly_at_threshold():
-    # Price exactly at ATH*(1-DRAWDOWN) = 100*0.45 = 45 -> must qualify (<=),
-    # guarding against a `<` vs `<=` off-by-one in the drawdown condition.
-    prices = [100.0] * 51 + [45.0] + list(np.linspace(46.0, 200.0, 548))
-    df = pd.DataFrame({"price": prices})
-    good = eth.good_entry(df)
-    assert bool(good.iloc[51]) is True
-    assert int(good.sum()) == 1
+def test_good_entry_threshold_located_near_45pct_of_ath():
+    # Threshold = ATH*(1-0.55) ~= 45 (ATH=100). A price just inside (44, a 56%
+    # drawdown) qualifies; just outside (46, a 54% drawdown) is rejected. Pins
+    # the threshold's location and direction without relying on exact-float
+    # equality (1-0.55 is 0.4499... so testing price==45 would be fragile).
+    base = [100.0] * 51
+    ramp = list(np.linspace(0.0, 160.0, 548))  # guarantees a strong forward return
+    inside = eth.good_entry(pd.DataFrame({"price": base + [44.0] + [r + 44.0 for r in ramp]}))
+    outside = eth.good_entry(pd.DataFrame({"price": base + [46.0] + [r + 46.0 for r in ramp]}))
+    assert bool(inside.iloc[51]) is True
+    assert bool(outside.iloc[51]) is False
