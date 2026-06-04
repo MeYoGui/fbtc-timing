@@ -1,37 +1,37 @@
 {
   "date": "2026-06-03",
-  "composite_score": 57.6,
-  "verdict": "CLOSE",
+  "composite_score": 95.4,
+  "verdict": "STRONG BUY",
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.31599152289725585,
-      "score": 50,
-      "status": "neutral"
-    },
-    "ma_200w": {
-      "display_name": "200-Week MA",
-      "raw": 1.0410896987655514,
-      "score": 50,
-      "status": "neutral"
-    },
-    "monthly_rsi": {
-      "display_name": "Monthly RSI",
-      "raw": 47.28781103574178,
-      "score": 50,
-      "status": "neutral"
-    },
-    "pi_cycle": {
-      "display_name": "Pi Cycle",
-      "raw": 0.38881951472761184,
+      "raw": -0.8154272932016592,
       "score": 100,
       "status": "buy"
     },
-    "puell": {
-      "display_name": "Puell Multiple",
-      "raw": 0.5526566743271066,
+    "ma_200w": {
+      "display_name": "200-Week MA",
+      "raw": 0.7349697102068982,
+      "score": 100,
+      "status": "buy"
+    },
+    "monthly_rsi": {
+      "display_name": "Monthly RSI",
+      "raw": 43.41898117959762,
       "score": 50,
       "status": "neutral"
+    },
+    "eth_btc_ratio": {
+      "display_name": "ETH/BTC Ratio",
+      "raw": -0.6375476460721758,
+      "score": 100,
+      "status": "buy"
+    },
+    "mayer_multiple": {
+      "display_name": "Mayer Multiple",
+      "raw": 0.7324654788178573,
+      "score": 100,
+      "status": "buy"
     },
     "fear_greed": {
       "display_name": "Fear & Greed",
@@ -41,12 +41,12 @@
     }
   },
   "weights": {
-    "mvrv_zscore": 0.3435,
-    "ma_200w": 0.1717,
-    "monthly_rsi": 0.1717,
-    "pi_cycle": 0.0903,
-    "puell": 0.1602,
-    "fear_greed": 0.0625
+    "mvrv_zscore": 0.2421,
+    "ma_200w": 0.238,
+    "monthly_rsi": 0.0915,
+    "eth_btc_ratio": 0.1508,
+    "mayer_multiple": 0.1474,
+    "fear_greed": 0.1303
   },
   "signal_meta": {
     "mvrv_zscore": {
@@ -70,19 +70,19 @@
       "avoid_thresh": 70.0,
       "fmt": "{:.0f}"
     },
-    "pi_cycle": {
-      "range_lo": 0.0,
-      "range_hi": 1.5,
-      "invest_thresh": 0.9,
+    "eth_btc_ratio": {
+      "range_lo": -3.0,
+      "range_hi": 4.0,
+      "invest_thresh": -0.5,
       "avoid_thresh": 1.0,
       "fmt": "{:.1f}"
     },
-    "puell": {
+    "mayer_multiple": {
       "range_lo": 0.0,
       "range_hi": 4.0,
-      "invest_thresh": 0.5,
-      "avoid_thresh": 1.5,
-      "fmt": "{:.1f}"
+      "invest_thresh": 0.8,
+      "avoid_thresh": 2.4,
+      "fmt": "{:.1f}\u00d7"
     },
     "fear_greed": {
       "range_lo": 0.0,

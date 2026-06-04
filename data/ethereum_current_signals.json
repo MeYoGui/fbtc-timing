@@ -1,0 +1,29 @@
+{
+  "date": "2026-06-03",
+  "signals": {
+    "mvrv_zscore": {
+      "raw": -0.8154272932016592,
+      "score": 100
+    },
+    "ma_200w": {
+      "raw": 0.7349697102068982,
+      "score": 100
+    },
+    "monthly_rsi": {
+      "raw": 43.41898117959762,
+      "score": 50
+    },
+    "eth_btc_ratio": {
+      "raw": -0.6375476460721758,
+      "score": 100
+    },
+    "mayer_multiple": {
+      "raw": 0.7324654788178573,
+      "score": 100
+    },
+    "fear_greed": {
+      "raw": 11.0,
+      "score": 100
+    }
+  }
+}
