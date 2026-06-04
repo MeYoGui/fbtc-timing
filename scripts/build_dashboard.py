@@ -116,6 +116,8 @@ def compute_historical_scores(signals_df: pd.DataFrame, weights: dict, signal_na
         signal_names = list(SIGNAL_DISPLAY.keys())   # legacy Bitcoin default
     w = np.array([weights["signals"][s]["weight"] for s in signal_names])
     total_w = w.sum()
+    if total_w == 0:
+        return pd.Series(np.zeros(len(signals_df)), index=signals_df.index)
     scores = signals_df[signal_names].values @ w / total_w
     return pd.Series(scores, index=signals_df.index)
 
@@ -197,6 +199,8 @@ def build_trend_data(signals_df: pd.DataFrame, weights: dict, signal_names: list
 
 
 def build_chart_data(price_df: pd.DataFrame, signals_df: pd.DataFrame, weights: dict, signal_names: list = None) -> dict:
+    if signal_names is None:
+        signal_names = list(SIGNAL_DISPLAY.keys())   # legacy Bitcoin default
     score_series = compute_historical_scores(signals_df, weights, signal_names)
     signals_df = signals_df.copy()
     signals_df["composite_score"] = score_series
