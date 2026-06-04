@@ -6,37 +6,37 @@
   },
   "signals": {
     "mvrv_zscore": {
-      "weight": 0.2421,
-      "precision": 0.6789,
-      "recall": 0.6947,
-      "f1": 0.6867
+      "weight": 0.3062,
+      "precision": 0.9058,
+      "recall": 0.1043,
+      "f1": 0.187
     },
     "ma_200w": {
-      "weight": 0.238,
-      "precision": 0.6674,
-      "recall": 0.5121,
-      "f1": 0.5795
+      "weight": 0.2549,
+      "precision": 0.7541,
+      "recall": 0.3478,
+      "f1": 0.476
     },
     "monthly_rsi": {
-      "weight": 0.0915,
+      "weight": 0.0867,
       "precision": 0.2566,
       "recall": 0.0325,
       "f1": 0.0577
     },
     "eth_btc_ratio": {
-      "weight": 0.1508,
-      "precision": 0.4228,
-      "recall": 0.5346,
-      "f1": 0.4722
+      "weight": 0.0991,
+      "precision": 0.2931,
+      "recall": 0.0992,
+      "f1": 0.1483
     },
     "mayer_multiple": {
-      "weight": 0.1474,
-      "precision": 0.4134,
-      "recall": 0.2827,
-      "f1": 0.3358
+      "weight": 0.1296,
+      "precision": 0.3834,
+      "recall": 0.1234,
+      "f1": 0.1868
     },
     "fear_greed": {
-      "weight": 0.1303,
+      "weight": 0.1235,
       "precision": 0.3655,
       "recall": 0.2118,
       "f1": 0.2682
