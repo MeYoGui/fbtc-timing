@@ -112,4 +112,33 @@ def test_adding_a_config_appears_in_registry(monkeypatch):
         good_entry=bitcoin.good_entry, weight_overrides=None,
     )
     monkeypatch.setattr(reg, "ASSETS", reg.ASSETS + [extra])
-    assert [a.id for a in reg.ASSETS] == ["bitcoin", "testcoin"]
+    assert [a.id for a in reg.ASSETS] == ["bitcoin", "ethereum", "testcoin"]
+
+
+# ── assets/eth.py + registry ──────────────────────────────────────────────────
+from assets import eth
+
+
+def test_registry_contains_ethereum_after_bitcoin():
+    ids = [a.id for a in ASSETS]
+    assert "ethereum" in ids
+    assert ids.index("bitcoin") < ids.index("ethereum")
+
+
+def test_ethereum_has_expected_six_signals():
+    keys = [s.key for s in eth.CONFIG.signals]
+    assert keys == ["mvrv_zscore", "ma_200w", "monthly_rsi",
+                    "eth_btc_ratio", "mayer_multiple", "fear_greed"]
+
+
+def test_ethereum_signals_all_lower_is_invest():
+    # The scorer treats lower raw values as more invest-favorable, so every
+    # ETH signal must have invest_thresh < avoid_thresh.
+    for s in eth.CONFIG.signals:
+        assert s.invest_thresh < s.avoid_thresh, s.key
+
+
+def test_ethereum_display_metadata():
+    assert eth.CONFIG.id == "ethereum"
+    assert eth.CONFIG.display_name == "Ethereum"
+    assert eth.CONFIG.accent_color == "#627eea"

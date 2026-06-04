@@ -101,3 +101,31 @@ def good_entry(df: pd.DataFrame) -> pd.Series:
         if fwd_return >= MIN_RETURN and prices[i] <= thresholds[i]:
             good[i] = True
     return pd.Series(good, index=df.index)
+
+
+# ── config ────────────────────────────────────────────────────────────────────
+
+CONFIG = AssetConfig(
+    id="ethereum",
+    display_name="Ethereum",
+    short_label="Ξ Ethereum",
+    accent_color="#627eea",
+    price_unit="$",
+    fetch=fetch,
+    good_entry=good_entry,
+    weight_overrides=None,   # start neutral; calibration/validation decides any boost
+    signals=[
+        SignalSpec("mvrv_zscore", "MVRV Z-Score", compute_mvrv_zscore,
+                   invest_thresh=-0.5, avoid_thresh=1.5, range_lo=-3.0, range_hi=4.0, fmt="{:.1f}"),
+        SignalSpec("ma_200w", "200-Week MA", compute_200w_ma_ratio,
+                   invest_thresh=1.0, avoid_thresh=1.2, range_lo=0.5, range_hi=3.0, fmt="{:.1f}×"),
+        SignalSpec("monthly_rsi", "Monthly RSI", compute_monthly_rsi,
+                   invest_thresh=40.0, avoid_thresh=70.0, range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
+        SignalSpec("eth_btc_ratio", "ETH/BTC Ratio", compute_eth_btc_ratio_z,
+                   invest_thresh=-0.5, avoid_thresh=1.0, range_lo=-3.0, range_hi=4.0, fmt="{:.1f}"),
+        SignalSpec("mayer_multiple", "Mayer Multiple", compute_mayer_multiple,
+                   invest_thresh=0.8, avoid_thresh=2.4, range_lo=0.0, range_hi=4.0, fmt="{:.1f}×"),
+        SignalSpec("fear_greed", "Fear & Greed", compute_fear_greed,
+                   invest_thresh=25.0, avoid_thresh=50.0, range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
+    ],
+)
