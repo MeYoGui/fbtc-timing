@@ -25,6 +25,6 @@ def test_anchored_threshold_clamps_rate_below_45pct():
 
 def test_anchored_threshold_ignores_nan():
     series = pd.Series([1.0, float("nan"), 3.0, 5.0])
+    # rate=0.50 is clamped to 0.45; 45th pct of [1,3,5] with method="higher" = 3.0
     result = anchored_threshold(series, target_buy_rate=0.50)
-    # median of [1,3,5] = 3.0
     assert abs(result - 3.0) < 0.01

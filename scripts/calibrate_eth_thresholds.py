@@ -41,6 +41,12 @@ def anchored_threshold(series: pd.Series, target_buy_rate: float) -> float:
 
     The 0.45 cap ensures invest_thresh never reaches the median — keeping the
     lower-is-invest convention intact regardless of K.
+
+    method="higher" rounds up to the nearest observed data point, so the
+    returned invest_thresh is always a real historical value rather than an
+    interpolated one. This makes the invest zone slightly wider (more generous)
+    than the pure quantile, which is intentional: K already targets conservatism;
+    rounding to a real price/ratio avoids thresholds that never actually occurred.
     """
     p = float(np.clip(target_buy_rate, 0.001, 0.45))
     return float(np.nanquantile(series.dropna(), p, method="higher"))
@@ -71,6 +77,8 @@ def compute_thresholds(btc: pd.DataFrame, eth: pd.DataFrame, k: float = K) -> di
     def er(key):
         return eth[key + "_raw"]
 
+    # "puell" must exist in bitcoin_signal_history.csv (it is one of bitcoin.CONFIG's signal keys).
+    # If BTC signal keys ever change this will raise a clear KeyError here.
     btc_buy = {k_: _rate100(btc, k_) for k_ in ["mvrv_zscore", "ma_200w", "puell"]}
     btc_av  = {k_: _rate0(btc, k_)   for k_ in ["mvrv_zscore", "ma_200w", "puell"]}
 
@@ -106,7 +114,7 @@ def report(thr: dict, eth: pd.DataFrame, weights: dict) -> None:
         raw = eth[sig + "_raw"]
         s = _score_series(raw, inv, av)
         scores[sig] = s
-        buy = 100 * (s == 100).mean()
+        buy = 100 * (s.dropna() == 100).mean()
         print(f"  {sig:16s}  invest={inv:8.4f}  avoid={av:8.4f}  buy={buy:.1f}%")
 
     M = np.vstack([scores[s].values for s in en]).T
