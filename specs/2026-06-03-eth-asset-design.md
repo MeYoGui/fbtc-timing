@@ -38,6 +38,7 @@ config-only change plus two new shared signal functions — **no edits to
 | `assets/eth.py` | **New.** ETH `AssetConfig`: `fetch()`, 6 `SignalSpec`s, `good_entry()`, `weight_overrides`. |
 | `assets/signals.py` | **Add** `compute_eth_btc_ratio_z` and `compute_mayer_multiple`. Existing functions reused unchanged. |
 | `assets/registry.py` | Append `eth.CONFIG` to `ASSETS` (after `bitcoin.CONFIG`). |
+| `scripts/validate_composite.py` | **New.** Backtests the **composite** score (not just per-signal) over full history; loops `ASSETS` so BTC gets it too. In-sample report + walk-forward out-of-sample check. |
 | `tests/test_framework.py` | Add ETH config/registry assertions + a **data-independent** ETH scoring-parity fixture. |
 
 ## Data fetch (`eth.fetch()`, keyless)
@@ -94,6 +95,40 @@ ETH has no halving cycle, so the BTC cycle-bottom definition cannot be reused.
   Start **`MIN_RETURN = 0.50`**, **`HOLDING_DAYS = 548`** (18 months, same as BTC).
 
 The last `HOLDING_DAYS` rows have no forward window and are labeled `False` (same as BTC).
+
+## Composite-score validation (`scripts/validate_composite.py`)
+
+The existing pipeline derives **per-signal** weights by precision but never checks the
+**composite** score. This deliverable validates that the combined score is actually
+predictive of good ETH entries over full history, and acts as a **ship gate** for ETH.
+The script loops `ASSETS` (so it also reports on Bitcoin) and writes
+`data/{id}_validation.json` plus a printed summary. Two complementary analyses:
+
+### 1. In-sample report (final weights, all history)
+
+- Reconstruct the daily composite series from `{id}_signal_history.csv` × final weights.
+- For each verdict band (STRONG BUY ≥80 / INVEST ≥72 / CLOSE ≥50 / WAIT ≥25 / AVOID <25):
+  day count, **mean & median 18-month forward return**, and % of days with positive
+  forward return. A healthy model shows forward return rising monotonically with the band.
+- **Precision / recall / F1 of "composite ≥ 72 (INVEST)"** against the `good_entry` label.
+- **Vs buy-and-hold:** mean forward return of INVEST-signaled days compared to the mean
+  forward return of all days (the edge from timing).
+
+### 2. Walk-forward out-of-sample
+
+- Expanding window: starting after a warm-up (~4 years, so the 200-week MA exists), step
+  forward (e.g. monthly). At each step *t*, derive weights using **only** data up to *t*
+  (good entries are knowable only up to *t* − 548 days), then score the next out-of-sample
+  window with those weights.
+- Aggregate **OOS** INVEST precision and OOS forward-return-by-band, and report the
+  **in-sample minus OOS gap** as an overfitting indicator.
+
+### Ship gate
+
+If the **out-of-sample** composite does not beat buy-and-hold on INVEST-day forward return
+and show better-than-chance INVEST precision, we iterate on thresholds / signal pool before
+ETH goes live — rather than shipping a hindsight-fit model. This script is an analysis tool
+(manual run / optional workflow dispatch), **not** part of the daily CI job.
 
 ## UI / display
 
