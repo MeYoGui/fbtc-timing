@@ -3,27 +3,33 @@
   "signals": {
     "mvrv_zscore": {
       "raw": -0.31991143695667174,
-      "score": 50
+      "score": 50,
+      "sell_score": 0
     },
     "ma_200w": {
       "raw": 0.9862997946260535,
-      "score": 100
+      "score": 100,
+      "sell_score": 0
     },
     "monthly_rsi": {
       "raw": 47.28781103574178,
-      "score": 50
+      "score": 50,
+      "sell_score": 0
     },
     "pi_cycle": {
       "raw": 0.38913204267989987,
-      "score": 100
+      "score": 100,
+      "sell_score": 0
     },
     "puell": {
       "raw": 0.7241563708327873,
-      "score": 50
+      "score": 50,
+      "sell_score": 0
     },
     "fear_greed": {
       "raw": 12.0,
-      "score": 100
+      "score": 100,
+      "sell_score": 0
     }
   }
 }
