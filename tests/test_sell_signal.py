@@ -149,3 +149,27 @@ def test_compute_all_signals_includes_sell_columns():
     for spec in CONFIG.signals:
         assert f"{spec.key}_sell" in out.columns, f"missing {spec.key}_sell column"
         assert set(out[f"{spec.key}_sell"].dropna().unique()).issubset({0, 100})
+
+
+def test_backtest_sell_derive_weights_sum_to_one():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+    from backtest import derive_weights
+    import pandas as pd, numpy as np
+    signal_names = ["mvrv_zscore", "ma_200w", "monthly_rsi"]
+    stats = {name: {"precision": 0.5} for name in signal_names}
+    weights = derive_weights(stats, signal_names)
+    assert abs(sum(weights.values()) - 1.0) < 1e-3
+
+def test_backtest_sell_fg_zeroed_when_precision_low():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+    from backtest import derive_weights
+    signal_names = ["mvrv_zscore", "fear_greed"]
+    # fear_greed precision < 0.30 → should be zeroed before weighting
+    stats = {"mvrv_zscore": {"precision": 0.6}, "fear_greed": {"precision": 0.20}}
+    weights = derive_weights(stats, signal_names, sell_side=True)
+    assert weights["fear_greed"] == 0.0
+    assert abs(weights["mvrv_zscore"] - 1.0) < 1e-3

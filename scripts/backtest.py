@@ -52,9 +52,12 @@ def compute_signal_stats(signals_df: pd.DataFrame, good_entries: pd.Series,
     return stats
 
 
-def derive_weights(stats: dict, signal_names=SIGNAL_NAMES, weight_overrides=None) -> dict:
-    """Weight by precision; apply optional per-signal multipliers (e.g. MVRV 2x)."""
+def derive_weights(stats: dict, signal_names=SIGNAL_NAMES,
+                   weight_overrides=None, sell_side=False) -> dict:
+    """Weight by precision; zero out Fear & Greed on sell side if precision < 0.30."""
     raw = {s: stats[s]["precision"] for s in signal_names}
+    if sell_side and "fear_greed" in raw and raw["fear_greed"] < 0.30:
+        raw["fear_greed"] = 0.0
     for key, mult in (weight_overrides or {}).items():
         if key in raw:
             raw[key] = raw[key] * mult
@@ -91,10 +94,46 @@ def _backtest_asset(cfg) -> None:
     print(f"  {cfg.id}: {int(good.sum())} good-entry days; weights written")
 
 
+def _backtest_sell_asset(cfg) -> None:
+    """Mirror of _backtest_asset using good_exit() as target and {key}_sell columns."""
+    hist_path = DATA_DIR / f"{cfg.id}_history.csv"
+    sig_path = DATA_DIR / f"{cfg.id}_signal_history.csv"
+    if not hist_path.exists() or not sig_path.exists():
+        print(f"  skip {cfg.id} sell: history/signal file missing", file=sys.stderr)
+        return
+    price_df = pd.read_csv(hist_path)
+    price_df["date"] = pd.to_datetime(price_df["date"])
+    signals_df = pd.read_csv(sig_path)
+    signals_df["date"] = pd.to_datetime(signals_df["date"])
+
+    signal_names = [s.key for s in cfg.signals]
+    sell_col_names = [f"{s.key}_sell" for s in cfg.signals]
+
+    # Rename sell columns to plain names for compute_signal_stats reuse
+    sell_df = signals_df[["date"] + sell_col_names].rename(
+        columns={f"{k}_sell": k for k in signal_names}
+    )
+
+    good = cfg.good_exit(price_df)
+    merged = price_df[["date"]].merge(sell_df, on="date", how="left")
+    stats = compute_signal_stats(merged, good, signal_names)
+    weights = derive_weights(stats, signal_names, cfg.sell_weight_overrides, sell_side=True)
+
+    output = {
+        "generated_at": str(pd.Timestamp.now().date()),
+        "good_exit_definition": {"min_drawdown": 0.50, "holding_days": 548},
+        "signals": {name: {"weight": weights[name], **stats[name]} for name in signal_names},
+    }
+    (DATA_DIR / f"{cfg.id}_sell_weights.json").write_text(json.dumps(output, indent=2))
+    print(f"  {cfg.id} sell: {int(good.sum())} good-exit days; sell weights written")
+
+
 def main():
     for cfg in ASSETS:
-        print(f"Backtesting {cfg.display_name}...")
+        print(f"Backtesting {cfg.display_name} (buy)...")
         _backtest_asset(cfg)
+        print(f"Backtesting {cfg.display_name} (sell)...")
+        _backtest_sell_asset(cfg)
 
 
 if __name__ == "__main__":
