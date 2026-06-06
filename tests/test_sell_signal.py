@@ -33,3 +33,44 @@ def test_asset_config_sell_weight_overrides_defaults_none():
         good_entry=_dummy_entry, good_exit=_dummy_exit,
     )
     assert cfg.sell_weight_overrides is None
+
+import numpy as np
+
+def _make_btc_df(n=1500, prices=None):
+    """Minimal BTC-like DataFrame for testing good_exit."""
+    import pandas as pd, numpy as np
+    dates = pd.date_range("2015-01-01", periods=n)
+    if prices is None:
+        prices = np.linspace(1000, 70000, n)
+    return pd.DataFrame({
+        "date": dates,
+        "price": prices,
+        "market_cap": np.array(prices) * 19_000_000,
+        "mvrv": np.full(n, 2.0),
+        "miner_revenue": np.full(n, 1e7),
+        "fear_greed": np.full(n, 50),
+    })
+
+def test_btc_good_exit_returns_bool_series():
+    from assets.bitcoin import good_exit
+    df = _make_btc_df()
+    result = good_exit(df)
+    assert result.dtype == bool
+    assert len(result) == len(df)
+
+def test_btc_good_exit_false_when_price_at_bottom():
+    """Price near minimum — should NOT be a good exit."""
+    from assets.bitcoin import good_exit
+    prices = [5000.0] * 1500  # flat low price, no big drawdown possible
+    df = _make_btc_df(prices=prices)
+    result = good_exit(df)
+    assert result.sum() == 0
+
+def test_btc_config_has_sell_thresh():
+    from assets.bitcoin import CONFIG
+    for spec in CONFIG.signals:
+        assert hasattr(spec, "sell_thresh"), f"{spec.key} missing sell_thresh"
+        if spec.key != "pi_cycle":
+            assert spec.sell_thresh > spec.avoid_thresh, (
+                f"{spec.key}: sell_thresh {spec.sell_thresh} should be > avoid_thresh {spec.avoid_thresh}"
+            )

@@ -1,5 +1,6 @@
 """Bitcoin asset config."""
 import requests
+import numpy as np
 import pandas as pd
 
 from assets.base import AssetConfig, SignalSpec
@@ -85,6 +86,9 @@ HALVING_DATES = [
 HOLDING_DAYS = 548
 MIN_RETURN = 0.50
 CYCLE_BOTTOM_PCT = 0.40
+CYCLE_TOP_PCT = 0.60     # price >= cycle_low + 60% of cycle range = top 40%
+EXIT_HOLDING_DAYS = 548  # same 18-month window as good_entry
+MIN_DRAWDOWN = 0.50      # forward price must fall >= 50% from this point
 
 
 def _get_cycle_ranges(df: pd.DataFrame) -> pd.DataFrame:
@@ -125,6 +129,24 @@ def good_entry(df: pd.DataFrame) -> pd.Series:
     return pd.Series(good, index=df.index)
 
 
+def good_exit(df: pd.DataFrame) -> pd.Series:
+    """Boolean Series: price in top 40% of cycle range + >=50% forward drawdown."""
+    enriched = _get_cycle_ranges(df)
+    prices = enriched["price"].values
+    cycle_top_thresh = (
+        enriched["cycle_low"] + CYCLE_TOP_PCT * (enriched["cycle_high"] - enriched["cycle_low"])
+    ).values
+    n = len(prices)
+    exits = np.zeros(n, dtype=bool)
+    for i in range(n - EXIT_HOLDING_DAYS):
+        if prices[i] <= 0:
+            continue
+        fwd_drawdown = (prices[i] - prices[i + EXIT_HOLDING_DAYS]) / prices[i]
+        if fwd_drawdown >= MIN_DRAWDOWN and prices[i] >= cycle_top_thresh[i]:
+            exits[i] = True
+    return pd.Series(exits, index=df.index)
+
+
 # ── config ────────────────────────────────────────────────────────────────────
 
 CONFIG = AssetConfig(
@@ -135,19 +157,26 @@ CONFIG = AssetConfig(
     price_unit="$",
     fetch=fetch,
     good_entry=good_entry,
+    good_exit=good_exit,
     weight_overrides={"mvrv_zscore": 2.0},
     signals=[
         SignalSpec("mvrv_zscore", "MVRV Z-Score", compute_mvrv_zscore,
-                   invest_thresh=-0.5, avoid_thresh=1.5, range_lo=-3.0, range_hi=4.0, fmt="{:.1f}"),
+                   invest_thresh=-0.5, avoid_thresh=1.5, sell_thresh=3.5,
+                   range_lo=-3.0, range_hi=4.0, fmt="{:.1f}"),
         SignalSpec("ma_200w", "200-Week MA", compute_200w_ma_ratio,
-                   invest_thresh=1.0, avoid_thresh=1.2, range_lo=0.5, range_hi=3.0, fmt="{:.1f}×"),
+                   invest_thresh=1.0, avoid_thresh=1.2, sell_thresh=2.5,
+                   range_lo=0.5, range_hi=3.0, fmt="{:.1f}×"),
         SignalSpec("monthly_rsi", "Monthly RSI", compute_monthly_rsi,
-                   invest_thresh=40.0, avoid_thresh=70.0, range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
+                   invest_thresh=40.0, avoid_thresh=70.0, sell_thresh=78.0,
+                   range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
         SignalSpec("pi_cycle", "Pi Cycle", compute_pi_cycle_ratio,
-                   invest_thresh=0.9, avoid_thresh=1.0, range_lo=0.0, range_hi=1.5, fmt="{:.1f}"),
+                   invest_thresh=0.9, avoid_thresh=1.0, sell_thresh=1.0,
+                   range_lo=0.0, range_hi=1.5, fmt="{:.1f}"),
         SignalSpec("puell", "Puell Multiple", compute_puell_multiple,
-                   invest_thresh=0.5, avoid_thresh=1.5, range_lo=0.0, range_hi=4.0, fmt="{:.1f}"),
+                   invest_thresh=0.5, avoid_thresh=1.5, sell_thresh=3.0,
+                   range_lo=0.0, range_hi=4.0, fmt="{:.1f}"),
         SignalSpec("fear_greed", "Fear & Greed", compute_fear_greed,
-                   invest_thresh=25.0, avoid_thresh=50.0, range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
+                   invest_thresh=25.0, avoid_thresh=50.0, sell_thresh=78.0,
+                   range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
     ],
 )
