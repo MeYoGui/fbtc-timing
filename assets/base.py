@@ -1,5 +1,5 @@
 """Typed config interface every asset must satisfy."""
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable, Optional
 
 import pandas as pd
