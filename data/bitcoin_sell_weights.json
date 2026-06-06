@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-06-06",
+  "good_exit_definition": {
+    "min_drawdown": 0.5,
+    "holding_days": 548
+  },
+  "signals": {
+    "mvrv_zscore": {
+      "weight": 0.0,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0
+    },
+    "ma_200w": {
+      "weight": 0.1796,
+      "precision": 0.1295,
+      "recall": 1.0,
+      "f1": 0.2293
+    },
+    "monthly_rsi": {
+      "weight": 0.1984,
+      "precision": 0.143,
+      "recall": 0.5551,
+      "f1": 0.2274
+    },
+    "pi_cycle": {
+      "weight": 0.2301,
+      "precision": 0.1659,
+      "recall": 0.3084,
+      "f1": 0.2157
+    },
+    "puell": {
+      "weight": 0.3919,
+      "precision": 0.2825,
+      "recall": 0.3921,
+      "f1": 0.3284
+    },
+    "fear_greed": {
+      "weight": 0.0,
+      "precision": 0.1179,
+      "recall": 0.1013,
+      "f1": 0.109
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-06-06",
+  "good_exit_definition": {
+    "min_drawdown": 0.5,
+    "holding_days": 548
+  },
+  "signals": {
+    "mvrv_zscore": {
+      "weight": 0.0121,
+      "precision": 0.0145,
+      "recall": 0.0044,
+      "f1": 0.0067
+    },
+    "ma_200w": {
+      "weight": 0.157,
+      "precision": 0.1874,
+      "recall": 0.9912,
+      "f1": 0.3152
+    },
+    "monthly_rsi": {
+      "weight": 0.2948,
+      "precision": 0.3518,
+      "recall": 0.6974,
+      "f1": 0.4676
+    },
+    "eth_btc_ratio": {
+      "weight": 0.3336,
+      "precision": 0.3982,
+      "recall": 0.386,
+      "f1": 0.392
+    },
+    "mayer_multiple": {
+      "weight": 0.2024,
+      "precision": 0.2416,
+      "recall": 0.2851,
+      "f1": 0.2616
+    },
+    "fear_greed": {
+      "weight": 0.0,
+      "precision": 0.041,
+      "recall": 0.0351,
+      "f1": 0.0378
+    }
+  }
+}
