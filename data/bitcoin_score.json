@@ -9,7 +9,7 @@
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.31991143695667174,
+      "raw": -0.339795096239766,
       "score": 50,
       "sell_score": 0,
       "status": "neutral"
