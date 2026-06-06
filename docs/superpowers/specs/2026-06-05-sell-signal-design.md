@@ -144,12 +144,14 @@ Passes both to the Jinja2 template alongside existing asset data.
 
 ## Spectrum Position Verdicts
 
+Five equal-width zones (each 20 units) for visual symmetry. HOLD is centred at 50.
+
 | spectrum_pos | Verdict | Color |
 |---|---|---|
-| 0–25 | TAKE PROFIT | #ff5252 |
-| 25–50 | SELL | #ff9800 |
-| 50–72 | HOLD | #ffd740 |
-| 72–80 | BUY | #00c853 |
+| 0–20 | TAKE PROFIT | #ff5252 |
+| 20–40 | SELL | #ff9800 |
+| 40–60 | HOLD | #ffd740 |
+| 60–80 | BUY | #00c853 |
 | 80–100 | STRONG BUY | #00e676 |
 
 ---
@@ -160,15 +162,15 @@ Passes both to the Jinja2 template alongside existing asset data.
 
 ### Spectrum gauge
 
-- Five zones with widths proportional to score ranges:
-  - TAKE PROFIT: flex 25 (score 0–25, left)
-  - SELL: flex 25 (score 25–50)
-  - HOLD: flex 22 (score 50–72, center)
-  - BUY: flex 8 (score 72–80)
-  - STRONG BUY: flex 20 (score 80–100, right)
-- White cursor line at `spectrum_pos %` with floating score bubble above it
-- Tick labels at zone boundaries: `0 · 25 · 50 · 72 · 80 · 100`, color-coded red→grey→green
-- HOLD zone visually centered; buy/sell zones symmetric on each side (implementation note: adjust flex values if needed to achieve visual symmetry)
+- Five **equal-width** zones (all `flex: 20`), symmetric around HOLD at centre:
+  - TAKE PROFIT: score 0–20 (far left, #ff5252)
+  - SELL: score 20–40 (#ff9800)
+  - HOLD: score 40–60 (centre, #ffffff10)
+  - BUY: score 60–80 (#00c853)
+  - STRONG BUY: score 80–100 (far right, #00e676)
+- White cursor line at `spectrum_pos %` with floating score label bubble above it
+- Tick labels at zone boundaries: `0 · 20 · 40 · 60 · 80 · 100`, color-coded red→grey→green
+- Visual reference: `docs/superpowers/kairos-spectrum-mockup-reference.png` and `docs/superpowers/kairos-full-page-reference.png`
 
 ### Score boxes (below gauge)
 
