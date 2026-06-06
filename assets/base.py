@@ -1,5 +1,5 @@
 """Typed config interface every asset must satisfy."""
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Optional
 
 import pandas as pd
@@ -7,29 +7,28 @@ import pandas as pd
 
 @dataclass
 class SignalSpec:
-    """Binds a shared signal compute-function to one asset's thresholds + display meta.
-
-    Scoring direction is encoded by the ordering of invest_thresh vs avoid_thresh
-    (all current signals are "lower raw value = more invest").
-    """
-    key: str                                   # "mvrv_zscore" — column + JSON key
-    display_name: str                          # "MVRV Z-Score"
-    compute: Callable[[pd.DataFrame], pd.Series]  # raw-value series from assets.signals
+    """Binds a shared signal compute-function to one asset's thresholds + display meta."""
+    key: str
+    display_name: str
+    compute: Callable[[pd.DataFrame], pd.Series]
     invest_thresh: float
     avoid_thresh: float
+    sell_thresh: float        # raw value ABOVE which signal says "sell" (score = 100)
     range_lo: float
     range_hi: float
-    fmt: str                                   # "{:.1f}" — display format for bar labels
+    fmt: str
 
 
 @dataclass
 class AssetConfig:
-    id: str                # "bitcoin" — used in filenames, JSON keys, DOM ids
-    display_name: str      # "Bitcoin"
-    short_label: str       # "₿ Bitcoin" (chip label)
-    accent_color: str      # "#f7931a"
-    price_unit: str        # "$" — header price prefix
-    fetch: Callable[[], pd.DataFrame]               # returns history DataFrame (has "date")
-    signals: list[SignalSpec]                      # ordered for display
-    good_entry: Callable[[pd.DataFrame], pd.Series]  # backtest target (bool Series)
-    weight_overrides: Optional[dict[str, float]] = None  # e.g. {"mvrv_zscore": 2.0} precision multiplier
+    id: str
+    display_name: str
+    short_label: str
+    accent_color: str
+    price_unit: str
+    fetch: Callable[[], pd.DataFrame]
+    signals: list[SignalSpec]
+    good_entry: Callable[[pd.DataFrame], pd.Series]
+    good_exit: Callable[[pd.DataFrame], pd.Series]   # symmetric with good_entry
+    weight_overrides: Optional[dict[str, float]] = None
+    sell_weight_overrides: Optional[dict[str, float]] = None
