@@ -145,6 +145,8 @@ CONFIG = AssetConfig(
         # -> composite STRONG BUY ~3.5% (target 3-5%). See scripts/calibrate_eth_thresholds.py.
         # range_hi also widened for mvrv_zscore (4->5, new avoid_thresh=3.59 needs headroom)
         # and range trimmed for eth_btc_ratio (-3/4 -> -2/3, matching ETH's actual distribution).
+        # sell_thresh intentionally < avoid_thresh: ETH cycle tops historically peak at
+        # lower MVRV Z-scores than BTC, so 3.0 is a tighter sell trigger than 3.59 avoid.
         SignalSpec("mvrv_zscore", "MVRV Z-Score", compute_mvrv_zscore,
                    invest_thresh=-1.3209, avoid_thresh=3.5901, sell_thresh=3.0,
                    range_lo=-3.0, range_hi=5.0, fmt="{:.1f}"),

@@ -124,10 +124,10 @@ def compute_historical_scores(signals_df: pd.DataFrame, weights: dict, signal_na
 
 def _score_to_verdict(score: float) -> str:
     if score >= 80: return "STRONG BUY"
-    if score >= 72: return "INVEST"
-    if score >= 50: return "CLOSE"
-    if score >= 25: return "WAIT"
-    return "AVOID"
+    if score >= 60: return "BUY"
+    if score >= 40: return "HOLD"
+    if score >= 20: return "SELL"
+    return "TAKE PROFIT"
 
 
 def _spark_label(date: pd.Timestamp, window: str) -> str:
@@ -258,7 +258,7 @@ def _assemble_asset(cfg) -> dict:
         distance_text = "Strong Buy zone"
     elif spectrum_pos >= 60:
         distance_text = f"{80 - spectrum_pos:.1f} pts from Strong Buy"
-    elif spectrum_pos > 40:
+    elif spectrum_pos >= 40:
         distance_text = f"{60 - spectrum_pos:.1f} pts from Buy zone"
     elif spectrum_pos >= 20:
         distance_text = f"{spectrum_pos - 20:.1f} pts into Sell zone"
