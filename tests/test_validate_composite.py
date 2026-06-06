@@ -17,8 +17,8 @@ def test_composite_series_weighted_average():
 
 def test_band_of_thresholds():
     assert vc.band_of(85) == "STRONG BUY"
-    assert vc.band_of(75) == "INVEST"
-    assert vc.band_of(60) == "CLOSE"
+    assert vc.band_of(75) == "BUY"
+    assert vc.band_of(50) == "HOLD"
     assert vc.band_of(30) == "WAIT"
     assert vc.band_of(10) == "AVOID"
 
@@ -34,16 +34,16 @@ def test_forward_returns_shift():
 def test_invest_precision_counts():
     composite = pd.Series([80.0, 75.0, 60.0, 90.0])
     good = pd.Series([True, False, True, True])
-    res = vc.invest_precision(composite, good, thresh=72.0)
-    # invest days (>=72): idx0(T), idx1(F), idx3(T) -> tp=2, fp=1, fn=1
-    assert res["tp"] == 2 and res["fp"] == 1 and res["fn"] == 1
-    assert round(res["precision"], 4) == round(2 / 3, 4)
+    res = vc.invest_precision(composite, good, thresh=60.0)
+    # invest days (>=60): idx0(T), idx1(F), idx2(T), idx3(T) -> tp=3, fp=1, fn=0
+    assert res["tp"] == 3 and res["fp"] == 1 and res["fn"] == 0
+    assert round(res["precision"], 4) == round(3 / 4, 4)
 
 
 def test_timing_edge_positive_when_invest_days_outperform():
     composite = pd.Series([80.0, 40.0, 40.0, 40.0])
     fwd = pd.Series([1.0, 0.0, 0.0, 0.0])
-    edge = vc.timing_edge(composite, fwd, thresh=72.0)
+    edge = vc.timing_edge(composite, fwd, thresh=60.0)
     assert edge["invest_mean_fwd_return"] == 1.0
     assert edge["buy_and_hold_mean_fwd_return"] == 0.25
     assert edge["edge"] == 0.75

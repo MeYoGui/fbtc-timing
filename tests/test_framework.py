@@ -7,7 +7,7 @@ from score import compute_score, get_verdict
 # Golden values snapshotted from data/current_score.json on 2026-05-31.
 # These pin Bitcoin's scoring behaviour across the multi-asset refactor.
 GOLDEN_COMPOSITE = 54.5
-GOLDEN_VERDICT = "CLOSE"
+GOLDEN_VERDICT = "HOLD"
 GOLDEN_SIGNAL_SCORES = {
     "mvrv_zscore": 50,
     "ma_200w": 50,
@@ -34,7 +34,7 @@ GOLDEN_WEIGHTS = {
 def test_bitcoin_scoring_parity():
     """Data-independent regression guard for Bitcoin's scoring math.
 
-    Pins the 2026-05-31 signal scores + derived weights → composite 54.5 / CLOSE.
+    Pins the 2026-05-31 signal scores + derived weights → composite 54.5 / HOLD.
     Uses inline fixtures (not the mutable data files) so it survives daily refreshes."""
     signals = {key: {"score": score} for key, score in GOLDEN_SIGNAL_SCORES.items()}
     composite = compute_score(signals, GOLDEN_WEIGHTS)
@@ -167,8 +167,8 @@ ETH_GOLDEN_WEIGHTS = {
 
 def test_ethereum_scoring_parity():
     """Inline-fixture guard for ETH's composite math (survives daily refreshes).
-    100*.30 + 50*.15 + 50*.15 + 0*.10 + 100*.20 + 50*.10 = 70.0 -> CLOSE."""
+    100*.30 + 50*.15 + 50*.15 + 0*.10 + 100*.20 + 50*.10 = 70.0 -> BUY."""
     signals = {key: {"score": score} for key, score in ETH_GOLDEN_SIGNAL_SCORES.items()}
     composite = compute_score(signals, ETH_GOLDEN_WEIGHTS)
     assert composite == 70.0
-    assert get_verdict(composite) == "CLOSE"
+    assert get_verdict(composite) == "BUY"

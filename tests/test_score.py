@@ -11,22 +11,22 @@ EQUAL_WEIGHTS = {
 
 def test_get_verdict_avoid():
     assert get_verdict(0) == "AVOID"
-    assert get_verdict(24.9) == "AVOID"
+    assert get_verdict(19.9) == "AVOID"
 
 
 def test_get_verdict_wait():
-    assert get_verdict(25) == "WAIT"
-    assert get_verdict(49.9) == "WAIT"
+    assert get_verdict(20) == "WAIT"
+    assert get_verdict(39.9) == "WAIT"
 
 
-def test_get_verdict_close():
-    assert get_verdict(50) == "CLOSE"
-    assert get_verdict(71.9) == "CLOSE"
+def test_get_verdict_hold():
+    assert get_verdict(40) == "HOLD"
+    assert get_verdict(59.9) == "HOLD"
 
 
-def test_get_verdict_invest():
-    assert get_verdict(72) == "INVEST"
-    assert get_verdict(79.9) == "INVEST"
+def test_get_verdict_buy():
+    assert get_verdict(60) == "BUY"
+    assert get_verdict(79.9) == "BUY"
 
 
 def test_get_verdict_strong_buy():

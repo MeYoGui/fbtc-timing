@@ -27,10 +27,10 @@ from backtest import compute_signal_stats, derive_weights
 DATA_DIR = Path(__file__).parent.parent / "data"
 
 HOLDING_DAYS = 548
-INVEST_THRESHOLD = 72.0
+INVEST_THRESHOLD = 60.0
 WARMUP_DAYS = 365 * 4            # 200-week MA needs ~4 years before signals exist
 STEP_DAYS = 90                   # walk-forward out-of-sample window size
-BANDS = [("STRONG BUY", 80), ("INVEST", 72), ("CLOSE", 50), ("WAIT", 25), ("AVOID", 0)]
+BANDS = [("STRONG BUY", 80), ("BUY", 60), ("HOLD", 40), ("WAIT", 20), ("AVOID", 0)]
 
 
 def composite_series(signals_df: pd.DataFrame, weights: dict, signal_names: list) -> pd.Series:
