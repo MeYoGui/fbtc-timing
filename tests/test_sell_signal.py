@@ -74,3 +74,37 @@ def test_btc_config_has_sell_thresh():
             assert spec.sell_thresh > spec.avoid_thresh, (
                 f"{spec.key}: sell_thresh {spec.sell_thresh} should be > avoid_thresh {spec.avoid_thresh}"
             )
+
+
+def _make_eth_df(n=1500, prices=None):
+    import pandas as pd, numpy as np
+    dates = pd.date_range("2016-01-01", periods=n)
+    if prices is None:
+        prices = np.linspace(10, 4800, n)
+    return pd.DataFrame({
+        "date": dates,
+        "price": prices,
+        "market_cap": np.array(prices) * 120_000_000,
+        "mvrv": np.full(n, 2.0),
+        "btc_price": np.linspace(500, 60000, n),
+        "fear_greed": np.full(n, 50),
+    })
+
+def test_eth_good_exit_returns_bool_series():
+    from assets.eth import good_exit
+    df = _make_eth_df()
+    result = good_exit(df)
+    assert result.dtype == bool
+    assert len(result) == len(df)
+
+def test_eth_good_exit_false_when_price_at_bottom():
+    from assets.eth import good_exit
+    prices = [100.0] * 1500
+    df = _make_eth_df(prices=prices)
+    result = good_exit(df)
+    assert result.sum() == 0
+
+def test_eth_config_has_sell_thresh():
+    from assets.eth import CONFIG
+    for spec in CONFIG.signals:
+        assert hasattr(spec, "sell_thresh"), f"{spec.key} missing sell_thresh"

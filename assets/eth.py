@@ -86,6 +86,10 @@ DRAWDOWN = 0.55       # drawdown from running ATH must be >= 55% (price <= ATH *
 HOLDING_DAYS = 548    # 18 months forward window (same as Bitcoin)
 MIN_RETURN = 0.50     # >= 50% forward return to count as a good entry
 
+CYCLE_TOP_PCT = 0.75     # price >= expanding_low + 75% of expanding range = top 25%
+EXIT_HOLDING_DAYS = 548
+MIN_DRAWDOWN = 0.50
+
 
 def good_entry(df: pd.DataFrame) -> pd.Series:
     """Boolean Series: deep drawdown from running ATH + strong forward return."""
@@ -103,6 +107,27 @@ def good_entry(df: pd.DataFrame) -> pd.Series:
     return pd.Series(good, index=df.index)
 
 
+def good_exit(df: pd.DataFrame) -> pd.Series:
+    """Boolean Series: price in top 25% of expanding range + >=50% forward drawdown.
+
+    Uses expanding().max() / expanding().min() as causal cycle high/low — avoids
+    the permanently-high bar of a fixed ATH in stagnating markets.
+    """
+    prices = df["price"].values
+    expanding_high = df["price"].expanding().max().values
+    expanding_low  = df["price"].expanding().min().values
+    top_thresh = expanding_low + CYCLE_TOP_PCT * (expanding_high - expanding_low)
+    n = len(prices)
+    exits = np.zeros(n, dtype=bool)
+    for i in range(n - EXIT_HOLDING_DAYS):
+        if prices[i] <= 0:
+            continue
+        fwd_drawdown = (prices[i] - prices[i + EXIT_HOLDING_DAYS]) / prices[i]
+        if fwd_drawdown >= MIN_DRAWDOWN and prices[i] >= top_thresh[i]:
+            exits[i] = True
+    return pd.Series(exits, index=df.index)
+
+
 # ── config ────────────────────────────────────────────────────────────────────
 
 CONFIG = AssetConfig(
@@ -113,6 +138,7 @@ CONFIG = AssetConfig(
     price_unit="$",
     fetch=fetch,
     good_entry=good_entry,
+    good_exit=good_exit,
     weight_overrides=None,   # start neutral; calibration/validation decides any boost
     signals=[
         # Calibrated 2026-06-04: BTC-anchored per-signal quantiles (K=2.0 looseness)
@@ -120,22 +146,22 @@ CONFIG = AssetConfig(
         # range_hi also widened for mvrv_zscore (4->5, new avoid_thresh=3.59 needs headroom)
         # and range trimmed for eth_btc_ratio (-3/4 -> -2/3, matching ETH's actual distribution).
         SignalSpec("mvrv_zscore", "MVRV Z-Score", compute_mvrv_zscore,
-                   invest_thresh=-1.3209, avoid_thresh=3.5901,
+                   invest_thresh=-1.3209, avoid_thresh=3.5901, sell_thresh=3.0,
                    range_lo=-3.0, range_hi=5.0, fmt="{:.1f}"),
         SignalSpec("ma_200w", "200-Week MA", compute_200w_ma_ratio,
-                   invest_thresh=0.8669, avoid_thresh=0.9567,
+                   invest_thresh=0.8669, avoid_thresh=0.9567, sell_thresh=2.0,
                    range_lo=0.5, range_hi=3.0, fmt="{:.1f}×"),
         SignalSpec("monthly_rsi", "Monthly RSI", compute_monthly_rsi,
-                   invest_thresh=40.0, avoid_thresh=70.0,
+                   invest_thresh=40.0, avoid_thresh=70.0, sell_thresh=78.0,
                    range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
         SignalSpec("eth_btc_ratio", "ETH/BTC Ratio", compute_eth_btc_ratio_z,
-                   invest_thresh=-1.0799, avoid_thresh=0.8833,
+                   invest_thresh=-1.0799, avoid_thresh=0.8833, sell_thresh=1.5,
                    range_lo=-2.0, range_hi=3.0, fmt="{:.1f}"),
         SignalSpec("mayer_multiple", "Mayer Multiple", compute_mayer_multiple,
-                   invest_thresh=0.6451, avoid_thresh=1.4605,
+                   invest_thresh=0.6451, avoid_thresh=1.4605, sell_thresh=2.4,
                    range_lo=0.0, range_hi=4.0, fmt="{:.1f}×"),
         SignalSpec("fear_greed", "Fear & Greed", compute_fear_greed,
-                   invest_thresh=25.0, avoid_thresh=50.0,
+                   invest_thresh=25.0, avoid_thresh=50.0, sell_thresh=78.0,
                    range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
     ],
 )
