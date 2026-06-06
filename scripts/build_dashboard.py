@@ -54,11 +54,11 @@ def format_reading(name: str, raw) -> str:
 
 def get_score_color(verdict: str) -> str:
     return {
-        "STRONG BUY": "#00e676",
-        "INVEST":     "#00c853",
-        "CLOSE":      "#ff9800",
-        "WAIT":       "#ffd740",
-        "AVOID":      "#ff5252",
+        "STRONG BUY":  "#00e676",
+        "BUY":         "#00c853",
+        "HOLD":        "#ffd740",
+        "SELL":        "#ff9800",
+        "TAKE PROFIT": "#ff5252",
     }.get(verdict, "#ffd740")
 
 
@@ -249,12 +249,21 @@ def _assemble_asset(cfg) -> dict:
 
     composite = current_score["composite_score"]
     verdict = current_score["verdict"]
-    if composite >= 80:
-        distance_text = "You are in the Strong Buy zone"
-    elif composite >= 72:
-        distance_text = "You are in the Invest zone"
+    sell_composite   = current_score.get("sell_composite", 0.0)
+    sell_verdict     = current_score.get("sell_verdict", "LOW")
+    spectrum_pos     = current_score.get("spectrum_pos", round(50 + composite / 2, 1))
+    spectrum_verdict = current_score.get("spectrum_verdict", verdict)
+
+    if spectrum_pos >= 80:
+        distance_text = "Strong Buy zone"
+    elif spectrum_pos >= 60:
+        distance_text = f"{80 - spectrum_pos:.1f} pts from Strong Buy"
+    elif spectrum_pos > 40:
+        distance_text = f"{60 - spectrum_pos:.1f} pts from Buy zone"
+    elif spectrum_pos >= 20:
+        distance_text = f"{spectrum_pos - 20:.1f} pts into Sell zone"
     else:
-        distance_text = f"{72 - composite:.1f} pts from Invest zone"
+        distance_text = "Take profit zone"
 
     current_price = price_df.dropna(subset=["price"])["price"].iloc[-1]
 
@@ -270,32 +279,37 @@ def _assemble_asset(cfg) -> dict:
     ]
 
     return {
-        "id": cfg.id,
-        "display_name": cfg.display_name,
-        "short_label": cfg.short_label,
-        "accent_color": cfg.accent_color,
-        "price_unit": cfg.price_unit,
-        "price": round(float(current_price)),
-        "composite": composite,
-        "verdict": verdict,
-        "score_color": get_score_color(verdict),
-        "distance_text": distance_text,
-        "signals": signals,
-        "chart": build_chart_data(price_df, signals_df, weights, signal_names),
-        "trend": build_trend_data(signals_df, weights, signal_names),
-        "methodology": methodology,
+        "id":               cfg.id,
+        "display_name":     cfg.display_name,
+        "short_label":      cfg.short_label,
+        "accent_color":     cfg.accent_color,
+        "price_unit":       cfg.price_unit,
+        "price":            round(float(current_price)),
+        "composite":        composite,
+        "verdict":          verdict,
+        "sell_composite":   sell_composite,
+        "sell_verdict":     sell_verdict,
+        "spectrum_pos":     spectrum_pos,
+        "spectrum_verdict": spectrum_verdict,
+        "score_color":      get_score_color(spectrum_verdict),
+        "distance_text":    distance_text,
+        "signals":          signals,
+        "chart":            build_chart_data(price_df, signals_df, weights, signal_names),
+        "trend":            build_trend_data(signals_df, weights, signal_names),
+        "methodology":      methodology,
     }
 
 
 def _notify_entries(assets: list) -> list:
-    """Compact per-asset digest for the daily push (id, name, composite, verdict, day-delta)."""
     return [
         {
-            "id": a["id"],
-            "display_name": a["display_name"],
-            "composite": a["composite"],
-            "verdict": a["verdict"],
-            "delta_1d": a["trend"]["day"]["delta"],
+            "id":               a["id"],
+            "display_name":     a["display_name"],
+            "composite":        a["composite"],
+            "sell_composite":   a.get("sell_composite", 0.0),
+            "spectrum_pos":     a.get("spectrum_pos", round(50 + a["composite"] / 2, 1)),
+            "spectrum_verdict": a.get("spectrum_verdict", a.get("verdict", "HOLD")),
+            "delta_1d":         a["trend"]["day"]["delta"],
         }
         for a in assets
     ]

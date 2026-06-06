@@ -33,7 +33,8 @@ def test_notify_entries_shape():
     entries = build_dashboard._notify_entries(assets)
     assert entries == [
         {"id": "bitcoin", "display_name": "Bitcoin",
-         "composite": 54.5, "verdict": "CLOSE", "delta_1d": 2.1}
+         "composite": 54.5, "sell_composite": 0.0,
+         "spectrum_pos": 77.2, "spectrum_verdict": "CLOSE", "delta_1d": 2.1}
     ]
 
 
