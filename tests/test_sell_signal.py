@@ -173,3 +173,45 @@ def test_backtest_sell_fg_zeroed_when_precision_low():
     weights = derive_weights(stats, signal_names, sell_side=True)
     assert weights["fear_greed"] == 0.0
     assert abs(weights["mvrv_zscore"] - 1.0) < 1e-3
+
+
+def test_get_sell_verdict():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+    from score import get_sell_verdict
+    assert get_sell_verdict(10)  == "LOW"
+    assert get_sell_verdict(25)  == "ELEVATED"
+    assert get_sell_verdict(50)  == "HIGH"
+    assert get_sell_verdict(75)  == "STRONG SELL"
+    assert get_sell_verdict(100) == "STRONG SELL"
+
+
+def test_compute_spectrum_pos_neutral():
+    from score import compute_spectrum_pos
+    # sell_composite < 25 → effective_sell = 0
+    # spectrum_pos = 50 + (50 - 0) / 2 = 75
+    assert compute_spectrum_pos(buy=50.0, sell=10.0) == 75.0
+
+
+def test_compute_spectrum_pos_active_sell():
+    from score import compute_spectrum_pos
+    # sell_composite >= 25 → used directly
+    # spectrum_pos = clamp(50 + (20 - 60) / 2, 0, 100) = clamp(30, 0, 100) = 30
+    assert compute_spectrum_pos(buy=20.0, sell=60.0) == 30.0
+
+
+def test_compute_spectrum_pos_clamped():
+    from score import compute_spectrum_pos
+    assert compute_spectrum_pos(buy=100.0, sell=0.0) == 100.0
+    assert compute_spectrum_pos(buy=0.0, sell=100.0) == 0.0
+
+
+def test_get_spectrum_verdict():
+    from score import get_spectrum_verdict
+    assert get_spectrum_verdict(10)  == "TAKE PROFIT"
+    assert get_spectrum_verdict(20)  == "SELL"
+    assert get_spectrum_verdict(40)  == "HOLD"
+    assert get_spectrum_verdict(60)  == "BUY"
+    assert get_spectrum_verdict(80)  == "STRONG BUY"
+    assert get_spectrum_verdict(100) == "STRONG BUY"
