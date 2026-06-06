@@ -42,17 +42,17 @@ import send_push
 
 
 def test_format_digest_line_up():
-    e = {"display_name": "Bitcoin", "composite": 54.5, "verdict": "CLOSE", "delta_1d": 2.1}
+    e = {"display_name": "Bitcoin", "spectrum_pos": 54.5, "spectrum_verdict": "CLOSE", "delta_1d": 2.1}
     assert send_push.format_digest_line(e) == "Bitcoin 54.5 ↑ +2.1 — CLOSE"
 
 
 def test_format_digest_line_down():
-    e = {"display_name": "Ethereum", "composite": 61.0, "verdict": "CLOSE", "delta_1d": -1.3}
+    e = {"display_name": "Ethereum", "spectrum_pos": 61.0, "spectrum_verdict": "CLOSE", "delta_1d": -1.3}
     assert send_push.format_digest_line(e) == "Ethereum 61.0 ↓ -1.3 — CLOSE"
 
 
 def test_format_digest_line_flat():
-    e = {"display_name": "Gold", "composite": 50.0, "verdict": "WAIT", "delta_1d": 0.2}
+    e = {"display_name": "Gold", "spectrum_pos": 50.0, "spectrum_verdict": "WAIT", "delta_1d": 0.2}
     assert send_push.format_digest_line(e) == "Gold 50.0 → +0.2 — WAIT"
 
 
@@ -63,8 +63,8 @@ def test_build_title_single_vs_multi():
 
 def test_build_payload():
     entries = [
-        {"display_name": "Bitcoin", "composite": 54.5, "verdict": "CLOSE", "delta_1d": 2.1},
-        {"display_name": "Gold", "composite": 70.2, "verdict": "INVEST", "delta_1d": 4.0},
+        {"display_name": "Bitcoin", "spectrum_pos": 54.5, "spectrum_verdict": "CLOSE", "delta_1d": 2.1},
+        {"display_name": "Gold", "spectrum_pos": 70.2, "spectrum_verdict": "INVEST", "delta_1d": 4.0},
     ]
     p = send_push.build_payload(entries)
     assert p["title"] == "Kairos — daily scores"
@@ -102,3 +102,31 @@ def test_send_all_swallows_410(monkeypatch):
     # must not raise
     send_push.send_all({"title": "T", "body": "B", "url": "/u"},
                        [{"endpoint": "https://x/1", "keys": {}}], "PEM", "mailto:a@b.c")
+
+
+def test_format_digest_line_buy():
+    from send_push import format_digest_line
+    entry = {"display_name": "Bitcoin", "spectrum_pos": 69.7, "spectrum_verdict": "BUY", "delta_1d": 3.2}
+    line = format_digest_line(entry)
+    assert line == "Bitcoin 69.7 ↑ +3.2 — BUY"
+
+
+def test_format_digest_line_take_profit_flag():
+    from send_push import format_digest_line
+    entry = {"display_name": "Ethereum", "spectrum_pos": 22.4, "spectrum_verdict": "TAKE PROFIT", "delta_1d": -4.1}
+    line = format_digest_line(entry)
+    assert "TAKE PROFIT ⚠️" in line
+
+
+def test_format_digest_line_strong_buy_flag():
+    from send_push import format_digest_line
+    entry = {"display_name": "Bitcoin", "spectrum_pos": 83.1, "spectrum_verdict": "STRONG BUY", "delta_1d": 5.0}
+    line = format_digest_line(entry)
+    assert "STRONG BUY ✓" in line
+
+
+def test_format_digest_line_sell_flag():
+    from send_push import format_digest_line
+    entry = {"display_name": "Bitcoin", "spectrum_pos": 30.0, "spectrum_verdict": "SELL", "delta_1d": -2.0}
+    line = format_digest_line(entry)
+    assert "SELL ⚠️" in line

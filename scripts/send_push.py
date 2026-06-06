@@ -19,10 +19,13 @@ DASHBOARD_URL = "/fbtc-timing/"
 
 
 def format_digest_line(entry: dict) -> str:
-    """One line per ticker, e.g. 'Bitcoin 54.5 ↑ +2.1 — CLOSE'."""
+    """One line per ticker, e.g. 'Bitcoin 69.7 ↑ +3.2 — BUY'."""
+    pos = entry["spectrum_pos"]
+    verdict = entry["spectrum_verdict"]
     d = entry["delta_1d"]
     arrow = "↑" if d > 0.5 else "↓" if d < -0.5 else "→"
-    return f"{entry['display_name']} {entry['composite']:.1f} {arrow} {d:+.1f} — {entry['verdict']}"
+    flag = " ⚠️" if verdict in ("TAKE PROFIT", "SELL") else " ✓" if verdict == "STRONG BUY" else ""
+    return f"{entry['display_name']} {pos:.1f} {arrow} {d:+.1f} — {verdict}{flag}"
 
 
 def build_title(n_assets: int) -> str:
