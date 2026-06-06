@@ -27,31 +27,36 @@
     header h1 span:nth-child(5) { color: #00c853; } /* O */
     header h1 span:nth-child(6) { color: #00c853; } /* S */
     .meta { font-size: 0.85rem; color: #666; }
-    .score-card { background: #161616; border-radius: 12px; padding: 2.5rem; text-align: center; margin-bottom: 2rem; }
-    .score-number { font-size: 4.5rem; font-weight: 700; line-height: 1; color: #f0f0f0; }
-    .score-label { font-size: 0.9rem; color: #555; margin-top: 0.4rem; }
-    .verdict { font-size: 1.6rem; font-weight: 600; margin-top: 0.75rem; color: #f0f0f0; letter-spacing: 0.05em; }
+    .score-card { background: #161616; border-radius: 12px; padding: 1.75rem 2rem 1.5rem; text-align: center; margin-bottom: 2rem; }
+    .action-line { font-size: 2.6rem; font-weight: 800; letter-spacing: 0.04em; line-height: 1; margin-bottom: 0.2rem; }
+    .action-sub  { font-size: 0.88rem; color: #666; margin-bottom: 1.6rem; }
 
-    /* ── zone strip (score card) ── */
-    .zone-strip-wrap { max-width: 480px; margin: 1.5rem auto 0; }
-    .zone-strip { display: flex; height: 34px; border-radius: 7px; overflow: hidden; position: relative; }
-    .zone { display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; }
-    .z-avoid  { flex: 25; background: #ff523218; color: #ff5252; }
-    .z-wait   { flex: 25; background: #ffd74018; color: #ffd740; }
-    .z-close  { flex: 22; background: #ff980022; color: #ff9800; }
-    .z-invest { flex: 8;  background: #00c85328; color: #00c853; }
-    .z-strong { flex: 20; background: #00c85448; color: #00e676; font-size: 0.55rem; }
-    .z-cursor {
-      position: absolute; top: 0; width: 2px; height: 100%;
-      background: #fff; border-radius: 2px;
-      box-shadow: 0 0 10px rgba(255,255,255,0.9);
-    }
-    .strip-labels { position: relative; height: 18px; margin-top: 5px; }
-    .strip-label { position: absolute; font-size: 0.68rem; color: #3a3a3a; transform: translateX(-50%); white-space: nowrap; }
-    .strip-label.edge-l { transform: translateX(0); }
-    .strip-label.edge-r { transform: translateX(-100%); }
-    .distance { margin-top: 0.85rem; font-size: 0.9rem; color: #888; }
-    .distance strong { font-weight: 600; }
+    /* spectrum gauge — 5 equal zones, each flex:20 */
+    .spectrum-wrap { max-width: 500px; margin: 0 auto; padding-top: 34px; position: relative; }
+    .spectrum-zones { display: flex; height: 30px; border-radius: 7px; overflow: hidden; }
+    .sz { display: flex; align-items: center; justify-content: center; flex: 20; font-size: 0.52rem; font-weight: 700; letter-spacing: 0.04em; text-align: center; line-height: 1.2; }
+    .sz-tp   { background: #ff525230; color: #ff5252; }
+    .sz-sell { background: #ff980028; color: #ff9800; }
+    .sz-hold { background: #ffffff10; color: #555; }
+    .sz-buy  { background: #00c85328; color: #00c853; }
+    .sz-sbuy { background: #00e67630; color: #00e676; }
+    .spec-cursor { position: absolute; top: 34px; height: 30px; width: 3px; background: #fff; border-radius: 2px; box-shadow: 0 0 10px rgba(255,255,255,0.9); transform: translateX(-50%); }
+    .spec-cursor-label { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #fff; color: #000; font-size: 0.72rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; white-space: nowrap; box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+    .spec-cursor-label::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:4px solid transparent; border-top-color:#fff; }
+    .spec-ticks { position: relative; height: 15px; margin-top: 5px; }
+    .spec-ticks span { position: absolute; font-size: 0.65rem; transform: translateX(-50%); white-space: nowrap; }
+
+    /* sell / buy score boxes */
+    .score-row { display: flex; gap: 1px; margin-top: 1.25rem; }
+    .score-half { flex: 1; padding: 0.75rem 1rem; }
+    .score-half-l { border-radius: 8px 0 0 8px; background: #ff525210; border: 1px solid #ff525220; }
+    .score-half-r { border-radius: 0 8px 8px 0; background: #00e67610; border: 1px solid #00e67620; }
+    .sh-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 4px; }
+    .sh-label-sell { color: #ff525299; }
+    .sh-label-buy  { color: #00e67699; }
+    .sh-score { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+    .sh-verdict { font-size: 0.68rem; color: #555; margin-top: 3px; }
+    .distance { margin-top: 0.5rem; font-size: 0.85rem; color: #666; }
 
     /* ── trend toggle ── */
     .trend-toggle { display: flex; justify-content: center; gap: 6px; margin-bottom: 1rem; }
@@ -138,29 +143,44 @@
   </div>
 
   <div class="score-card">
-    <div class="score-number" id="score-number"></div>
-    <div class="score-label">out of 100</div>
-    <div class="verdict" id="verdict"></div>
-    <div id="trend-delta" class="trend-delta"></div>
-    <div class="zone-strip-wrap">
-      <div class="zone-strip">
-        <div class="zone z-avoid">AVOID</div>
-        <div class="zone z-wait">WAIT</div>
-        <div class="zone z-close">CLOSE</div>
-        <div class="zone z-invest">INVEST</div>
-        <div class="zone z-strong">STRONG BUY</div>
-        <div class="z-cursor" id="zone-cursor" aria-hidden="true"></div>
+    <div class="action-line" id="spectrum-verdict"></div>
+    <div class="action-sub" id="distance"></div>
+
+    <div class="spectrum-wrap">
+      <div class="spectrum-zones">
+        <div class="sz sz-tp">TAKE<br>PROFIT</div>
+        <div class="sz sz-sell">SELL</div>
+        <div class="sz sz-hold">HOLD</div>
+        <div class="sz sz-buy">BUY</div>
+        <div class="sz sz-sbuy">STRONG<br>BUY</div>
       </div>
-      <div class="strip-labels">
-        <span class="strip-label edge-l" style="color:#ff5252">0</span>
-        <span class="strip-label" style="left:25%; color:#ffd740">25</span>
-        <span class="strip-label" style="left:50%; color:#ff9800">50</span>
-        <span class="strip-label" style="left:72%; color:#00c853">72</span>
-        <span class="strip-label" style="left:80%; color:#00e676">80</span>
-        <span class="strip-label edge-r" style="left:100%; color:#555">100</span>
+      <div class="spec-cursor" id="spec-cursor">
+        <div class="spec-cursor-label" id="spec-cursor-label"></div>
       </div>
-      <div class="distance" id="distance"></div>
+      <div class="spec-ticks">
+        <span style="left:0;transform:none;color:#ff525266">0</span>
+        <span style="left:20%;color:#ff980055">20</span>
+        <span style="left:40%;color:#55555566">40</span>
+        <span style="left:60%;color:#00c85355">60</span>
+        <span style="left:80%;color:#00c85377">80</span>
+        <span style="left:100%;transform:translateX(-100%);color:#00e67677">100</span>
+      </div>
     </div>
+
+    <div class="score-row">
+      <div class="score-half score-half-l">
+        <div class="sh-label sh-label-sell">Sell signal</div>
+        <div class="sh-score" id="sell-score"></div>
+        <div class="sh-verdict" id="sell-verdict"></div>
+      </div>
+      <div class="score-half score-half-r">
+        <div class="sh-label sh-label-buy">Buy signal</div>
+        <div class="sh-score" id="buy-score"></div>
+        <div class="sh-verdict" id="buy-verdict"></div>
+      </div>
+    </div>
+
+    <div id="trend-delta" class="trend-delta"></div>
     <div class="sparkline-wrap">
       <div id="sparkline" class="sparkline"></div>
       <div id="spark-lbl" class="spark-lbl"></div>
@@ -212,13 +232,13 @@
     let chart = null;
 
     function zoneColor(s) {
-      return s >= 80 ? '#00e676' : s >= 72 ? '#00c853' : s >= 50 ? '#ff9800' : s >= 25 ? '#ffd740' : '#ff5252';
+      return s >= 80 ? '#00e676' : s >= 60 ? '#00c853' : s >= 40 ? '#ffd740' : s >= 20 ? '#ff9800' : '#ff5252';
     }
 
     function renderChips() {
       const row = document.getElementById('chip-row');
       row.innerHTML = ASSETS.map(function (a) {
-        const col = zoneColor(a.composite);
+        const col = zoneColor(a.spectrum_pos);
         const sp = a.trend.day.spark;
         const mx = Math.max.apply(null, sp.map(p => p.score));
         const mn = Math.min.apply(null, sp.map(p => p.score)) - 3;
@@ -229,8 +249,8 @@
         }).join('');
         const active = a.id === currentId;
         return '<div class="chip' + (active ? ' active' : '') + '" style="' + (active ? 'border-color:' + a.accent_color : '') + '" onclick="setAsset(\'' + a.id + '\')">'
-          + '<div class="chip-top"><span class="chip-name">' + a.short_label + '</span><span class="chip-verdict" style="color:' + col + '">' + a.verdict + '</span></div>'
-          + '<div class="chip-score" style="color:' + col + '">' + Math.round(a.composite) + '</div>'
+          + '<div class="chip-top"><span class="chip-name">' + a.short_label + '</span><span class="chip-verdict" style="color:' + col + '">' + a.spectrum_verdict + '</span></div>'
+          + '<div class="chip-score" style="color:' + col + '">' + a.spectrum_pos.toFixed(1) + '</div>'
           + '<div class="chip-spark">' + bars + '</div></div>';
       }).join('') + '<div class="chip-add">+ more coming</div>';
     }
@@ -329,12 +349,26 @@
 
     function renderAsset(a) {
       document.getElementById('meta').innerHTML = a.price_unit + a.price.toLocaleString() + '&ensp;·&ensp;Updated ' + UPDATED_AT;
-      const sn = document.getElementById('score-number');
-      sn.textContent = a.composite; sn.style.color = a.score_color;
-      const vd = document.getElementById('verdict');
-      vd.textContent = a.verdict; vd.style.color = a.score_color;
-      document.getElementById('zone-cursor').style.left = a.composite + '%';
+
+      // spectrum verdict + cursor
+      var sv = document.getElementById('spectrum-verdict');
+      sv.textContent = a.spectrum_verdict;
+      sv.style.color = a.score_color;
+      document.getElementById('spec-cursor').style.left = a.spectrum_pos + '%';
+      document.getElementById('spec-cursor-label').textContent = a.spectrum_pos.toFixed(1);
       document.getElementById('distance').innerHTML = '<strong style="color:' + a.score_color + '">' + a.distance_text + '</strong>';
+
+      // sell / buy score boxes
+      var sellScore = document.getElementById('sell-score');
+      sellScore.textContent = a.sell_composite.toFixed(1);
+      sellScore.style.color = a.sell_composite >= 25 ? '#ff9800' : '#ff5252';
+      document.getElementById('sell-verdict').textContent = a.sell_verdict;
+
+      var buyScore = document.getElementById('buy-score');
+      buyScore.textContent = a.composite.toFixed(1);
+      buyScore.style.color = zoneColor(a.composite);
+      document.getElementById('buy-verdict').textContent = a.verdict;
+
       renderTable(a);
       renderChart(a);
       applyTrend(a);
