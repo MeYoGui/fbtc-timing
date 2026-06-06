@@ -50,7 +50,7 @@ from assets.base import AssetConfig, SignalSpec
 def _dummy_spec():
     return SignalSpec(
         key="x", display_name="X", compute=lambda df: df["x"],
-        invest_thresh=1.0, avoid_thresh=2.0,
+        invest_thresh=1.0, avoid_thresh=2.0, sell_thresh=3.0,
         range_lo=0.0, range_hi=3.0, fmt="{:.1f}",
     )
 
@@ -66,7 +66,7 @@ def test_assetconfig_requires_core_fields():
     cfg = AssetConfig(
         id="dummy", display_name="Dummy", short_label="D", accent_color="#fff",
         price_unit="$", fetch=lambda: None, signals=[_dummy_spec()],
-        good_entry=lambda df: None,
+        good_entry=lambda df: None, good_exit=lambda df: None,
     )
     assert cfg.id == "dummy"
     assert cfg.weight_overrides is None
@@ -109,7 +109,7 @@ def test_adding_a_config_appears_in_registry(monkeypatch):
     extra = AssetConfig(
         id="testcoin", display_name="TestCoin", short_label="T", accent_color="#abc",
         price_unit="$", fetch=bitcoin.fetch, signals=bitcoin.CONFIG.signals,
-        good_entry=bitcoin.good_entry, weight_overrides=None,
+        good_entry=bitcoin.good_entry, good_exit=bitcoin.good_exit, weight_overrides=None,
     )
     monkeypatch.setattr(reg, "ASSETS", reg.ASSETS + [extra])
     assert [a.id for a in reg.ASSETS] == ["bitcoin", "ethereum", "testcoin"]

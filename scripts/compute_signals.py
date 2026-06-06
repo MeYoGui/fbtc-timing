@@ -46,15 +46,24 @@ def score_series(series: pd.Series, buy_threshold: float, avoid_threshold: float
     )
 
 
+def sell_signal_score(value: float, sell_thresh: float) -> int:
+    """100 if raw value strictly exceeds sell_thresh, else 0."""
+    return 100 if value > sell_thresh else 0
+
+
 from assets.registry import ASSETS
 
 
 def compute_all_signals(df: pd.DataFrame, signals: list) -> pd.DataFrame:
-    """Build a {key}_raw + {key} score column per SignalSpec."""
+    """Build {key}_raw, {key} buy-score, and {key}_sell sell-score columns per SignalSpec."""
     out = pd.DataFrame({"date": df["date"]})
     for spec in signals:
-        out[f"{spec.key}_raw"] = spec.compute(df)
-        out[spec.key] = score_series(out[f"{spec.key}_raw"], spec.invest_thresh, spec.avoid_thresh)
+        raw = spec.compute(df)
+        out[f"{spec.key}_raw"] = raw
+        out[spec.key] = score_series(raw, spec.invest_thresh, spec.avoid_thresh)
+        out[f"{spec.key}_sell"] = raw.apply(
+            lambda v: sell_signal_score(v, spec.sell_thresh) if pd.notna(v) else 0
+        )
     return out
 
 
@@ -69,21 +78,27 @@ def _process_asset(cfg: AssetConfig) -> None:
     signals = compute_all_signals(df, cfg.signals)
     signals.to_csv(DATA_DIR / f"{cfg.id}_signal_history.csv", index=False)
 
-    def _last_valid(raw_col: str, score_col: str) -> tuple:
-        """Return (raw, score) from the last row where raw is not NaN.
-        Falls back to (NaN, 50) if the column is entirely NaN.
+    def _last_valid(raw_col: str, score_col: str, sell_col: str) -> tuple:
+        """Return (raw, score, sell_score) from the last row where raw is not NaN.
+        Falls back to (NaN, 50, 0) if the column is entirely NaN.
         Handles API lag: some sources (MVRV, Puell) publish 1-2 days late."""
         valid = signals[raw_col].notna()
         if not valid.any():
-            return float("nan"), 50
+            return float("nan"), 50, 0
         row = signals[valid].iloc[-1]
-        return row[raw_col], int(row[score_col])
+        return row[raw_col], int(row[score_col]), int(row[sell_col])
 
     latest = signals.iloc[-1]
     current = {"date": str(latest["date"].date()), "signals": {}}
     for spec in cfg.signals:
-        raw, score = _last_valid(f"{spec.key}_raw", spec.key)
-        current["signals"][spec.key] = {"raw": _sanitize_float(raw), "score": score}
+        raw, score, sell_score = _last_valid(
+            f"{spec.key}_raw", spec.key, f"{spec.key}_sell"
+        )
+        current["signals"][spec.key] = {
+            "raw": _sanitize_float(raw),
+            "score": score,
+            "sell_score": sell_score,
+        }
 
     (DATA_DIR / f"{cfg.id}_current_signals.json").write_text(json.dumps(current, indent=2))
     print(f"  {cfg.id}: signals for {current['date']}")

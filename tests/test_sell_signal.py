@@ -108,3 +108,44 @@ def test_eth_config_has_sell_thresh():
     from assets.eth import CONFIG
     for spec in CONFIG.signals:
         assert hasattr(spec, "sell_thresh"), f"{spec.key} missing sell_thresh"
+
+
+def test_sell_signal_score_above_thresh():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+    from compute_signals import sell_signal_score
+    assert sell_signal_score(4.0, sell_thresh=3.5) == 100
+
+
+def test_sell_signal_score_below_thresh():
+    from compute_signals import sell_signal_score
+    assert sell_signal_score(2.0, sell_thresh=3.5) == 0
+
+
+def test_sell_signal_score_exactly_at_thresh():
+    from compute_signals import sell_signal_score
+    # strictly greater than — at threshold is NOT a sell signal
+    assert sell_signal_score(3.5, sell_thresh=3.5) == 0
+
+
+def test_compute_all_signals_includes_sell_columns():
+    import pandas as pd, numpy as np, sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
+    from compute_signals import compute_all_signals
+    from assets.bitcoin import CONFIG
+    n = 1500
+    dates = pd.date_range("2015-01-01", periods=n)
+    df = pd.DataFrame({
+        "date": dates,
+        "price": np.linspace(1000, 70000, n),
+        "market_cap": np.linspace(1e10, 1e12, n),
+        "mvrv": np.full(n, 1.0),
+        "miner_revenue": np.full(n, 1e7),
+        "fear_greed": np.full(n, 50),
+    })
+    out = compute_all_signals(df, CONFIG.signals)
+    for spec in CONFIG.signals:
+        assert f"{spec.key}_sell" in out.columns, f"missing {spec.key}_sell column"
+        assert set(out[f"{spec.key}_sell"].dropna().unique()).issubset({0, 100})
