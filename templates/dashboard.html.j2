@@ -277,7 +277,7 @@
       const col = zoneColor(a.spectrum_pos);
       const border = primary ? 'border-cyber-emerald/40 hover:border-cyber-emerald' : 'border-border-subtle hover:border-cyber-emerald/50';
       const glow = primary ? 'shadow-[0_0_20px_rgba(0,255,136,0.15)] hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]' : 'shadow-lg hover:shadow-[0_0_20px_rgba(0,255,136,0.1)]';
-      return '<button type="button" data-asset="' + a.id + '" class="asset-card relative w-full bg-surface-container-high border ' + border + ' rounded-2xl p-6 ' + glow + ' transition-all group overflow-hidden text-left flex flex-col gap-4">'
+      return '<button type="button" data-asset="' + a.id + '" class="asset-card relative w-full bg-surface-container-high border ' + border + ' rounded-2xl p-6 ' + glow + ' transition-all group text-left flex flex-col gap-4">'
         + '<div class="flex justify-between items-center relative z-10">'
         +   '<div class="flex flex-col">'
         +     '<div class="flex items-center gap-2 text-on-surface font-headline-lg-mobile text-2xl">' + a.short_label + '</div>'
