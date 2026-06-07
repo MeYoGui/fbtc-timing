@@ -84,6 +84,9 @@
     .pulse-ring { animation: pulse-ring 4s cubic-bezier(0.215,0.61,0.355,1) infinite; }
     .pulse-ring-delayed { animation: pulse-ring 4s cubic-bezier(0.215,0.61,0.355,1) infinite 1.2s; }
     @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.5; } 80%, 100% { transform: scale(1.5); opacity: 0; } }
+    .spark-bar { position: relative; }
+    .spark-bar .spark-tip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #161616; border: 1px solid #2a2a2a; border-radius: 5px; padding: 3px 8px; white-space: nowrap; font-size: 11px; font-family: 'JetBrains Mono', monospace; pointer-events: none; z-index: 30; }
+    .spark-bar:hover .spark-tip, .spark-bar.tip-open .spark-tip { display: block; }
     .hidden-view { display: none !important; }
   </style>
 </head>
@@ -229,18 +232,25 @@
       return 'day';
     })();
 
-    function miniBarsHTML(a) {
-      const sp = a.trend[timeframe].spark;
-      const scores = sp.map(p => p.score);
+    // Shared score-history bars with a date+score tooltip (hover on desktop, tap on mobile).
+    function sparkBarsHTML(spark) {
+      const scores = spark.map(p => p.score);
       const mx = Math.max.apply(null, scores);
       const mn = Math.min.apply(null, scores) - 3;
       const span = (mx - mn) || 1;
-      return sp.map(function (p, i) {
+      return spark.map(function (p, i) {
         const h = Math.max(Math.round(((p.score - mn) / span) * 100), 12);
-        const last = i === sp.length - 1;
-        const bg = last ? 'background:' + zoneColor(p.score) + ';box-shadow:0 0 8px rgba(0,255,136,0.6);' : 'background:#222222;';
-        return '<div class="w-full rounded-sm" style="height:' + h + '%;' + bg + '"></div>';
+        const col = zoneColor(p.score);
+        const last = i === spark.length - 1;
+        const bg = last ? 'background:' + col + ';box-shadow:0 0 8px rgba(0,255,136,0.6);' : 'background:#222222;';
+        return '<div class="spark-bar w-full rounded-sm" style="height:' + h + '%;' + bg + '" onclick="toggleTip(event, this)">'
+          + '<span class="spark-tip" style="color:' + col + '">' + p.label + ' — ' + p.score.toFixed(1) + '</span></div>';
       }).join('');
+    }
+    function toggleTip(ev, el) { ev.stopPropagation(); el.classList.toggle('tip-open'); }
+
+    function miniBarsHTML(a) {
+      return sparkBarsHTML(a.trend[timeframe].spark);
     }
 
     function spectrumBandHTML(a) {
