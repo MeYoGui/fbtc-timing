@@ -274,23 +274,28 @@
     }
 
     function spectrumBandHTML(a) {
-      const zi = zoneIndex(a.spectrum_pos, a.strong_buy_cutoff);
+      const cutoff = a.strong_buy_cutoff || 85;
+      const zi = zoneIndex(a.spectrum_pos, cutoff);
+      // Segment widths follow the true verdict boundaries so the bar is an honest
+      // 0-100 axis: the needle (at spectrum_pos%) lands in the zone it's scored as.
+      const bounds = [0, 20, 40, 60, cutoff, 100];
       const segs = ZONE_COLORS.map(function (c, i) {
+        const w = bounds[i + 1] - bounds[i];
         const active = i === zi;
-        const style = active
-          ? 'background:' + c + ';box-shadow:0 0 10px ' + c + ';'
-          : 'background:' + c + ';opacity:0.30;';
-        return '<div class="h-full w-1/5" style="' + style + '"></div>';
+        const style = 'width:' + w + '%;background:' + c + ';'
+          + (active ? 'box-shadow:0 0 10px ' + c + ';' : 'opacity:0.30;');
+        return '<div class="h-full" style="' + style + '"></div>';
       }).join('');
       const labels = ZONE_LABELS.map(function (l, i) {
+        const w = bounds[i + 1] - bounds[i];
         const active = i === zi;
-        return '<span class="' + (active ? 'font-bold' : '') + '" style="color:' + (active ? ZONE_COLORS[i] : '#aaaaaa') + '">' + l + '</span>';
+        return '<span class="text-center ' + (active ? 'font-bold' : '') + '" style="width:' + w + '%;color:' + (active ? ZONE_COLORS[i] : '#aaaaaa') + '">' + l + '</span>';
       }).join('');
       return '<div class="relative w-full">'
         + '<div class="relative w-full h-1.5 bg-surface-variant rounded-full overflow-hidden flex">' + segs + '</div>'
         + '<div class="absolute" style="top:50%;left:' + a.spectrum_pos + '%;transform:translate(-50%,-50%);width:3px;height:12px;background:#fff;border-radius:2px;box-shadow:0 0 9px rgba(255,255,255,0.95);"></div>'
         + '</div>'
-        + '<div class="flex justify-between text-[9px] font-label-caps uppercase tracking-tighter mt-1">' + labels + '</div>';
+        + '<div class="flex text-[9px] font-label-caps uppercase tracking-tighter mt-1">' + labels + '</div>';
     }
 
     function cardHTML(a, primary) {
