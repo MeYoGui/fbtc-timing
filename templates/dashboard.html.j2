@@ -97,8 +97,7 @@
         <span class="material-symbols-outlined text-cyber-emerald text-xl" style="font-variation-settings: 'FILL' 1;">analytics</span>
         <span class="text-headline-md font-headline-md font-bold tracking-widest uppercase text-on-surface">KAIROS</span>
       </div>
-      <div class="font-data-sm text-data-sm text-on-surface-variant flex flex-col items-end leading-tight">
-        <span class="text-cyber-emerald" id="idx-btc-price">—</span>
+      <div class="font-data-sm text-data-sm text-on-surface-variant flex items-center">
         <span class="text-[10px] opacity-50" id="idx-updated">—</span>
       </div>
     </header>
@@ -265,7 +264,10 @@
       const glow = primary ? 'shadow-[0_0_20px_rgba(0,255,136,0.15)] hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]' : 'shadow-lg hover:shadow-[0_0_20px_rgba(0,255,136,0.1)]';
       return '<button type="button" data-asset="' + a.id + '" class="asset-card relative w-full bg-surface-container-high border ' + border + ' rounded-2xl p-6 ' + glow + ' transition-all group overflow-hidden text-left flex flex-col gap-4">'
         + '<div class="flex justify-between items-center relative z-10">'
-        +   '<div class="flex items-center gap-2 text-on-surface font-headline-lg-mobile text-2xl">' + a.short_label + '</div>'
+        +   '<div class="flex flex-col">'
+        +     '<div class="flex items-center gap-2 text-on-surface font-headline-lg-mobile text-2xl">' + a.short_label + '</div>'
+        +     '<span class="font-data-sm text-data-sm text-cyber-emerald mt-1">' + a.price_unit + a.price.toLocaleString() + '</span>'
+        +   '</div>'
         +   '<div class="w-8 h-8 rounded-full bg-surface-container border border-border-subtle flex items-center justify-center group-hover:border-cyber-emerald group-hover:bg-cyber-emerald/10 transition-all">'
         +     '<span class="material-symbols-outlined text-cyber-emerald text-sm opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">arrow_forward</span>'
         +   '</div>'
@@ -306,8 +308,6 @@
     }
 
     function renderIndexHeader() {
-      const first = BY_ID[DEFAULT_ASSET] || ASSETS[0];
-      document.getElementById('idx-btc-price').textContent = first.price_unit + first.price.toLocaleString();
       document.getElementById('idx-updated').textContent = 'Updated ' + UPDATED_AT;
     }
 
