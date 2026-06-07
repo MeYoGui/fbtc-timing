@@ -172,3 +172,20 @@ def test_ethereum_scoring_parity():
     composite = compute_score(signals, ETH_GOLDEN_WEIGHTS)
     assert composite == 70.0
     assert get_verdict(composite) == "BUY"
+
+
+# ── strong_buy_cutoff field ───────────────────────────────────────────────────
+
+def test_strong_buy_cutoff_defaults():
+    from assets.base import AssetConfig
+    import dataclasses
+    # default on the dataclass field is 85.0
+    fields = {f.name: f for f in dataclasses.fields(AssetConfig)}
+    assert fields["strong_buy_cutoff"].default == 85.0
+
+
+def test_asset_strong_buy_cutoffs():
+    from assets.bitcoin import CONFIG as BTC
+    from assets.eth import CONFIG as ETH
+    assert BTC.strong_buy_cutoff == 85.0
+    assert ETH.strong_buy_cutoff == 88.0

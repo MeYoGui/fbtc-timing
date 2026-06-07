@@ -209,9 +209,20 @@ def test_compute_spectrum_pos_clamped():
 
 def test_get_spectrum_verdict():
     from score import get_spectrum_verdict
+    # default cutoff = 85
     assert get_spectrum_verdict(10)  == "TAKE PROFIT"
     assert get_spectrum_verdict(20)  == "SELL"
     assert get_spectrum_verdict(40)  == "HOLD"
     assert get_spectrum_verdict(60)  == "BUY"
-    assert get_spectrum_verdict(80)  == "STRONG BUY"
+    assert get_spectrum_verdict(84)  == "BUY"           # below default cutoff
+    assert get_spectrum_verdict(85)  == "STRONG BUY"    # at default cutoff
     assert get_spectrum_verdict(100) == "STRONG BUY"
+
+
+def test_get_spectrum_verdict_custom_cutoff():
+    from score import get_spectrum_verdict
+    # ETH-style cutoff = 88
+    assert get_spectrum_verdict(87, cutoff=88) == "BUY"
+    assert get_spectrum_verdict(88, cutoff=88) == "STRONG BUY"
+    # lower bands unaffected by cutoff
+    assert get_spectrum_verdict(60, cutoff=88) == "BUY"

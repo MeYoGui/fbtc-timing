@@ -250,3 +250,9 @@ def test_assembled_bitcoin_blob_has_new_keys():
     assert isinstance(blob["price_change_24h"], float)
     assert "verdict_description" in blob
     assert len(blob["verdict_description"]) > 0
+
+
+def test_assemble_asset_includes_strong_buy_cutoff():
+    # Sanity: ETH's configured cutoff is the value the payload must surface.
+    from assets.eth import CONFIG as ETH
+    assert ETH.strong_buy_cutoff == 88.0

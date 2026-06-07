@@ -44,8 +44,8 @@ def compute_spectrum_pos(buy: float, sell: float) -> float:
     return round(max(0.0, min(100.0, raw)), 1)
 
 
-def get_spectrum_verdict(spectrum_pos: float) -> str:
-    if spectrum_pos >= 80:
+def get_spectrum_verdict(spectrum_pos: float, cutoff: float = 85.0) -> str:
+    if spectrum_pos >= cutoff:
         return "STRONG BUY"
     if spectrum_pos >= 60:
         return "BUY"
@@ -122,7 +122,7 @@ def _score_asset(cfg) -> None:
 
     sell_verdict = get_sell_verdict(sell_composite)
     spectrum_pos = compute_spectrum_pos(composite, sell_composite)
-    spectrum_verdict = get_spectrum_verdict(spectrum_pos)
+    spectrum_verdict = get_spectrum_verdict(spectrum_pos, cfg.strong_buy_cutoff)
 
     output = {
         "date": current["date"],
@@ -132,6 +132,7 @@ def _score_asset(cfg) -> None:
         "sell_verdict": sell_verdict,
         "spectrum_pos": spectrum_pos,
         "spectrum_verdict": spectrum_verdict,
+        "strong_buy_cutoff": cfg.strong_buy_cutoff,
         "signals": {
             name: {
                 "display_name": names[name],

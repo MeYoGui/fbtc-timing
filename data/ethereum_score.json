@@ -5,7 +5,8 @@
   "sell_composite": 0.0,
   "sell_verdict": "LOW",
   "spectrum_pos": 87.7,
-  "spectrum_verdict": "STRONG BUY",
+  "spectrum_verdict": "BUY",
+  "strong_buy_cutoff": 88.0,
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",

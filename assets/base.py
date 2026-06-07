@@ -32,3 +32,4 @@ class AssetConfig:
     good_exit: Callable[[pd.DataFrame], pd.Series]   # symmetric with good_entry
     weight_overrides: Optional[dict[str, float]] = None
     sell_weight_overrides: Optional[dict[str, float]] = None
+    strong_buy_cutoff: float = 85.0   # spectrum_pos at/above which headline reads STRONG BUY
