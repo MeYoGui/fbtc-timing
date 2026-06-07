@@ -430,8 +430,8 @@
       return { dates: c.dates.slice(start), prices: c.prices.slice(start), scores: c.scores.slice(start) };
     }
 
-    function renderChart(d) {
-      var sb = (d && d.strong_buy_cutoff) || 85;
+    function renderChart(d, cutoff) {
+      var sb = cutoff || 85;
       var zoneBandsPlugin = {
         id: 'zoneBands',
         beforeDraw: function (ch) {
@@ -478,7 +478,7 @@
         el.classList.toggle('font-bold', active);
         el.classList.toggle('text-on-surface-variant', !active);
       });
-      if (detailId) renderChart(sliceChartData(BY_ID[detailId].chart, chartWindow));
+      if (detailId) renderChart(sliceChartData(BY_ID[detailId].chart, chartWindow), BY_ID[detailId].strong_buy_cutoff);
     }
 
     // ---- view switching ----
