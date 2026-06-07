@@ -91,7 +91,39 @@
 
   <!-- ===================== INDEX VIEW ===================== -->
   <div id="view-index">
-    <!-- INDEX VIEW MARKUP (Task 5) -->
+    <!-- Top App Bar -->
+    <header class="fixed top-0 w-full z-50 flex justify-between items-center px-container-padding h-14 bg-deep-abyss/80 backdrop-blur-md border-b border-border-subtle">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-cyber-emerald text-xl" style="font-variation-settings: 'FILL' 1;">analytics</span>
+        <span class="text-headline-md font-headline-md font-bold tracking-widest uppercase text-on-surface">KAIROS</span>
+      </div>
+      <div class="font-data-sm text-data-sm text-on-surface-variant flex flex-col items-end leading-tight">
+        <span class="text-cyber-emerald" id="idx-btc-price">—</span>
+        <span class="text-[10px] opacity-50" id="idx-updated">—</span>
+      </div>
+    </header>
+
+    <main class="pt-20 px-4 md:px-6 max-w-[1200px] mx-auto flex flex-col gap-8 items-center">
+      <!-- Timeframe Selector -->
+      <div class="flex justify-center mt-2 z-20 relative w-full">
+        <div class="flex bg-surface-container-low p-1 rounded-full border border-border-subtle shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+          <button type="button" data-tf="day"   class="tf-pill px-4 py-1.5 text-data-sm font-data-sm rounded-full uppercase tracking-wider transition-colors">Day</button>
+          <button type="button" data-tf="week"  class="tf-pill px-4 py-1.5 text-data-sm font-data-sm rounded-full uppercase tracking-wider transition-colors">Week</button>
+          <button type="button" data-tf="month" class="tf-pill px-4 py-1.5 text-data-sm font-data-sm rounded-full uppercase tracking-wider transition-colors">Month</button>
+        </div>
+      </div>
+
+      <!-- Token cards (rendered by renderIndexCards) -->
+      <section id="token-list" class="relative w-full max-w-md flex flex-col items-center justify-center gap-6 z-30 mt-4"></section>
+    </main>
+
+    <!-- Bottom Alerts Action -->
+    <div class="fixed bottom-0 w-full z-50 flex justify-center items-center px-4 pb-6 pt-10 bg-gradient-to-t from-deep-abyss via-deep-abyss/90 to-transparent pointer-events-none">
+      <a href="enable-alerts.html" class="pointer-events-auto bg-cyber-emerald text-deep-abyss font-headline-md text-sm font-bold px-8 py-3 rounded-full shadow-[0_0_20px_rgba(0,255,136,0.3)] hover:bg-white hover:text-deep-abyss transition-all flex items-center gap-2 uppercase tracking-widest">
+        <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+        alerts
+      </a>
+    </div>
   </div>
 
   <!-- ===================== DETAILS VIEW ===================== -->
