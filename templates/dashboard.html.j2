@@ -87,6 +87,8 @@
     .spark-bar { position: relative; }
     .spark-bar .spark-tip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #161616; border: 1px solid #2a2a2a; border-radius: 5px; padding: 3px 8px; white-space: nowrap; font-size: 11px; font-family: 'JetBrains Mono', monospace; pointer-events: none; z-index: 30; }
     .spark-bar:hover .spark-tip, .spark-bar.tip-open .spark-tip { display: block; }
+    .spark-bar-first .spark-tip { left: 0; right: auto; transform: none; }
+    .spark-bar-last .spark-tip { left: auto; right: 0; transform: none; }
     .hidden-view { display: none !important; }
   </style>
 </head>
@@ -254,7 +256,7 @@
         const col = zoneColor(p.score);
         const last = i === spark.length - 1;
         const bg = last ? 'background:' + col + ';box-shadow:0 0 8px rgba(0,255,136,0.6);' : 'background:#222222;';
-        return '<div class="spark-bar w-full rounded-sm" style="height:' + h + '%;' + bg + '" onclick="toggleTip(event, this)">'
+        return '<div class="spark-bar' + (i === 0 ? ' spark-bar-first' : '') + (last ? ' spark-bar-last' : '') + ' w-full rounded-sm" style="height:' + h + '%;' + bg + '" onclick="toggleTip(event, this)">'
           + '<span class="spark-tip" style="color:' + col + '">' + p.label + ' — ' + p.score.toFixed(1) + '</span></div>';
       }).join('');
     }
