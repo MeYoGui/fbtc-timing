@@ -274,6 +274,27 @@
       return 'day';
     })();
     let chart = null;
+    var chartWindow = (function () {
+      try { var w = localStorage.getItem('kairos-chart-window'); if (['6m','1y','2y','all'].includes(w)) return w; } catch (e) {}
+      return '1y';
+    })();
+
+    function sliceChartData(c, w) {
+      var n = { '6m': 26, '1y': 52, '2y': 104 }[w];
+      if (!n) return c;
+      var start = Math.max(0, c.dates.length - n);
+      return { dates: c.dates.slice(start), prices: c.prices.slice(start), scores: c.scores.slice(start) };
+    }
+
+    function setChartWindow(w) {
+      chartWindow = w;
+      try { localStorage.setItem('kairos-chart-window', w); } catch (e) {}
+      ['6m','1y','2y','all'].forEach(function (k) {
+        document.getElementById('cw-' + k).classList.toggle('active', k === w);
+      });
+      renderChart(sliceChartData(BY_ID[currentId].chart, chartWindow));
+    }
+    window.setChartWindow = setChartWindow;
 
     function zoneColor(s) {
       return s >= 80 ? '#00e676' : s >= 60 ? '#00c853' : s >= 40 ? '#ffd740' : s >= 20 ? '#ff9800' : '#ff5252';
@@ -331,14 +352,38 @@
       }).join('');
     }
 
-    function renderChart(a) {
-      const d = a.chart;
+    function renderChart(d) {
+      var a = BY_ID[currentId];
+      var zoneBandsPlugin = {
+        id: 'zoneBands',
+        beforeDraw: function (ch) {
+          var ctx = ch.ctx;
+          var yAxis = ch.scales.yScore;
+          var xAxis = ch.scales.x;
+          var zones = [
+            { min: 80, max: 100, color: '#00e67610' },
+            { min: 60, max: 80,  color: '#00c85310' },
+            { min: 40, max: 60,  color: '#ffffff08' },
+            { min: 20, max: 40,  color: '#ff980010' },
+            { min: 0,  max: 20,  color: '#ff525210' },
+          ];
+          zones.forEach(function (z) {
+            ctx.fillStyle = z.color;
+            ctx.fillRect(
+              xAxis.left,
+              yAxis.getPixelForValue(z.max),
+              xAxis.right - xAxis.left,
+              yAxis.getPixelForValue(z.min) - yAxis.getPixelForValue(z.max)
+            );
+          });
+        },
+      };
       if (chart) chart.destroy();
       chart = new Chart(document.getElementById('chart'), {
         type: 'line',
         data: { labels: d.dates, datasets: [
           { label: a.display_name + ' Price (USD)', data: d.prices, yAxisID: 'yPrice', borderColor: a.accent_color, borderWidth: 1.5, pointRadius: 0, tension: 0.1 },
-          { label: 'Composite Score', data: d.scores, yAxisID: 'yScore', borderColor: '#4dd0a7', borderWidth: 1.5, pointRadius: 0, tension: 0.1 },
+          { label: 'Composite Score', data: d.scores, yAxisID: 'yScore', borderColor: '#4dd0a7', borderWidth: 2, pointRadius: 0, tension: 0.1 },
         ]},
         options: {
           responsive: true, interaction: { mode: 'index', intersect: false },
@@ -349,6 +394,7 @@
             yScore: { position: 'right', min: 0, max: 100, ticks: { color: '#555', font: { size: 10 } }, grid: { drawOnChartArea: false } },
           },
         },
+        plugins: [zoneBandsPlugin],
       });
     }
 
@@ -440,7 +486,10 @@
         : 'Both buy and sell pressure are active. The gauge position reflects the net signal.';
 
       renderTable(a);
-      renderChart(a);
+      ['6m','1y','2y','all'].forEach(function (k) {
+        document.getElementById('cw-' + k).classList.toggle('active', k === chartWindow);
+      });
+      renderChart(sliceChartData(a.chart, chartWindow));
       applyTrend(a);
     }
 
