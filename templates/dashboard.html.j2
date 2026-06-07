@@ -381,10 +381,12 @@
     window.setTrendWindow = setTrendWindow;
 
     function toggleBreakdown() {
-      const toggle = document.getElementById('breakdown-toggle');
-      const panel = document.getElementById('breakdown-panel');
-      toggle.classList.toggle('open');
-      panel.classList.toggle('open');
+      var t = document.getElementById('breakdown-toggle');
+      var p = document.getElementById('breakdown-panel');
+      var isOpen = p.classList.toggle('open');
+      t.classList.toggle('open', isOpen);
+      var arrow = isOpen ? '&#9663;' : '&#9657;';
+      t.innerHTML = arrow + ' How is ' + t.getAttribute('data-score') + ' calculated?';
     }
     window.toggleBreakdown = toggleBreakdown;
 
@@ -399,16 +401,32 @@
       document.getElementById('spec-cursor-label').textContent = a.spectrum_pos.toFixed(1);
       document.getElementById('distance').innerHTML = '<strong style="color:' + a.score_color + '">' + a.distance_text + '</strong>';
 
-      // breakdown panel
-      document.getElementById('breakdown-score').textContent = a.spectrum_verdict;
-      if (a.sell_score !== undefined) {
-        document.getElementById('bk-sell-score').textContent = a.sell_score.toFixed(1);
-        document.getElementById('bk-sell-verdict').textContent = a.sell_verdict || '';
-        document.getElementById('bk-buy-score').textContent = a.buy_score.toFixed(1);
-        document.getElementById('bk-buy-verdict').textContent = a.buy_verdict || '';
-        document.getElementById('bk-formula').textContent = a.formula_text || '(Sell + Buy) / 2';
-        document.getElementById('bk-hint').textContent = a.breakdown_hint || 'Breakdown shows the balance of selling and buying pressure.';
-      }
+      // breakdown panel — populate and reset closed on every asset switch
+      var bkToggle = document.getElementById('breakdown-toggle');
+      bkToggle.setAttribute('data-score', a.spectrum_pos.toFixed(1));
+      bkToggle.innerHTML = '&#9657; How is ' + a.spectrum_pos.toFixed(1) + ' calculated?';
+      bkToggle.classList.remove('open');
+      document.getElementById('breakdown-panel').classList.remove('open');
+
+      var sellVal = document.getElementById('bk-sell-score');
+      sellVal.textContent = a.sell_composite.toFixed(1);
+      sellVal.style.color = a.sell_composite >= 25 ? '#ff9800' : '#ff5252';
+      document.getElementById('bk-sell-verdict').textContent =
+        a.sell_composite === 0 ? 'LOW — inactive' : a.sell_verdict;
+
+      var buyVal = document.getElementById('bk-buy-score');
+      buyVal.textContent = a.composite.toFixed(1);
+      buyVal.style.color = zoneColor(a.composite);
+      document.getElementById('bk-buy-verdict').textContent = a.verdict;
+
+      document.getElementById('bk-formula').innerHTML =
+        '50 + (' + a.composite.toFixed(1) + ' − ' + a.sell_composite.toFixed(1) + ') / 2'
+        + '<br>= <strong style="color:' + a.score_color + '">' + a.spectrum_pos.toFixed(1) + '</strong>';
+
+      document.getElementById('bk-hint').textContent = a.sell_composite < 25
+        ? 'Sell pressure only pulls the gauge left when ≥ 25. At '
+          + a.sell_composite.toFixed(1) + ' there is no headwind — buy pressure drives the position.'
+        : 'Both buy and sell pressure are active. The gauge position reflects the net signal.';
 
       renderTable(a);
       renderChart(a);
