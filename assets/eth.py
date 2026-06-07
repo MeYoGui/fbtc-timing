@@ -140,6 +140,7 @@ CONFIG = AssetConfig(
     good_entry=good_entry,
     good_exit=good_exit,
     weight_overrides=None,   # start neutral; calibration/validation decides any boost
+    strong_buy_cutoff=88.0,
     signals=[
         # Calibrated 2026-06-04: BTC-anchored per-signal quantiles (K=2.0 looseness)
         # -> composite STRONG BUY ~3.5% (target 3-5%). See scripts/calibrate_eth_thresholds.py.

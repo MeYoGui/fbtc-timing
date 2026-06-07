@@ -159,6 +159,7 @@ CONFIG = AssetConfig(
     good_entry=good_entry,
     good_exit=good_exit,
     weight_overrides={"mvrv_zscore": 2.0},
+    strong_buy_cutoff=85.0,
     signals=[
         SignalSpec("mvrv_zscore", "MVRV Z-Score", compute_mvrv_zscore,
                    invest_thresh=-0.5, avoid_thresh=1.5, sell_thresh=3.5,
