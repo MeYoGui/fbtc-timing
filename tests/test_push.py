@@ -120,7 +120,7 @@ def test_format_digest_line_take_profit_flag():
 
 def test_format_digest_line_strong_buy_flag():
     from send_push import format_digest_line
-    entry = {"display_name": "Bitcoin", "spectrum_pos": 83.1, "spectrum_verdict": "STRONG BUY", "delta_1d": 5.0}
+    entry = {"display_name": "Bitcoin", "spectrum_pos": 90.0, "spectrum_verdict": "STRONG BUY", "delta_1d": 5.0}
     line = format_digest_line(entry)
     assert "STRONG BUY ✓" in line
 
