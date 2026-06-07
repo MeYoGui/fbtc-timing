@@ -292,6 +292,7 @@ def _assemble_asset(cfg) -> dict:
         distance_text = "Take profit zone"
 
     current_price = price_df.dropna(subset=["price"])["price"].iloc[-1]
+    price_change_24h = compute_price_change_24h(price_df)
 
     methodology = [
         {
@@ -311,6 +312,8 @@ def _assemble_asset(cfg) -> dict:
         "accent_color":     cfg.accent_color,
         "price_unit":       cfg.price_unit,
         "price":            round(float(current_price)),
+        "price_change_24h": price_change_24h,
+        "verdict_description": verdict_description(spectrum_verdict),
         "composite":        composite,
         "verdict":          verdict,
         "sell_composite":   sell_composite,

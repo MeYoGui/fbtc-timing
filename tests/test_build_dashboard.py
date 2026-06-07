@@ -234,3 +234,19 @@ def test_verdict_description_each_verdict_is_nonempty():
 
 def test_verdict_description_unknown_falls_back_to_hold_copy():
     assert verdict_description("???") == verdict_description("HOLD")
+
+
+# ── _assemble_asset integration: new keys present ────────────────────────────
+from build_dashboard import _assemble_asset
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from assets.registry import ASSETS as ASSET_CONFIGS
+
+
+def test_assembled_bitcoin_blob_has_new_keys():
+    cfg = next(c for c in ASSET_CONFIGS if c.id == "bitcoin")
+    blob = _assemble_asset(cfg)
+    assert blob is not None, "bitcoin data files must be present to run this test"
+    assert "price_change_24h" in blob
+    assert isinstance(blob["price_change_24h"], float)
+    assert "verdict_description" in blob
+    assert len(blob["verdict_description"]) > 0
