@@ -280,10 +280,11 @@ def _assemble_asset(cfg) -> dict:
     spectrum_pos     = current_score.get("spectrum_pos", round(50 + composite / 2, 1))
     spectrum_verdict = current_score.get("spectrum_verdict", verdict)
 
-    if spectrum_pos >= 80:
+    cutoff = cfg.strong_buy_cutoff
+    if spectrum_pos >= cutoff:
         distance_text = "Strong Buy zone"
     elif spectrum_pos >= 60:
-        distance_text = f"{80 - spectrum_pos:.1f} pts from Strong Buy"
+        distance_text = f"{cutoff - spectrum_pos:.1f} pts from Strong Buy"
     elif spectrum_pos >= 40:
         distance_text = f"{60 - spectrum_pos:.1f} pts from Buy zone"
     elif spectrum_pos >= 20:
@@ -320,6 +321,7 @@ def _assemble_asset(cfg) -> dict:
         "sell_verdict":     sell_verdict,
         "spectrum_pos":     spectrum_pos,
         "spectrum_verdict": spectrum_verdict,
+        "strong_buy_cutoff": cfg.strong_buy_cutoff,
         "score_color":      get_score_color(spectrum_verdict),
         "distance_text":    distance_text,
         "signals":          signals,
