@@ -449,11 +449,28 @@
       showView('index');
     }
 
+    // ---- event wiring ----
     document.querySelectorAll('.tf-pill').forEach(function (el) {
       el.addEventListener('click', function () { setTimeframe(el.getAttribute('data-tf')); });
     });
+    document.querySelectorAll('.cw-pill').forEach(function (el) {
+      el.addEventListener('click', function () { setChartWindow(el.getAttribute('data-cw')); });
+    });
+    document.getElementById('detail-back').addEventListener('click', function () {
+      if (history.state && history.state.view === 'details') { history.back(); } else { closeDetails(); }
+    });
+
+    // Back/forward + refresh-with-hash routing
+    window.addEventListener('popstate', function (e) {
+      if (e.state && e.state.view === 'details' && BY_ID[e.state.id]) { openDetails(e.state.id, true); }
+      else { closeDetails(); }
+    });
+
+    // ---- initial render ----
     renderIndexHeader();
     setTimeframe(timeframe);
+    var initialId = (location.hash || '').replace('#', '');
+    if (BY_ID[initialId]) { openDetails(initialId, true); } else { showView('index'); }
   </script>
 
   <script>
