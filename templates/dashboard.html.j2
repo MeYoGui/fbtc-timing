@@ -174,6 +174,19 @@
         </div>
       </section>
 
+      <!-- Score history -->
+      <section class="px-container-padding pt-stack-sm pb-stack-md">
+        <div class="flex justify-between items-center mb-3">
+          <span class="font-label-caps text-label-caps text-on-surface">SCORE HISTORY</span>
+          <div class="flex bg-surface-container-low p-0.5 rounded-full border border-border-subtle">
+            <button type="button" data-dtf="day"   class="dtf-pill px-3 py-1 text-[11px] font-data-sm rounded-full uppercase tracking-wider transition-colors">Day</button>
+            <button type="button" data-dtf="week"  class="dtf-pill px-3 py-1 text-[11px] font-data-sm rounded-full uppercase tracking-wider transition-colors">Week</button>
+            <button type="button" data-dtf="month" class="dtf-pill px-3 py-1 text-[11px] font-data-sm rounded-full uppercase tracking-wider transition-colors">Month</button>
+          </div>
+        </div>
+        <div id="detail-history" class="flex gap-1.5 items-end h-20"></div>
+      </section>
+
       <!-- Metric Cards (rendered by renderMetricCards) -->
       <section id="metric-cards" class="px-container-padding grid grid-cols-1 md:grid-cols-3 gap-stack-md py-stack-md relative z-10"></section>
 
@@ -331,6 +344,27 @@
       try { var w = localStorage.getItem('kairos-chart-window'); if (['6m','1y','2y','all'].includes(w)) return w; } catch (e) {}
       return '1y';
     })();
+    let detailWindow = (function () {
+      try { var w = localStorage.getItem('kairos-detail-trend-window'); if (['day','week','month'].includes(w)) return w; } catch (e) {}
+      return 'day';
+    })();
+
+    function renderDetailHistory(a) {
+      document.getElementById('detail-history').innerHTML = sparkBarsHTML(a.trend[detailWindow].spark);
+    }
+
+    function setDetailWindow(w) {
+      detailWindow = w;
+      try { localStorage.setItem('kairos-detail-trend-window', w); } catch (e) {}
+      document.querySelectorAll('.dtf-pill').forEach(function (el) {
+        const active = el.getAttribute('data-dtf') === w;
+        el.classList.toggle('bg-on-surface', active);
+        el.classList.toggle('text-deep-abyss', active);
+        el.classList.toggle('font-bold', active);
+        el.classList.toggle('text-on-surface-variant', !active);
+      });
+      if (detailId) renderDetailHistory(BY_ID[detailId]);
+    }
 
     // metric card value color from the precomputed status class
     function metricColor(statusClass) {
@@ -464,6 +498,7 @@
       document.getElementById('detail-desc').textContent = a.verdict_description;
 
       renderMetricCards(a);
+      setDetailWindow(detailWindow);
       showView('details');
       setChartWindow(chartWindow); // also renders the chart for this asset
       if (!skipHash) { try { history.pushState({ view: 'details', id: id }, '', '#' + id); } catch (e) {} }
@@ -480,6 +515,9 @@
     });
     document.querySelectorAll('.cw-pill').forEach(function (el) {
       el.addEventListener('click', function () { setChartWindow(el.getAttribute('data-cw')); });
+    });
+    document.querySelectorAll('.dtf-pill').forEach(function (el) {
+      el.addEventListener('click', function () { setDetailWindow(el.getAttribute('data-dtf')); });
     });
     document.getElementById('detail-back').addEventListener('click', function () {
       if (history.state && history.state.view === 'details') { history.back(); } else { closeDetails(); }
