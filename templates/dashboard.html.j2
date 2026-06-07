@@ -311,9 +311,143 @@
       document.getElementById('idx-updated').textContent = 'Updated ' + UPDATED_AT;
     }
 
-    // Minimal stubs — full bodies added in Task 8.
-    function openDetails(id) { console.log('openDetails', id); }
-    function closeDetails() {}
+    // ---- details state ----
+    let detailId = null;
+    let chart = null;
+    let chartWindow = (function () {
+      try { var w = localStorage.getItem('kairos-chart-window'); if (['6m','1y','2y','all'].includes(w)) return w; } catch (e) {}
+      return '1y';
+    })();
+
+    // metric card value color from the precomputed status class
+    function metricColor(statusClass) {
+      return statusClass === 'st-invest' ? '#00ff88'
+           : statusClass === 'st-avoid'  ? '#ffb4ab'
+           : '#fdb878';
+    }
+
+    function metricCardHTML(sig) {
+      const b = sig.bar;
+      if (!b || !b.has_data) {
+        return '<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col">'
+          + '<span class="font-label-caps text-label-caps text-on-surface-variant">' + sig.display_name + '</span>'
+          + '<span class="font-data-sm text-data-sm text-outline mt-6">No data</span></div>';
+      }
+      const col = metricColor(b.status_class);
+      return '<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col hover:border-cyber-emerald/30 transition-colors group">'
+        + '<div class="flex justify-between items-start mb-6 gap-2">'
+        +   '<span class="font-label-caps text-label-caps text-on-surface-variant group-hover:text-on-surface transition-colors">' + sig.display_name + '</span>'
+        +   '<span class="font-data-lg text-data-lg text-right" style="color:' + col + ';text-shadow:0 0 8px ' + col + '33;">' + sig.reading + '</span>'
+        + '</div>'
+        + '<div class="mt-auto w-full">'
+        +   '<div class="flex justify-between font-label-caps text-label-caps text-surface-variant mb-1 text-[9px]"><span>TAKE PROFIT</span><span>STRONG BUY</span></div>'
+        +   '<div class="h-1.5 w-full bg-surface-container-highest rounded-full relative overflow-hidden flex">'
+        +     '<div class="h-full bg-sell-urgent/20 w-1/4"></div>'
+        +     '<div class="h-full bg-surface-variant w-1/2"></div>'
+        +     '<div class="h-full bg-cyber-emerald/20 w-1/4"></div>'
+        +     '<div class="absolute top-0 bottom-0 w-1" style="left:' + b.cursor_pct + '%;background:' + col + ';box-shadow:0 0 5px ' + col + ';"></div>'
+        +   '</div>'
+        + '</div></div>';
+    }
+
+    function renderMetricCards(a) {
+      document.getElementById('metric-cards').innerHTML = a.signals.map(metricCardHTML).join('');
+    }
+
+    // ---- chart (ported from the previous dashboard) ----
+    function sliceChartData(c, w) {
+      var n = { '6m': 26, '1y': 52, '2y': 104 }[w];
+      if (!n) return c;
+      var start = Math.max(0, c.dates.length - n);
+      return { dates: c.dates.slice(start), prices: c.prices.slice(start), scores: c.scores.slice(start) };
+    }
+
+    function renderChart(d) {
+      var zoneBandsPlugin = {
+        id: 'zoneBands',
+        beforeDraw: function (ch) {
+          var ctx = ch.ctx, yAxis = ch.scales.yScore, xAxis = ch.scales.x;
+          [
+            { min: 80, max: 100, color: '#00ff8810' },
+            { min: 60, max: 80,  color: '#00C85310' },
+            { min: 40, max: 60,  color: '#ffffff08' },
+            { min: 20, max: 40,  color: '#ff980010' },
+            { min: 0,  max: 20,  color: '#FF3B3010' },
+          ].forEach(function (z) {
+            ctx.fillStyle = z.color;
+            ctx.fillRect(xAxis.left, yAxis.getPixelForValue(z.max), xAxis.right - xAxis.left, yAxis.getPixelForValue(z.min) - yAxis.getPixelForValue(z.max));
+          });
+        },
+      };
+      if (chart) chart.destroy();
+      chart = new Chart(document.getElementById('detail-chart'), {
+        type: 'line',
+        data: { labels: d.dates, datasets: [
+          { label: 'Price (USD)', data: d.prices, yAxisID: 'yPrice', borderColor: '#00ff88', borderWidth: 2, pointRadius: 0, tension: 0.1 },
+          { label: 'Composite Score', data: d.scores, yAxisID: 'yScore', borderColor: '#fdb878', borderWidth: 1.5, borderDash: [4, 2], pointRadius: 0, tension: 0.1 },
+        ]},
+        options: {
+          responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: '#aaaaaa', boxWidth: 12, font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: '#555', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: '#1a1a1a' } },
+            yPrice: { type: 'logarithmic', position: 'left', ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
+            yScore: { position: 'right', min: 0, max: 100, ticks: { color: '#555', font: { size: 10 } }, grid: { drawOnChartArea: false } },
+          },
+        },
+        plugins: [zoneBandsPlugin],
+      });
+    }
+
+    function setChartWindow(w) {
+      chartWindow = w;
+      try { localStorage.setItem('kairos-chart-window', w); } catch (e) {}
+      document.querySelectorAll('.cw-pill').forEach(function (el) {
+        const active = el.getAttribute('data-cw') === w;
+        el.classList.toggle('bg-on-surface', active);
+        el.classList.toggle('text-deep-abyss', active);
+        el.classList.toggle('font-bold', active);
+        el.classList.toggle('text-on-surface-variant', !active);
+      });
+      if (detailId) renderChart(sliceChartData(BY_ID[detailId].chart, chartWindow));
+    }
+
+    // ---- view switching ----
+    function showView(which) {
+      document.getElementById('view-index').classList.toggle('hidden-view', which !== 'index');
+      document.getElementById('view-details').classList.toggle('hidden-view', which !== 'details');
+      window.scrollTo(0, 0);
+    }
+
+    function openDetails(id, skipHash) {
+      const a = BY_ID[id];
+      if (!a) return;
+      detailId = id;
+      document.getElementById('detail-name').textContent = a.display_name;
+      document.getElementById('detail-subtitle').textContent = a.display_name.toUpperCase() + ' DETAILS';
+      document.getElementById('detail-price').textContent = a.price_unit + a.price.toLocaleString() + '.00';
+
+      const chg = a.price_change_24h;
+      const chgEl = document.getElementById('detail-change');
+      chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(1) + '% (24H)';
+      chgEl.style.color = chg >= 0 ? '#00ff88' : '#ffb4ab';
+
+      document.getElementById('detail-hero-score').textContent = a.spectrum_pos.toFixed(1);
+      const vEl = document.getElementById('detail-verdict');
+      vEl.textContent = a.spectrum_verdict;
+      vEl.style.color = a.score_color;
+      document.getElementById('detail-desc').textContent = a.verdict_description;
+
+      renderMetricCards(a);
+      showView('details');
+      setChartWindow(chartWindow); // also renders the chart for this asset
+      if (!skipHash) { try { history.pushState({ view: 'details', id: id }, '', '#' + id); } catch (e) {} }
+    }
+
+    function closeDetails() {
+      detailId = null;
+      showView('index');
+    }
 
     document.querySelectorAll('.tf-pill').forEach(function (el) {
       el.addEventListener('click', function () { setTimeframe(el.getAttribute('data-tf')); });
