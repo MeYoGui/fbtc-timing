@@ -227,12 +227,14 @@
     const BY_ID = Object.fromEntries(ASSETS.map(a => [a.id, a]));
 
     // ---- shared helpers ----
-    function zoneColor(s) {
-      return s >= 80 ? '#00ff88' : s >= 60 ? '#00C853' : s >= 40 ? '#D0D0D0' : s >= 20 ? '#ff9800' : '#FF3B30';
+    function zoneColor(s, cutoff) {
+      var sb = cutoff || 85;
+      return s >= sb ? '#00ff88' : s >= 60 ? '#00C853' : s >= 40 ? '#D0D0D0' : s >= 20 ? '#ff9800' : '#FF3B30';
     }
     // Which of the 5 spectrum zones a position falls in (0=TP .. 4=Strong Buy)
-    function zoneIndex(pos) {
-      return pos >= 80 ? 4 : pos >= 60 ? 3 : pos >= 40 ? 2 : pos >= 20 ? 1 : 0;
+    function zoneIndex(pos, cutoff) {
+      var sb = cutoff || 85;
+      return pos >= sb ? 4 : pos >= 60 ? 3 : pos >= 40 ? 2 : pos >= 20 ? 1 : 0;
     }
     const ZONE_LABELS = ['Strong Sell', 'Sell', 'Hold', 'Buy', 'Strong Buy'];
     const ZONE_COLORS = ['#FF3B30', '#ff9800', '#D0D0D0', '#00C853', '#00ff88'];
@@ -246,14 +248,14 @@
     })();
 
     // Shared score-history bars with a date+score tooltip (hover on desktop, tap on mobile).
-    function sparkBarsHTML(spark) {
+    function sparkBarsHTML(spark, cutoff) {
       const scores = spark.map(p => p.score);
       const mx = Math.max.apply(null, scores);
       const mn = Math.min.apply(null, scores) - 3;
       const span = (mx - mn) || 1;
       return spark.map(function (p, i) {
         const h = Math.max(Math.round(((p.score - mn) / span) * 100), 12);
-        const col = zoneColor(p.score);
+        const col = zoneColor(p.score, cutoff);
         const last = i === spark.length - 1;
         const bg = last ? 'background:' + col + ';box-shadow:0 0 8px rgba(0,255,136,0.6);' : 'background:#222222;';
         return '<div class="spark-bar' + (i === 0 ? ' spark-bar-first' : '') + (last ? ' spark-bar-last' : '') + ' w-full rounded-sm" style="height:' + h + '%;' + bg + '" onclick="toggleTip(event, this)">'
@@ -268,11 +270,11 @@
     }
 
     function miniBarsHTML(a) {
-      return sparkBarsHTML(a.trend[timeframe].spark);
+      return sparkBarsHTML(a.trend[timeframe].spark, a.strong_buy_cutoff);
     }
 
     function spectrumBandHTML(a) {
-      const zi = zoneIndex(a.spectrum_pos);
+      const zi = zoneIndex(a.spectrum_pos, a.strong_buy_cutoff);
       const segs = ZONE_COLORS.map(function (c, i) {
         const active = i === zi;
         const style = active
@@ -292,7 +294,7 @@
     }
 
     function cardHTML(a, primary) {
-      const col = zoneColor(a.spectrum_pos);
+      const col = zoneColor(a.spectrum_pos, a.strong_buy_cutoff);
       const border = primary ? 'border-cyber-emerald/40 hover:border-cyber-emerald' : 'border-border-subtle hover:border-cyber-emerald/50';
       const glow = primary ? 'shadow-[0_0_20px_rgba(0,255,136,0.15)] hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]' : 'shadow-lg hover:shadow-[0_0_20px_rgba(0,255,136,0.1)]';
       return '<button type="button" data-asset="' + a.id + '" class="asset-card relative w-full bg-surface-container-high border ' + border + ' rounded-2xl p-6 ' + glow + ' transition-all group text-left flex flex-col gap-4">'
@@ -357,7 +359,7 @@
     })();
 
     function renderDetailHistory(a) {
-      document.getElementById('detail-history').innerHTML = sparkBarsHTML(a.trend[detailWindow].spark);
+      document.getElementById('detail-history').innerHTML = sparkBarsHTML(a.trend[detailWindow].spark, a.strong_buy_cutoff);
     }
 
     function setDetailWindow(w) {
@@ -429,13 +431,14 @@
     }
 
     function renderChart(d) {
+      var sb = (d && d.strong_buy_cutoff) || 85;
       var zoneBandsPlugin = {
         id: 'zoneBands',
         beforeDraw: function (ch) {
           var ctx = ch.ctx, yAxis = ch.scales.yScore, xAxis = ch.scales.x;
           [
-            { min: 80, max: 100, color: '#00ff8810' },
-            { min: 60, max: 80,  color: '#00C85310' },
+            { min: sb, max: 100, color: '#00ff8810' },
+            { min: 60, max: sb,  color: '#00C85310' },
             { min: 40, max: 60,  color: '#ffffff08' },
             { min: 20, max: 40,  color: '#ff980010' },
             { min: 0,  max: 20,  color: '#FF3B3010' },
