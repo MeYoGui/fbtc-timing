@@ -46,16 +46,6 @@
     .spec-ticks { position: relative; height: 15px; margin-top: 5px; }
     .spec-ticks span { position: absolute; font-size: 0.65rem; transform: translateX(-50%); white-space: nowrap; }
 
-    /* sell / buy score boxes */
-    .score-row { display: flex; gap: 1px; margin-top: 1.25rem; }
-    .score-half { flex: 1; padding: 0.75rem 1rem; }
-    .score-half-l { border-radius: 8px 0 0 8px; background: #ff525210; border: 1px solid #ff525220; }
-    .score-half-r { border-radius: 0 8px 8px 0; background: #00e67610; border: 1px solid #00e67620; }
-    .sh-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 4px; }
-    .sh-label-sell { color: #ff525299; }
-    .sh-label-buy  { color: #00e67699; }
-    .sh-score { font-size: 1.6rem; font-weight: 800; line-height: 1; }
-    .sh-verdict { font-size: 0.68rem; color: #555; margin-top: 3px; }
     .distance { margin-top: 0.5rem; font-size: 0.85rem; color: #666; }
 
     /* ── trend toggle ── */
@@ -164,19 +154,6 @@
         <span style="left:60%;color:#00c85355">60</span>
         <span style="left:80%;color:#00c85377">80</span>
         <span style="left:100%;transform:translateX(-100%);color:#00e67677">100</span>
-      </div>
-    </div>
-
-    <div class="score-row">
-      <div class="score-half score-half-l">
-        <div class="sh-label sh-label-sell">Sell signal</div>
-        <div class="sh-score" id="sell-score"></div>
-        <div class="sh-verdict" id="sell-verdict"></div>
-      </div>
-      <div class="score-half score-half-r">
-        <div class="sh-label sh-label-buy">Buy signal</div>
-        <div class="sh-score" id="buy-score"></div>
-        <div class="sh-verdict" id="buy-verdict"></div>
       </div>
     </div>
 
@@ -357,17 +334,6 @@
       document.getElementById('spec-cursor').style.left = a.spectrum_pos + '%';
       document.getElementById('spec-cursor-label').textContent = a.spectrum_pos.toFixed(1);
       document.getElementById('distance').innerHTML = '<strong style="color:' + a.score_color + '">' + a.distance_text + '</strong>';
-
-      // sell / buy score boxes
-      var sellScore = document.getElementById('sell-score');
-      sellScore.textContent = a.sell_composite.toFixed(1);
-      sellScore.style.color = a.sell_composite >= 25 ? '#ff9800' : '#ff5252';
-      document.getElementById('sell-verdict').textContent = a.sell_verdict;
-
-      var buyScore = document.getElementById('buy-score');
-      buyScore.textContent = a.composite.toFixed(1);
-      buyScore.style.color = zoneColor(a.composite);
-      document.getElementById('buy-verdict').textContent = a.verdict;
 
       renderTable(a);
       renderChart(a);
