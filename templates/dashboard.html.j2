@@ -218,8 +218,10 @@
     function zoneIndex(pos) {
       return pos >= 80 ? 4 : pos >= 60 ? 3 : pos >= 40 ? 2 : pos >= 20 ? 1 : 0;
     }
-    const ZONE_LABELS = ['TP', 'Sell', 'Hold', 'Buy', 'Strong Buy'];
+    const ZONE_LABELS = ['Strong Sell', 'Sell', 'Hold', 'Buy', 'Strong Buy'];
     const ZONE_COLORS = ['#FF3B30', '#ff9800', '#D0D0D0', '#00C853', '#00ff88'];
+    // Display-only: the lowest composite band is scored "TAKE PROFIT" but shown as "STRONG SELL".
+    function displayVerdict(v) { return v === 'TAKE PROFIT' ? 'STRONG SELL' : v; }
 
     // ---- index state ----
     let timeframe = (function () {
@@ -275,7 +277,7 @@
         + '<div class="flex flex-col gap-3 w-full relative z-10 mt-2">'
         +   '<div class="flex justify-between items-end">'
         +     '<div class="flex flex-col">'
-        +       '<span class="text-[11px] font-label-caps tracking-widest font-bold opacity-90" style="color:' + col + '">' + a.spectrum_verdict + '</span>'
+        +       '<span class="text-[11px] font-label-caps tracking-widest font-bold opacity-90" style="color:' + col + '">' + displayVerdict(a.spectrum_verdict) + '</span>'
         +       '<span class="text-[40px] font-data-lg text-white font-bold leading-none tracking-tight">' + a.spectrum_pos.toFixed(1) + '</span>'
         +     '</div>'
         +     '<div class="flex gap-1 h-6 items-end w-24 mb-1">' + miniBarsHTML(a) + '</div>'
@@ -434,7 +436,7 @@
 
       document.getElementById('detail-hero-score').textContent = a.spectrum_pos.toFixed(1);
       const vEl = document.getElementById('detail-verdict');
-      vEl.textContent = a.spectrum_verdict;
+      vEl.textContent = displayVerdict(a.spectrum_verdict);
       vEl.style.color = a.score_color;
       document.getElementById('detail-desc').textContent = a.verdict_description;
 
