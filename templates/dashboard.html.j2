@@ -116,6 +116,34 @@
     .site-footer { text-align: center; margin: 2rem 0 1rem; }
     .site-footer a { font-size: 0.8rem; color: #555; text-decoration: none; }
     .site-footer a:hover { color: #888; }
+
+    /* ── collapsible breakdown ── */
+    .breakdown-toggle {
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      margin-top: 1rem; font-size: 0.7rem; color: #3a3a3a;
+      border: 1px solid #232323; border-radius: 6px;
+      padding: 0.4rem 0.75rem; cursor: pointer; background: #1a1a1a;
+      transition: color .15s, border-color .15s; user-select: none;
+    }
+    .breakdown-toggle:hover, .breakdown-toggle.open { color: #555; border-color: #333; }
+    .breakdown-panel { display: none; margin-top: 0.6rem; padding: 0.9rem; background: #111; border-radius: 8px; border: 1px solid #232323; }
+    .breakdown-panel.open { display: block; }
+    .bk-mini-gauge { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 0.75rem; }
+    .bk-mg-tp   { flex: 20; background: #ff525230; }
+    .bk-mg-sell { flex: 20; background: #ff980028; }
+    .bk-mg-hold { flex: 20; background: #ffffff10; }
+    .bk-mg-buy  { flex: 20; background: #00c85328; }
+    .bk-mg-sbuy { flex: 20; background: #00e67630; }
+    .bk-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.5rem; align-items: center; }
+    .bk-box { text-align: center; }
+    .bk-lbl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.07em; color: #3a3a3a; margin-bottom: 3px; }
+    .bk-lbl-sell { color: #ff525266; }
+    .bk-lbl-buy  { color: #00c85366; }
+    .bk-val { font-size: 1.25rem; font-weight: 800; line-height: 1; }
+    .bk-sub { font-size: 0.62rem; color: #3a3a3a; margin-top: 2px; }
+    .bk-formula { font-size: 0.65rem; color: #333; text-align: center; line-height: 1.6; }
+    .bk-divider { border: none; border-top: 1px solid #1e1e1e; margin: 0.7rem 0; }
+    .bk-hint { font-size: 0.62rem; color: #2e2e2e; line-height: 1.5; text-align: center; }
   </style>
 </head>
 <body>
@@ -155,6 +183,34 @@
         <span style="left:80%;color:#00c85377">80</span>
         <span style="left:100%;transform:translateX(-100%);color:#00e67677">100</span>
       </div>
+    </div>
+
+    <div class="breakdown-toggle" id="breakdown-toggle" onclick="toggleBreakdown()">
+      &#9657; How is <span id="breakdown-score"></span> calculated?
+    </div>
+    <div class="breakdown-panel" id="breakdown-panel">
+      <div class="bk-mini-gauge">
+        <div class="bk-mg-tp"></div>
+        <div class="bk-mg-sell"></div>
+        <div class="bk-mg-hold"></div>
+        <div class="bk-mg-buy"></div>
+        <div class="bk-mg-sbuy"></div>
+      </div>
+      <div class="bk-grid">
+        <div class="bk-box">
+          <div class="bk-lbl bk-lbl-sell">Sell pressure</div>
+          <div class="bk-val" id="bk-sell-score"></div>
+          <div class="bk-sub" id="bk-sell-verdict"></div>
+        </div>
+        <div class="bk-formula" id="bk-formula"></div>
+        <div class="bk-box">
+          <div class="bk-lbl bk-lbl-buy">Buy pressure</div>
+          <div class="bk-val" id="bk-buy-score"></div>
+          <div class="bk-sub" id="bk-buy-verdict"></div>
+        </div>
+      </div>
+      <hr class="bk-divider">
+      <div class="bk-hint" id="bk-hint"></div>
     </div>
 
     <div id="trend-delta" class="trend-delta"></div>
@@ -324,6 +380,14 @@
     }
     window.setTrendWindow = setTrendWindow;
 
+    function toggleBreakdown() {
+      const toggle = document.getElementById('breakdown-toggle');
+      const panel = document.getElementById('breakdown-panel');
+      toggle.classList.toggle('open');
+      panel.classList.toggle('open');
+    }
+    window.toggleBreakdown = toggleBreakdown;
+
     function renderAsset(a) {
       document.getElementById('meta').innerHTML = a.price_unit + a.price.toLocaleString() + '&ensp;·&ensp;Updated ' + UPDATED_AT;
 
@@ -334,6 +398,17 @@
       document.getElementById('spec-cursor').style.left = a.spectrum_pos + '%';
       document.getElementById('spec-cursor-label').textContent = a.spectrum_pos.toFixed(1);
       document.getElementById('distance').innerHTML = '<strong style="color:' + a.score_color + '">' + a.distance_text + '</strong>';
+
+      // breakdown panel
+      document.getElementById('breakdown-score').textContent = a.spectrum_verdict;
+      if (a.sell_score !== undefined) {
+        document.getElementById('bk-sell-score').textContent = a.sell_score.toFixed(1);
+        document.getElementById('bk-sell-verdict').textContent = a.sell_verdict || '';
+        document.getElementById('bk-buy-score').textContent = a.buy_score.toFixed(1);
+        document.getElementById('bk-buy-verdict').textContent = a.buy_verdict || '';
+        document.getElementById('bk-formula').textContent = a.formula_text || '(Sell + Buy) / 2';
+        document.getElementById('bk-hint').textContent = a.breakdown_hint || 'Breakdown shows the balance of selling and buying pressure.';
+      }
 
       renderTable(a);
       renderChart(a);
