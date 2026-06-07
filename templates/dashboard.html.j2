@@ -107,6 +107,9 @@
     th { text-align: left; font-size: 0.75rem; font-weight: 500; color: #555; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.6rem 0.75rem; border-bottom: 1px solid #222; }
     td { padding: 0.85rem 0.75rem; border-bottom: 1px solid #1a1a1a; font-size: 0.9rem; }
     .chart-wrap { margin-bottom: 2rem; }
+    .chart-controls { display: flex; gap: 6px; justify-content: flex-end; margin-bottom: 0.5rem; }
+    .chart-pill { background: #1e1e1e; color: #555; border: none; border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s, color .15s; }
+    .chart-pill.active { background: #fff; color: #000; }
     details { border: 1px solid #222; border-radius: 8px; padding: 1.25rem; }
     summary { cursor: pointer; font-size: 0.9rem; color: #888; user-select: none; }
     summary:hover { color: #bbb; }
@@ -232,7 +235,15 @@
     </table>
   </div>
 
-  <div class="chart-wrap"><canvas id="chart" height="120"></canvas></div>
+  <div class="chart-wrap">
+    <div class="chart-controls">
+      <button id="cw-6m"  class="chart-pill" onclick="setChartWindow('6m')">6M</button>
+      <button id="cw-1y"  class="chart-pill" onclick="setChartWindow('1y')">1Y</button>
+      <button id="cw-2y"  class="chart-pill" onclick="setChartWindow('2y')">2Y</button>
+      <button id="cw-all" class="chart-pill" onclick="setChartWindow('all')">All</button>
+    </div>
+    <canvas id="chart" height="120"></canvas>
+  </div>
 
   <details>
     <summary>Methodology ›</summary>
