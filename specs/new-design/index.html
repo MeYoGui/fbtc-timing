@@ -1,0 +1,264 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Kairos - Crypto Market Timing Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&amp;family=JetBrains+Mono:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "cyber-emerald": "#00ff88",
+                        "deep-abyss": "#050505",
+                        "surface-bright": "#1a1a1a",
+                        "surface-variant": "#222222",
+                        "on-tertiary-fixed": "#2d1600",
+                        "inverse-primary": "#006d35",
+                        "secondary-fixed-dim": "#ffb4aa",
+                        "on-primary-fixed-variant": "#005226",
+                        "on-tertiary-fixed-variant": "#6a3c03",
+                        "tertiary-fixed": "#ffdcbf",
+                        "hold-neutral": "#D0D0D0",
+                        "sell-urgent": "#FF3B30",
+                        "on-tertiary-container": "#794810",
+                        "primary-fixed": "#62ff96",
+                        "on-tertiary": "#4b2800",
+                        "on-secondary-fixed-variant": "#930005",
+                        "on-error": "#690005",
+                        "border-subtle": "rgba(255, 255, 255, 0.1)",
+                        "surface": "#0a0a0a",
+                        "surface-container-high": "#111111",
+                        "surface-container": "#0d0d0d",
+                        "on-primary": "#003918",
+                        "inverse-surface": "#e5e2e1",
+                        "on-secondary-fixed": "#410001",
+                        "buy-vibrant": "#00ff88",
+                        "on-secondary-container": "#ffd2cc",
+                        "surface-tint": "#00ff88",
+                        "surface-container-highest": "#1a1a1a",
+                        "outline": "#444444",
+                        "on-primary-container": "#00612e",
+                        "inverse-on-surface": "#313030",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#080808",
+                        "secondary": "#ffb4aa",
+                        "background": "#050505",
+                        "surface-dim": "#050505",
+                        "primary": "#00ff88",
+                        "tertiary-fixed-dim": "#fdb878",
+                        "on-surface": "#ffffff",
+                        "on-surface-variant": "#aaaaaa",
+                        "secondary-fixed": "#ffdad5",
+                        "secondary-container": "#c5020b",
+                        "surface-container-lowest": "#000000",
+                        "surface-charcoal": "#0a0a0a",
+                        "outline-variant": "#333333",
+                        "primary-fixed-dim": "#00e475",
+                        "on-background": "#ffffff",
+                        "on-secondary": "#690003",
+                        "primary-container": "#00e676",
+                        "error-container": "#93000a",
+                        "buy-steady": "#00C853",
+                        "error": "#ffb4ab",
+                        "tertiary-container": "#ffba79",
+                        "tertiary": "#ffdec4",
+                        "on-primary-fixed": "#00210b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "unit": "4px",
+                        "stack-md": "16px",
+                        "container-padding": "16px",
+                        "stack-lg": "24px",
+                        "gutter": "12px"
+                    },
+                    "fontFamily": {
+                        "body-base": ["Space Grotesk", "sans-serif"],
+                        "data-lg": ["JetBrains Mono", "monospace"],
+                        "display-lg": ["Space Grotesk", "sans-serif"],
+                        "headline-lg-mobile": ["Space Grotesk", "sans-serif"],
+                        "data-sm": ["JetBrains Mono", "monospace"],
+                        "headline-md": ["Space Grotesk", "sans-serif"],
+                        "label-caps": ["JetBrains Mono", "monospace"]
+                    },
+                    "fontSize": {
+                        "body-base": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "data-lg": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "data-sm": ["13px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "label-caps": ["11px", {"lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #050505;
+            color: #ffffff;
+            background-image: radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 100%), url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0V0zm20 20h20v20H20V20zM0 20h20v20H0V20zM20 0h20v20H20V0z' fill='%23ffffff' fill-opacity='0.01' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        .mini-gauge-invest {
+            background: linear-gradient(to right, #930005 0%, #222222 50%, #00ff88 100%);
+        }
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #222222; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #aaaaaa; 
+        }
+        .pulse-ring {
+            animation: pulse-ring 4s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            80%, 100% { transform: scale(1.5); opacity: 0; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body-base antialiased pb-24 selection:bg-primary/30 selection:text-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-container-padding h-14 bg-deep-abyss/80 backdrop-blur-md border-b border-border-subtle">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-cyber-emerald text-xl" style="font-variation-settings: &quot;FILL&quot; 1;">analytics</span>
+<span class="text-headline-md font-headline-md font-bold tracking-widest uppercase text-on-surface">KAIROS</span>
+</div>
+<div class="font-data-sm text-data-sm text-on-surface-variant flex items-center gap-3">
+<span class="text-cyber-emerald">$60,908</span>
+<span class="text-[10px] opacity-50">Updated 2026-06-06 22:14 EDT</span>
+</div>
+</header>
+<main class="pt-20 px-4 md:px-6 max-w-[1200px] mx-auto flex flex-col gap-10 items-center">
+<!-- Timeframe Selector -->
+<div class="flex justify-center mt-2 z-20 relative w-full">
+<div class="flex bg-surface-container-low p-1 rounded-full border border-border-subtle shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+<button class="px-4 py-1.5 text-data-sm font-data-sm bg-on-surface text-deep-abyss rounded-full shadow-sm font-bold uppercase tracking-wider">Day</button>
+<button class="px-4 py-1.5 text-data-sm font-data-sm text-on-surface-variant hover:text-on-surface transition-colors rounded-full uppercase tracking-wider">Week</button>
+<button class="px-4 py-1.5 text-data-sm font-data-sm text-on-surface-variant hover:text-on-surface transition-colors rounded-full uppercase tracking-wider">Month</button>
+</div>
+</div>
+<!-- Token Selection Section -->
+<section class="relative w-full max-w-md flex flex-col items-center justify-center gap-6 z-30 mt-8">
+<!-- Glowing Aura Base -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-cyber-emerald/10 rounded-full blur-[80px] pointer-events-none"></div>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] border border-cyber-emerald/20 rounded-full pointer-events-none pulse-ring"></div>
+<!-- Bitcoin Token Ticket -->
+<button class="relative w-full bg-surface-container-high border border-cyber-emerald/40 hover:border-cyber-emerald rounded-2xl p-6 shadow-[0_0_20px_rgba(0,255,136,0.15)] hover:shadow-[0_0_30px_rgba(0,255,136,0.3)] transition-all group overflow-hidden text-left flex flex-col gap-4">
+<div class="absolute -right-4 -top-4 w-24 h-24 bg-cyber-emerald/5 rounded-full blur-xl group-hover:bg-cyber-emerald/10 transition-colors pointer-events-none"></div>
+<div class="flex justify-between items-center relative z-10">
+<div class="flex items-center gap-2 text-on-surface font-headline-lg-mobile text-2xl">
+<span class="opacity-70 text-base font-data-lg text-cyber-emerald">₿</span> Bitcoin
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container border border-border-subtle flex items-center justify-center group-hover:border-cyber-emerald group-hover:bg-cyber-emerald/10 transition-all">
+<span class="material-symbols-outlined text-cyber-emerald text-sm opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">arrow_forward</span>
+</div>
+</div>
+<div class="flex justify-between items-end relative z-10 w-full mt-2"><div class="flex flex-col gap-3 w-full">
+    <div class="flex justify-between items-end">
+        <div class="flex flex-col">
+            <span class="text-[11px] font-label-caps text-cyber-emerald tracking-widest font-bold opacity-90">CONVICTION SCORE</span>
+            <span class="text-[40px] font-data-lg text-white font-bold leading-none tracking-tight">83.1</span>
+        </div>
+        <div class="flex gap-1 h-6 items-end w-24 mb-1">
+            <div class="w-full bg-surface-variant rounded-sm h-[20%]"></div>
+            <div class="w-full bg-surface-variant rounded-sm h-[30%]"></div>
+            <div class="w-full bg-surface-variant rounded-sm h-[25%]"></div>
+            <div class="w-full bg-surface-variant rounded-sm h-[40%]"></div>
+            <div class="w-full bg-surface-variant rounded-sm h-[35%]"></div>
+            <div class="w-full bg-cyber-emerald rounded-sm h-full shadow-[0_0_8px_rgba(0,255,136,0.6)]"></div>
+        </div>
+    </div>
+    <div class="relative w-full h-1.5 bg-surface-variant rounded-full overflow-hidden flex">
+        <div class="h-full w-1/5 bg-sell-urgent opacity-30"></div>
+        <div class="h-full w-1/5 bg-on-secondary-fixed-variant opacity-30"></div>
+        <div class="h-full w-1/5 bg-hold-neutral opacity-30"></div>
+        <div class="h-full w-1/5 bg-buy-steady opacity-30"></div>
+        <div class="h-full w-1/5 bg-cyber-emerald shadow-[0_0_10px_rgba(0,255,136,0.8)]"></div>
+    </div>
+    <div class="flex justify-between text-[9px] font-label-caps text-on-surface-variant uppercase tracking-tighter">
+        <span class="">TP</span>
+        <span class="">Sell</span>
+        <span class="">Hold</span>
+        <span class="">Buy</span>
+        <span class="text-cyber-emerald font-bold">Strong Buy</span>
+    </div>
+</div></div>
+</button>
+<!-- Ethereum Token Ticket -->
+<button class="relative w-full bg-surface-container border border-border-subtle hover:border-cyber-emerald/50 rounded-2xl p-6 shadow-lg hover:shadow-[0_0_20px_rgba(0,255,136,0.1)] transition-all group overflow-hidden text-left flex flex-col gap-4">
+<div class="flex justify-between items-center relative z-10">
+<div class="flex items-center gap-2 text-on-surface font-headline-lg-mobile text-2xl">
+<span class="opacity-70 text-base font-data-lg">Ξ</span> Ethereum
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-high border border-border-subtle flex items-center justify-center group-hover:border-cyber-emerald/50 transition-all">
+<span class="material-symbols-outlined text-on-surface-variant text-sm opacity-80 group-hover:text-cyber-emerald group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">arrow_forward</span>
+</div>
+</div>
+<div class="flex justify-between items-end relative z-10 w-full mt-2"><div class="flex flex-col gap-3 w-full">
+    <div class="flex justify-between items-end">
+        <div class="flex flex-col">
+            <span class="text-[11px] font-label-caps text-cyber-emerald tracking-widest font-bold opacity-90">CONVICTION SCORE</span>
+            <span class="text-[40px] font-data-lg text-white font-bold leading-none tracking-tight">87.7</span>
+        </div>
+        <div class="flex gap-1 h-6 items-end w-24 mb-1">
+            <div class="w-full bg-surface-variant rounded-sm h-[30%]"></div>
+            <div class="w-full bg-surface-variant rounded-sm h-[20%]"></div>
+            <div class="w-full bg-surface-variant rounded-sm h-[45%]"></div>
+            <div class="w-full bg-surface-variant rounded-sm h-[50%]"></div>
+            <div class="w-full bg-surface-variant rounded-sm h-[40%]"></div>
+            <div class="w-full bg-cyber-emerald rounded-sm h-[90%] shadow-[0_0_8px_rgba(0,255,136,0.6)]"></div>
+        </div>
+    </div>
+    <div class="relative w-full h-1.5 bg-surface-variant rounded-full overflow-hidden flex">
+        <div class="h-full w-1/5 bg-sell-urgent opacity-30"></div>
+        <div class="h-full w-1/5 bg-on-secondary-fixed-variant opacity-30"></div>
+        <div class="h-full w-1/5 bg-hold-neutral opacity-30"></div>
+        <div class="h-full w-1/5 bg-buy-steady opacity-30"></div>
+        <div class="h-full w-1/5 bg-cyber-emerald shadow-[0_0_10px_rgba(0,255,136,0.8)]"></div>
+    </div>
+    <div class="flex justify-between text-[9px] font-label-caps text-on-surface-variant uppercase tracking-tighter">
+        <span class="">TP</span>
+        <span class="">Sell</span>
+        <span class="">Hold</span>
+        <span class="">Buy</span>
+        <span class="text-cyber-emerald font-bold">Strong Buy</span>
+    </div>
+</div></div>
+</button>
+</section>
+</main>
+<!-- Bottom Nav / Action Area -->
+<div class="fixed bottom-0 w-full z-50 flex justify-center items-center px-4 pb-6 pt-10 bg-gradient-to-t from-deep-abyss via-deep-abyss/90 to-transparent pointer-events-none">
+<button class="pointer-events-auto bg-cyber-emerald text-deep-abyss font-headline-md text-sm font-bold px-8 py-3 rounded-full shadow-[0_0_20px_rgba(0,255,136,0.3)] hover:bg-white hover:text-deep-abyss transition-all flex items-center gap-2 uppercase tracking-widest">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: &quot;FILL&quot; 1;">notifications_active</span>
+            alerts
+        </button>
+</div>
+
+
+</body></html>

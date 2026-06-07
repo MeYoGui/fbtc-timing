@@ -1,284 +1,426 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kairos</title>
+  <title>Kairos — Crypto Market Timing</title>
   <link rel="manifest" href="/fbtc-timing/manifest.json">
   <link rel="icon" type="image/png" sizes="48x48" href="/fbtc-timing/icons/favicon-48.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/fbtc-timing/icons/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/fbtc-timing/icons/favicon-16.png">
-  <meta name="theme-color" content="#0d0d0d">
+  <meta name="theme-color" content="#050505">
   <link rel="apple-touch-icon" href="/fbtc-timing/icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Kairos">
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #0d0d0d; color: #d0d0d0; max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; overflow-x: hidden; }
-    header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2rem; }
-    /* KAIROS wordmark — per-letter palette matches the app icon */
-    header h1 { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.08em; }
-    header h1 span:nth-child(1) { color: #ff6b3d; } /* K */
-    header h1 span:nth-child(2) { color: #ffa033; } /* A */
-    header h1 span:nth-child(3) { color: #ffd740; text-shadow: 0 0 7px rgba(255,215,64,0.85); } /* I — glows, extending the signal */
-    header h1 span:nth-child(4) { color: #80d94a; } /* R */
-    header h1 span:nth-child(5) { color: #00c853; } /* O */
-    header h1 span:nth-child(6) { color: #00c853; } /* S */
-    .meta { font-size: 0.85rem; color: #666; }
-    .score-card { background: #161616; border-radius: 12px; padding: 1.75rem 2rem 1.5rem; text-align: center; margin-bottom: 2rem; }
-    .action-line { font-size: 2.6rem; font-weight: 800; letter-spacing: 0.04em; line-height: 1; margin-bottom: 0.2rem; }
-    .action-sub  { font-size: 0.88rem; color: #666; margin-bottom: 1.6rem; }
-
-    /* spectrum gauge — 5 equal zones, each flex:20 */
-    .spectrum-wrap { max-width: 500px; margin: 0 auto; padding-top: 34px; position: relative; }
-    .spectrum-zones { display: flex; height: 30px; border-radius: 7px; overflow: hidden; }
-    .sz { display: flex; align-items: center; justify-content: center; flex: 20; font-size: 0.52rem; font-weight: 700; letter-spacing: 0.04em; text-align: center; line-height: 1.2; }
-    .sz-tp   { background: #ff525230; color: #ff5252; }
-    .sz-sell { background: #ff980028; color: #ff9800; }
-    .sz-hold { background: #ffffff10; color: #555; }
-    .sz-buy  { background: #00c85328; color: #00c853; }
-    .sz-sbuy { background: #00e67630; color: #00e676; }
-    .spec-cursor { position: absolute; top: 34px; height: 30px; width: 3px; background: #fff; border-radius: 2px; box-shadow: 0 0 10px rgba(255,255,255,0.9); transform: translateX(-50%); }
-    .spec-cursor-label { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #fff; color: #000; font-size: 0.72rem; font-weight: 800; padding: 2px 7px; border-radius: 4px; white-space: nowrap; box-shadow: 0 0 8px rgba(255,255,255,0.3); }
-    .spec-cursor-label::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:4px solid transparent; border-top-color:#fff; }
-    .spec-ticks { position: relative; height: 15px; margin-top: 5px; }
-    .spec-ticks span { position: absolute; font-size: 0.65rem; transform: translateX(-50%); white-space: nowrap; }
-
-    .distance { margin-top: 0.5rem; font-size: 0.85rem; color: #666; }
-
-    /* ── trend toggle ── */
-    .trend-toggle { display: flex; justify-content: center; gap: 6px; margin-bottom: 1rem; }
-    .trend-toggle button { background: #1e1e1e; color: #555; border: none; border-radius: 20px; padding: 5px 18px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s, color .15s; }
-    .trend-toggle button.active { background: #fff; color: #000; }
-
-    /* ── trend delta + sparkline ── */
-    .trend-delta { margin-top: 0.6rem; font-size: 0.95rem; font-weight: 600; min-height: 1.2em; }
-    .sparkline-wrap { margin-top: 0.9rem; }
-    .sparkline { display: flex; align-items: flex-end; justify-content: center; gap: 4px; height: 44px; padding-top: 8px; }
-    .spark-bar { border-radius: 2px 2px 0 0; cursor: pointer; position: relative; flex-shrink: 0; }
-    .spark-bar:hover .spark-tip, .spark-bar.tip-open .spark-tip { display: block; }
-    .spark-tip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #2a2a2a; border: 1px solid #3a3a3a; border-radius: 5px; padding: 3px 8px; white-space: nowrap; font-size: 0.72rem; color: #e0e0e0; pointer-events: none; z-index: 10; }
-    .spark-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 4px solid transparent; border-top-color: #3a3a3a; }
-    .spark-lbl { font-size: 0.7rem; color: #444; margin-top: 4px; }
-
-    /* ── signal trend arrow column ── */
-    .trend-arrow { font-size: 1.05rem; font-weight: 700; }
-    td.trend-col { width: 28px; text-align: center; padding: 0.85rem 0.25rem; }
-    th.trend-col { width: 28px; text-align: center; color: #333; font-size: 0.65rem; padding: 0.6rem 0.25rem; }
-
-    /* ── asset score-chip switcher ── */
-    .chip-row { display: flex; gap: 8px; margin-bottom: 1.2rem; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-    .chip-row::-webkit-scrollbar { display: none; }
-    .chip { flex: 0 0 auto; min-width: 150px; background: #161616; border: 1.5px solid transparent; border-radius: 11px; padding: 11px 12px; cursor: pointer; transition: background .15s; text-align: left; }
-    .chip:hover { background: #1a1a1a; }
-    .chip.active { background: #1a1a1a; }
-    .chip-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 4px; }
-    .chip-name { font-size: 0.82rem; font-weight: 600; color: #bbb; }
-    .chip-verdict { font-size: 0.6rem; font-weight: 700; letter-spacing: .03em; }
-    .chip-score { font-size: 1.8rem; font-weight: 700; line-height: 1; }
-    .chip-spark { display: flex; align-items: flex-end; gap: 2px; height: 16px; margin-top: 6px; }
-    .chip-spark div { flex: 1; border-radius: 1px 1px 0 0; background: #333; }
-    .chip-add { flex: 0 0 auto; min-width: 130px; background: transparent; border: 1.5px dashed #2a2a2a; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: #3a3a3a; font-size: 0.8rem; font-weight: 600; }
-
-    /* ── signal range bars ── */
-    .sig-bar-wrap { display: flex; flex-direction: column; gap: 4px; }
-    .sig-status { display: inline-block; align-self: flex-start; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.04em; padding: 1px 7px; border-radius: 3px; }
-    .st-invest { background: #00c85318; color: #00c853; }
-    .st-wait   { background: #ffd74018; color: #ffd740; }
-    .st-avoid  { background: #ff525218; color: #ff5252; }
-    .bar-outer { position: relative; height: 26px; }
-    .bar-track { position: absolute; top: 50%; transform: translateY(-50%); left: 0; right: 0; height: 9px; border-radius: 5px; display: flex; overflow: hidden; }
-    .seg-avoid  { background: #ff525228; }
-    .seg-wait   { background: #ffd74022; }
-    .seg-invest { background: #00c85328; }
-    .thresh-line { position: absolute; top: 50%; transform: translateY(-50%); width: 1px; height: 13px; background: #484848; border-radius: 1px; }
-    .sig-cursor { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; border-radius: 2px; box-shadow: 0 0 7px rgba(255,255,255,0.85); transform: translateX(-50%); }
-    .sig-cursor::before { content: ''; position: absolute; top: -2px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 5px; height: 5px; background: #fff; box-shadow: 0 0 4px rgba(255,255,255,0.9); }
-    .bar-labels { position: relative; height: 14px; }
-    .bar-label { position: absolute; font-size: 0.7rem; color: #484848; transform: translateX(-50%); white-space: nowrap; }
-    .bar-label.edge-l { transform: translateX(0); color: #ff525277; font-size: 0.65rem; }
-    .bar-label.edge-r { transform: translateX(-100%); color: #00c85377; font-size: 0.65rem; }
-
-    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-bottom: 2rem; }
-    .table-scroll::-webkit-scrollbar { display: none; }
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; font-size: 0.75rem; font-weight: 500; color: #555; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.6rem 0.75rem; border-bottom: 1px solid #222; }
-    td { padding: 0.85rem 0.75rem; border-bottom: 1px solid #1a1a1a; font-size: 0.9rem; }
-    .chart-wrap { margin-bottom: 2rem; }
-    .chart-controls { display: flex; gap: 6px; justify-content: flex-end; margin-bottom: 0.5rem; }
-    .chart-pill { background: #1e1e1e; color: #555; border: none; border-radius: 20px; padding: 4px 14px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s, color .15s; }
-    .chart-pill.active { background: #fff; color: #000; }
-    details { border: 1px solid #222; border-radius: 8px; padding: 1.25rem; }
-    summary { cursor: pointer; font-size: 0.9rem; color: #888; user-select: none; }
-    summary:hover { color: #bbb; }
-    .meth-table { margin-top: 1.25rem; }
-    .meth-table td, .meth-table th { font-size: 0.8rem; }
-    .def-note { font-size: 0.8rem; color: #555; margin-top: 1rem; line-height: 1.5; }
-    .site-footer { text-align: center; margin: 2rem 0 1rem; }
-    .site-footer a { font-size: 0.8rem; color: #555; text-decoration: none; }
-    .site-footer a:hover { color: #888; }
-
-    /* ── collapsible breakdown ── */
-    .breakdown-toggle {
-      display: flex; align-items: center; justify-content: center; gap: 5px;
-      margin-top: 1rem; font-size: 0.7rem; color: #3a3a3a;
-      border: 1px solid #232323; border-radius: 6px;
-      padding: 0.4rem 0.75rem; cursor: pointer; background: #1a1a1a;
-      transition: color .15s, border-color .15s; user-select: none;
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "cyber-emerald": "#00ff88",
+            "deep-abyss": "#050505",
+            "surface": "#0a0a0a",
+            "surface-container": "#0d0d0d",
+            "surface-container-low": "#080808",
+            "surface-container-high": "#111111",
+            "surface-container-highest": "#1a1a1a",
+            "surface-variant": "#222222",
+            "surface-charcoal": "#0a0a0a",
+            "on-surface": "#ffffff",
+            "on-surface-variant": "#aaaaaa",
+            "outline": "#444444",
+            "outline-variant": "#333333",
+            "border-subtle": "rgba(255, 255, 255, 0.1)",
+            "primary": "#00ff88",
+            "buy-vibrant": "#00ff88",
+            "buy-steady": "#00C853",
+            "hold-neutral": "#D0D0D0",
+            "sell-urgent": "#FF3B30",
+            "tertiary-container": "#fdb878",
+            "error": "#ffb4ab",
+            "on-secondary-fixed-variant": "#930005"
+          },
+          borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+          spacing: { "unit": "4px", "stack-sm": "8px", "stack-md": "16px", "stack-lg": "24px", "container-padding": "16px", "gutter": "12px" },
+          fontFamily: {
+            "body-base": ["Space Grotesk", "sans-serif"],
+            "display-lg": ["Space Grotesk", "sans-serif"],
+            "headline-md": ["Space Grotesk", "sans-serif"],
+            "headline-lg-mobile": ["Space Grotesk", "sans-serif"],
+            "data-lg": ["JetBrains Mono", "monospace"],
+            "data-sm": ["JetBrains Mono", "monospace"],
+            "label-caps": ["JetBrains Mono", "monospace"]
+          },
+          fontSize: {
+            "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+            "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+            "headline-lg-mobile": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+            "data-lg": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "data-sm": ["13px", { "lineHeight": "16px", "fontWeight": "500" }],
+            "label-caps": ["11px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "700" }]
+          }
+        }
+      }
     }
-    .breakdown-toggle:hover, .breakdown-toggle.open { color: #555; border-color: #333; }
-    .breakdown-panel { display: none; margin-top: 0.6rem; padding: 0.9rem; background: #111; border-radius: 8px; border: 1px solid #232323; }
-    .breakdown-panel.open { display: block; }
-    .bk-mini-gauge { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 0.75rem; }
-    .bk-mg-tp   { flex: 20; background: #ff525230; }
-    .bk-mg-sell { flex: 20; background: #ff980028; }
-    .bk-mg-hold { flex: 20; background: #ffffff10; }
-    .bk-mg-buy  { flex: 20; background: #00c85328; }
-    .bk-mg-sbuy { flex: 20; background: #00e67630; }
-    .bk-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.5rem; align-items: center; }
-    .bk-box { text-align: center; }
-    .bk-lbl { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.07em; color: #3a3a3a; margin-bottom: 3px; }
-    .bk-lbl-sell { color: #ff525266; }
-    .bk-lbl-buy  { color: #00c85366; }
-    .bk-val { font-size: 1.25rem; font-weight: 800; line-height: 1; }
-    .bk-sub { font-size: 0.62rem; color: #3a3a3a; margin-top: 2px; }
-    .bk-formula { font-size: 0.65rem; color: #333; text-align: center; line-height: 1.6; }
-    .bk-divider { border: none; border-top: 1px solid #1e1e1e; margin: 0.7rem 0; }
-    .bk-hint { font-size: 0.62rem; color: #2e2e2e; line-height: 1.5; text-align: center; }
+  </script>
+  <style>
+    body {
+      background-color: #050505;
+      color: #ffffff;
+      min-height: max(884px, 100dvh);
+      background-image: radial-gradient(circle at 50% 50%, rgba(0,255,136,0.03) 0%, transparent 100%);
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #050505; }
+    ::-webkit-scrollbar-thumb { background: #222222; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #aaaaaa; }
+    .pulse-ring { animation: pulse-ring 4s cubic-bezier(0.215,0.61,0.355,1) infinite; }
+    .pulse-ring-delayed { animation: pulse-ring 4s cubic-bezier(0.215,0.61,0.355,1) infinite 1.2s; }
+    @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.5; } 80%, 100% { transform: scale(1.5); opacity: 0; } }
+    .spark-bar { position: relative; }
+    .spark-bar .spark-tip { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #161616; border: 1px solid #2a2a2a; border-radius: 5px; padding: 3px 8px; white-space: nowrap; font-size: 11px; font-family: 'JetBrains Mono', monospace; pointer-events: none; z-index: 30; }
+    .spark-bar:hover .spark-tip, .spark-bar.tip-open .spark-tip { display: block; }
+    .spark-bar-first .spark-tip { left: 0; right: auto; transform: none; }
+    .spark-bar-last .spark-tip { left: auto; right: 0; transform: none; }
+    .hidden-view { display: none !important; }
   </style>
 </head>
-<body>
-  <header>
-    <h1><span>K</span><span>A</span><span>I</span><span>R</span><span>O</span><span>S</span></h1>
-    <div class="meta" id="meta"></div>
-  </header>
+<body class="font-body-base antialiased pb-24 selection:bg-cyber-emerald/30 selection:text-cyber-emerald">
 
-  <div class="chip-row" id="chip-row"></div>
-
-  <div class="trend-toggle">
-    <button id="tw-day"   onclick="setTrendWindow('day')">Day</button>
-    <button id="tw-week"  onclick="setTrendWindow('week')">Week</button>
-    <button id="tw-month" onclick="setTrendWindow('month')">Month</button>
-  </div>
-
-  <div class="score-card">
-    <div class="action-line" id="spectrum-verdict"></div>
-    <div class="action-sub" id="distance"></div>
-
-    <div class="spectrum-wrap">
-      <div class="spectrum-zones">
-        <div class="sz sz-tp">TAKE<br>PROFIT</div>
-        <div class="sz sz-sell">SELL</div>
-        <div class="sz sz-hold">HOLD</div>
-        <div class="sz sz-buy">BUY</div>
-        <div class="sz sz-sbuy">STRONG<br>BUY</div>
+  <!-- ===================== INDEX VIEW ===================== -->
+  <div id="view-index">
+    <!-- Top App Bar -->
+    <header class="fixed top-0 w-full z-50 flex justify-between items-center px-container-padding h-14 bg-deep-abyss/80 backdrop-blur-md border-b border-border-subtle">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-cyber-emerald text-xl" style="font-variation-settings: 'FILL' 1;">analytics</span>
+        <span class="text-headline-md font-headline-md font-bold tracking-widest uppercase text-on-surface">KAIROS</span>
       </div>
-      <div class="spec-cursor" id="spec-cursor">
-        <div class="spec-cursor-label" id="spec-cursor-label"></div>
+      <div class="font-data-sm text-data-sm text-on-surface-variant flex items-center">
+        <span class="text-[10px] opacity-50" id="idx-updated">—</span>
       </div>
-      <div class="spec-ticks">
-        <span style="left:0;transform:none;color:#ff525266">0</span>
-        <span style="left:20%;color:#ff980055">20</span>
-        <span style="left:40%;color:#55555566">40</span>
-        <span style="left:60%;color:#00c85355">60</span>
-        <span style="left:80%;color:#00c85377">80</span>
-        <span style="left:100%;transform:translateX(-100%);color:#00e67677">100</span>
-      </div>
-    </div>
+    </header>
 
-    <div class="breakdown-toggle" id="breakdown-toggle" onclick="toggleBreakdown()">
-      &#9657; How is <span id="breakdown-score"></span> calculated?
-    </div>
-    <div class="breakdown-panel" id="breakdown-panel">
-      <div class="bk-mini-gauge">
-        <div class="bk-mg-tp"></div>
-        <div class="bk-mg-sell"></div>
-        <div class="bk-mg-hold"></div>
-        <div class="bk-mg-buy"></div>
-        <div class="bk-mg-sbuy"></div>
-      </div>
-      <div class="bk-grid">
-        <div class="bk-box">
-          <div class="bk-lbl bk-lbl-sell">Sell pressure</div>
-          <div class="bk-val" id="bk-sell-score"></div>
-          <div class="bk-sub" id="bk-sell-verdict"></div>
-        </div>
-        <div class="bk-formula" id="bk-formula"></div>
-        <div class="bk-box">
-          <div class="bk-lbl bk-lbl-buy">Buy pressure</div>
-          <div class="bk-val" id="bk-buy-score"></div>
-          <div class="bk-sub" id="bk-buy-verdict"></div>
+    <main class="pt-20 px-4 md:px-6 max-w-[1200px] mx-auto flex flex-col gap-8 items-center">
+      <!-- Timeframe Selector -->
+      <div class="flex justify-center mt-2 z-20 relative w-full">
+        <div class="flex bg-surface-container-low p-1 rounded-full border border-border-subtle shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+          <button type="button" data-tf="day"   class="tf-pill px-4 py-1.5 text-data-sm font-data-sm rounded-full uppercase tracking-wider transition-colors">Day</button>
+          <button type="button" data-tf="week"  class="tf-pill px-4 py-1.5 text-data-sm font-data-sm rounded-full uppercase tracking-wider transition-colors">Week</button>
+          <button type="button" data-tf="month" class="tf-pill px-4 py-1.5 text-data-sm font-data-sm rounded-full uppercase tracking-wider transition-colors">Month</button>
         </div>
       </div>
-      <hr class="bk-divider">
-      <div class="bk-hint" id="bk-hint"></div>
-    </div>
 
-    <div id="trend-delta" class="trend-delta"></div>
-    <div class="sparkline-wrap">
-      <div id="sparkline" class="sparkline"></div>
-      <div id="spark-lbl" class="spark-lbl"></div>
+      <!-- Token cards (rendered by renderIndexCards) -->
+      <section id="token-list" class="relative w-full max-w-md flex flex-col items-center justify-center gap-6 z-30 mt-4"></section>
+    </main>
+
+    <!-- Bottom Alerts Action -->
+    <div class="fixed bottom-0 w-full z-50 flex justify-center items-center px-4 pb-6 pt-10 bg-gradient-to-t from-deep-abyss via-deep-abyss/90 to-transparent pointer-events-none">
+      <a href="enable-alerts.html" class="pointer-events-auto bg-cyber-emerald text-deep-abyss font-headline-md text-sm font-bold px-8 py-3 rounded-full shadow-[0_0_20px_rgba(0,255,136,0.3)] hover:bg-white hover:text-deep-abyss transition-all flex items-center gap-2 uppercase tracking-widest">
+        <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+        alerts
+      </a>
     </div>
   </div>
 
-  <div class="table-scroll">
-    <table>
-      <thead>
-        <tr>
-          <th>Signal</th><th>Reading</th><th class="trend-col">▲▼</th>
-          <th style="min-width:120px"><div style="display:flex;justify-content:space-between"><span style="color:#ff525255">← Avoid</span><span style="color:#00c85355">Invest →</span></div></th>
-        </tr>
-      </thead>
-      <tbody id="signal-tbody"></tbody>
-    </table>
-  </div>
+  <!-- ===================== DETAILS VIEW ===================== -->
+  <div id="view-details" class="hidden-view">
+    <!-- Top App Bar -->
+    <header class="sticky top-0 z-50 flex justify-between items-center px-container-padding h-14 w-full bg-deep-abyss/80 backdrop-blur-md border-b border-border-subtle">
+      <button type="button" id="detail-back" aria-label="Go back" class="active:scale-95 transition-transform hover:bg-surface-variant/30 text-cyber-emerald flex items-center justify-center p-2 -ml-2 rounded-full">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <div class="font-headline-md text-headline-md font-bold tracking-tighter text-cyber-emerald">KAIROS TERMINAL</div>
+      <button type="button" aria-label="Settings" class="active:scale-95 transition-transform hover:bg-surface-variant/30 text-cyber-emerald flex items-center justify-center p-2 -mr-2 rounded-full">
+        <span class="material-symbols-outlined">settings</span>
+      </button>
+    </header>
 
-  <div class="chart-wrap">
-    <div class="chart-controls">
-      <button id="cw-6m"  class="chart-pill" onclick="setChartWindow('6m')">6M</button>
-      <button id="cw-1y"  class="chart-pill" onclick="setChartWindow('1y')">1Y</button>
-      <button id="cw-2y"  class="chart-pill" onclick="setChartWindow('2y')">2Y</button>
-      <button id="cw-all" class="chart-pill" onclick="setChartWindow('all')">All</button>
+    <main class="flex-1 max-w-[1200px] mx-auto w-full flex flex-col">
+      <!-- Context Header -->
+      <div class="px-container-padding pt-stack-lg pb-stack-sm flex justify-between items-end border-b border-border-subtle/50">
+        <div>
+          <h1 class="font-display-lg text-display-lg text-on-surface" id="detail-name">—</h1>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="font-label-caps text-label-caps text-on-surface-variant" id="detail-subtitle">DETAILS</span>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="font-data-lg text-data-lg text-on-surface" id="detail-price">—</div>
+          <div class="font-data-sm text-data-sm mt-1" id="detail-change">—</div>
+        </div>
+      </div>
+
+      <!-- Hero: Pulse Verdict -->
+      <section class="flex flex-col items-center justify-center py-12 px-container-padding relative overflow-hidden">
+        <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#aaaaaa 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <div class="relative w-48 h-48 flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full border border-cyber-emerald/30 pulse-ring pointer-events-none"></div>
+          <div class="absolute inset-0 rounded-full border border-cyber-emerald/10 pulse-ring-delayed pointer-events-none"></div>
+          <div class="absolute inset-4 rounded-full bg-cyber-emerald/5 blur-2xl pointer-events-none"></div>
+          <div class="relative z-10 w-32 h-32 rounded-full bg-surface-charcoal border border-border-subtle flex flex-col items-center justify-center shadow-[0_0_40px_rgba(0,255,136,0.15)] ring-1 ring-cyber-emerald/50 backdrop-blur-md">
+            <span class="font-data-lg text-[32px] leading-none mb-1 text-on-surface" id="detail-hero-score">—</span>
+            <span class="font-label-caps text-label-caps text-on-surface-variant">COMPOSITE</span>
+          </div>
+        </div>
+        <div class="mt-8 flex flex-col items-center">
+          <h2 class="font-display-lg text-display-lg tracking-[0.2em] uppercase drop-shadow-[0_0_12px_rgba(0,255,136,0.4)]" id="detail-verdict">—</h2>
+          <p class="font-body-base text-body-base text-on-surface-variant mt-2 max-w-sm text-center" id="detail-desc">—</p>
+        </div>
+      </section>
+
+      <!-- Score history -->
+      <section class="px-container-padding pt-stack-sm pb-stack-md">
+        <div class="flex justify-between items-center mb-3">
+          <span class="font-label-caps text-label-caps text-on-surface">SCORE HISTORY</span>
+          <div class="flex bg-surface-container-low p-0.5 rounded-full border border-border-subtle">
+            <button type="button" data-dtf="day"   class="dtf-pill px-3 py-1 text-[11px] font-data-sm rounded-full uppercase tracking-wider transition-colors">Day</button>
+            <button type="button" data-dtf="week"  class="dtf-pill px-3 py-1 text-[11px] font-data-sm rounded-full uppercase tracking-wider transition-colors">Week</button>
+            <button type="button" data-dtf="month" class="dtf-pill px-3 py-1 text-[11px] font-data-sm rounded-full uppercase tracking-wider transition-colors">Month</button>
+          </div>
+        </div>
+        <div id="detail-history" class="flex gap-1.5 items-end h-20"></div>
+      </section>
+
+      <!-- Metric Cards (rendered by renderMetricCards) -->
+      <section id="metric-cards" class="px-container-padding grid grid-cols-1 md:grid-cols-3 gap-stack-md py-stack-md relative z-10"></section>
+
+      <!-- Historical Chart -->
+      <section class="px-container-padding py-stack-md flex-1 pb-stack-lg">
+        <div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col relative overflow-hidden">
+          <div class="flex justify-between items-center mb-4 z-10">
+            <span class="font-label-caps text-label-caps text-on-surface">PRICE (USD) VS COMPOSITE</span>
+            <div class="flex gap-2">
+              <button type="button" data-cw="6m"  class="cw-pill text-[11px] font-data-sm rounded-full px-3 py-1 transition-colors">6M</button>
+              <button type="button" data-cw="1y"  class="cw-pill text-[11px] font-data-sm rounded-full px-3 py-1 transition-colors">1Y</button>
+              <button type="button" data-cw="2y"  class="cw-pill text-[11px] font-data-sm rounded-full px-3 py-1 transition-colors">2Y</button>
+              <button type="button" data-cw="all" class="cw-pill text-[11px] font-data-sm rounded-full px-3 py-1 transition-colors">All</button>
+            </div>
+          </div>
+          <div class="relative h-64 md:h-80"><canvas id="detail-chart"></canvas></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom SET ALERTS -->
+    <div class="fixed bottom-0 w-full px-container-padding py-4 bg-deep-abyss/90 backdrop-blur-xl border-t border-border-subtle z-50">
+      <div class="max-w-[1200px] mx-auto">
+        <a href="enable-alerts.html" class="w-full bg-cyber-emerald hover:bg-white text-deep-abyss font-headline-md text-headline-md py-3 rounded-xl shadow-[0_0_20px_rgba(0,255,136,0.3)] hover:shadow-[0_0_30px_rgba(0,255,136,0.5)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group">
+          <span class="material-symbols-outlined transition-transform group-hover:rotate-12" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+          <span class="tracking-wide">SET ALERTS</span>
+        </a>
+      </div>
     </div>
-    <canvas id="chart" height="120"></canvas>
   </div>
-
-  <details>
-    <summary>Methodology ›</summary>
-    <table class="meth-table">
-      <thead><tr><th>Signal</th><th>Weight</th><th>Precision</th><th>Recall</th><th>F1</th></tr></thead>
-      <tbody id="meth-tbody"></tbody>
-    </table>
-    <p class="def-note">
-      Good entry: 18-month forward return ≥ 50% and entry price within bottom 40% of the cycle range.
-      Weights are derived from the precision of each signal against historical good-entry days.
-    </p>
-  </details>
-
-  <footer class="site-footer">
-    <a href="enable-alerts.html">🔔 alerts</a>
-  </footer>
 
   <script>
     const ASSETS = {{ assets_json }};
-    const BY_ID = Object.fromEntries(ASSETS.map(a => [a.id, a]));
+    const DEFAULT_ASSET = "{{ default_asset }}";
     const UPDATED_AT = {{ updated_at | tojson }};
-    let currentId = (function () {
-      try { const s = localStorage.getItem('kairos-asset'); if (s && BY_ID[s]) return s; } catch (e) {}
-      return {{ default_asset | tojson }};
-    })();
-    let currentWindow = (function () {
+    const BY_ID = Object.fromEntries(ASSETS.map(a => [a.id, a]));
+
+    // ---- shared helpers ----
+    function zoneColor(s) {
+      return s >= 80 ? '#00ff88' : s >= 60 ? '#00C853' : s >= 40 ? '#D0D0D0' : s >= 20 ? '#ff9800' : '#FF3B30';
+    }
+    // Which of the 5 spectrum zones a position falls in (0=TP .. 4=Strong Buy)
+    function zoneIndex(pos) {
+      return pos >= 80 ? 4 : pos >= 60 ? 3 : pos >= 40 ? 2 : pos >= 20 ? 1 : 0;
+    }
+    const ZONE_LABELS = ['Strong Sell', 'Sell', 'Hold', 'Buy', 'Strong Buy'];
+    const ZONE_COLORS = ['#FF3B30', '#ff9800', '#D0D0D0', '#00C853', '#00ff88'];
+    // Display-only: the lowest composite band is scored "TAKE PROFIT" but shown as "STRONG SELL".
+    function displayVerdict(v) { return v === 'TAKE PROFIT' ? 'STRONG SELL' : v; }
+
+    // ---- index state ----
+    let timeframe = (function () {
       try { const w = localStorage.getItem('kairos-trend-window'); if (['day','week','month'].includes(w)) return w; } catch (e) {}
       return 'day';
     })();
+
+    // Shared score-history bars with a date+score tooltip (hover on desktop, tap on mobile).
+    function sparkBarsHTML(spark) {
+      const scores = spark.map(p => p.score);
+      const mx = Math.max.apply(null, scores);
+      const mn = Math.min.apply(null, scores) - 3;
+      const span = (mx - mn) || 1;
+      return spark.map(function (p, i) {
+        const h = Math.max(Math.round(((p.score - mn) / span) * 100), 12);
+        const col = zoneColor(p.score);
+        const last = i === spark.length - 1;
+        const bg = last ? 'background:' + col + ';box-shadow:0 0 8px rgba(0,255,136,0.6);' : 'background:#222222;';
+        return '<div class="spark-bar' + (i === 0 ? ' spark-bar-first' : '') + (last ? ' spark-bar-last' : '') + ' w-full rounded-sm" style="height:' + h + '%;' + bg + '" onclick="toggleTip(event, this)">'
+          + '<span class="spark-tip" style="color:' + col + '">' + p.label + ' — ' + p.score.toFixed(1) + '</span></div>';
+      }).join('');
+    }
+    function toggleTip(ev, el) {
+      ev.stopPropagation();
+      var wasOpen = el.classList.contains('tip-open');
+      document.querySelectorAll('.spark-bar.tip-open').forEach(function (b) { b.classList.remove('tip-open'); });
+      if (!wasOpen) el.classList.add('tip-open');
+    }
+
+    function miniBarsHTML(a) {
+      return sparkBarsHTML(a.trend[timeframe].spark);
+    }
+
+    function spectrumBandHTML(a) {
+      const zi = zoneIndex(a.spectrum_pos);
+      const segs = ZONE_COLORS.map(function (c, i) {
+        const active = i === zi;
+        const style = active
+          ? 'background:' + c + ';box-shadow:0 0 10px ' + c + ';'
+          : 'background:' + c + ';opacity:0.30;';
+        return '<div class="h-full w-1/5" style="' + style + '"></div>';
+      }).join('');
+      const labels = ZONE_LABELS.map(function (l, i) {
+        const active = i === zi;
+        return '<span class="' + (active ? 'font-bold' : '') + '" style="color:' + (active ? ZONE_COLORS[i] : '#aaaaaa') + '">' + l + '</span>';
+      }).join('');
+      return '<div class="relative w-full">'
+        + '<div class="relative w-full h-1.5 bg-surface-variant rounded-full overflow-hidden flex">' + segs + '</div>'
+        + '<div class="absolute" style="top:50%;left:' + a.spectrum_pos + '%;transform:translate(-50%,-50%);width:3px;height:12px;background:#fff;border-radius:2px;box-shadow:0 0 9px rgba(255,255,255,0.95);"></div>'
+        + '</div>'
+        + '<div class="flex justify-between text-[9px] font-label-caps uppercase tracking-tighter mt-1">' + labels + '</div>';
+    }
+
+    function cardHTML(a, primary) {
+      const col = zoneColor(a.spectrum_pos);
+      const border = primary ? 'border-cyber-emerald/40 hover:border-cyber-emerald' : 'border-border-subtle hover:border-cyber-emerald/50';
+      const glow = primary ? 'shadow-[0_0_20px_rgba(0,255,136,0.15)] hover:shadow-[0_0_30px_rgba(0,255,136,0.3)]' : 'shadow-lg hover:shadow-[0_0_20px_rgba(0,255,136,0.1)]';
+      return '<button type="button" data-asset="' + a.id + '" class="asset-card relative w-full bg-surface-container-high border ' + border + ' rounded-2xl p-6 ' + glow + ' transition-all group text-left flex flex-col gap-4">'
+        + '<div class="flex justify-between items-center relative z-10">'
+        +   '<div class="flex flex-col">'
+        +     '<div class="flex items-center gap-2 text-on-surface font-headline-lg-mobile text-2xl">' + a.short_label + '</div>'
+        +     '<span class="font-data-sm text-data-sm text-cyber-emerald mt-1">' + a.price_unit + a.price.toLocaleString() + '</span>'
+        +   '</div>'
+        +   '<div class="w-8 h-8 rounded-full bg-surface-container border border-border-subtle flex items-center justify-center group-hover:border-cyber-emerald group-hover:bg-cyber-emerald/10 transition-all">'
+        +     '<span class="material-symbols-outlined text-cyber-emerald text-sm opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all">arrow_forward</span>'
+        +   '</div>'
+        + '</div>'
+        + '<div class="flex flex-col gap-3 w-full relative z-10 mt-2">'
+        +   '<div class="flex justify-between items-end">'
+        +     '<div class="flex flex-col">'
+        +       '<span class="text-[11px] font-label-caps tracking-widest font-bold opacity-90" style="color:' + col + '">' + displayVerdict(a.spectrum_verdict) + '</span>'
+        +       '<span class="text-[40px] font-data-lg text-white font-bold leading-none tracking-tight">' + a.spectrum_pos.toFixed(1) + '</span>'
+        +     '</div>'
+        +     '<div class="flex gap-1 h-6 items-end w-24 mb-1">' + miniBarsHTML(a) + '</div>'
+        +   '</div>'
+        +   spectrumBandHTML(a)
+        + '</div>'
+        + '</button>';
+    }
+
+    function renderIndexCards() {
+      document.getElementById('token-list').innerHTML =
+        ASSETS.map(function (a, i) { return cardHTML(a, i === 0); }).join('');
+      document.querySelectorAll('.asset-card').forEach(function (el) {
+        el.addEventListener('click', function () { openDetails(el.getAttribute('data-asset')); });
+      });
+    }
+
+    function setTimeframe(w) {
+      timeframe = w;
+      try { localStorage.setItem('kairos-trend-window', w); } catch (e) {}
+      document.querySelectorAll('.tf-pill').forEach(function (el) {
+        const active = el.getAttribute('data-tf') === w;
+        el.classList.toggle('bg-on-surface', active);
+        el.classList.toggle('text-deep-abyss', active);
+        el.classList.toggle('font-bold', active);
+        el.classList.toggle('shadow-sm', active);
+        el.classList.toggle('text-on-surface-variant', !active);
+      });
+      renderIndexCards();
+    }
+
+    function renderIndexHeader() {
+      document.getElementById('idx-updated').textContent = 'Updated ' + UPDATED_AT;
+    }
+
+    // ---- details state ----
+    let detailId = null;
     let chart = null;
-    var chartWindow = (function () {
+    let chartWindow = (function () {
       try { var w = localStorage.getItem('kairos-chart-window'); if (['6m','1y','2y','all'].includes(w)) return w; } catch (e) {}
       return '1y';
     })();
+    let detailWindow = (function () {
+      try { var w = localStorage.getItem('kairos-detail-trend-window'); if (['day','week','month'].includes(w)) return w; } catch (e) {}
+      return 'day';
+    })();
 
+    function renderDetailHistory(a) {
+      document.getElementById('detail-history').innerHTML = sparkBarsHTML(a.trend[detailWindow].spark);
+    }
+
+    function setDetailWindow(w) {
+      detailWindow = w;
+      try { localStorage.setItem('kairos-detail-trend-window', w); } catch (e) {}
+      document.querySelectorAll('.dtf-pill').forEach(function (el) {
+        const active = el.getAttribute('data-dtf') === w;
+        el.classList.toggle('bg-on-surface', active);
+        el.classList.toggle('text-deep-abyss', active);
+        el.classList.toggle('font-bold', active);
+        el.classList.toggle('text-on-surface-variant', !active);
+      });
+      if (detailId) renderDetailHistory(BY_ID[detailId]);
+    }
+
+    // metric card value color from the precomputed status class
+    function metricColor(statusClass) {
+      return statusClass === 'st-invest' ? '#00ff88'
+           : statusClass === 'st-avoid'  ? '#ffb4ab'
+           : '#fdb878';
+    }
+
+    function metricCardHTML(sig) {
+      const b = sig.bar;
+      if (!b || !b.has_data) {
+        return '<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col">'
+          + '<span class="font-label-caps text-label-caps text-on-surface-variant">' + sig.display_name + '</span>'
+          + '<span class="font-data-sm text-data-sm text-outline mt-6">No data</span></div>';
+      }
+      const col = metricColor(b.status_class);
+      return '<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col hover:border-cyber-emerald/30 transition-colors group">'
+        + '<div class="flex justify-between items-start mb-6 gap-2">'
+        +   '<span class="font-label-caps text-label-caps text-on-surface-variant group-hover:text-on-surface transition-colors">' + sig.display_name + '</span>'
+        +   '<span class="font-data-lg text-data-lg text-right" style="color:' + col + ';text-shadow:0 0 8px ' + col + '33;">' + sig.reading + '</span>'
+        + '</div>'
+        + '<div class="mt-auto w-full">'
+        +   '<div class="relative w-full">'
+        +     '<div class="h-1.5 w-full rounded-full overflow-hidden flex">'
+        +       '<div class="h-full" style="width:' + b.avoid_pct + '%;background:rgba(255,59,48,0.30)"></div>'
+        +       '<div class="h-full" style="width:' + b.wait_pct + '%;background:rgba(255,255,255,0.10)"></div>'
+        +       '<div class="h-full" style="width:' + b.invest_pct + '%;background:rgba(0,255,136,0.30)"></div>'
+        +     '</div>'
+        +     '<div class="absolute" style="top:50%;left:' + b.thresh_avoid_pct + '%;transform:translate(-50%,-50%);width:1px;height:9px;background:rgba(255,255,255,0.35)"></div>'
+        +     '<div class="absolute" style="top:50%;left:' + b.thresh_invest_pct + '%;transform:translate(-50%,-50%);width:1px;height:9px;background:rgba(255,255,255,0.35)"></div>'
+        +     '<div class="absolute" style="top:50%;left:' + b.cursor_pct + '%;transform:translate(-50%,-50%);width:2px;height:12px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,0.95)"></div>'
+        +   '</div>'
+        +   '<div class="relative h-3 mt-1 text-[8px] font-data-sm">'
+        +     '<span class="absolute" style="right:' + (100 - b.thresh_avoid_pct) + '%;padding-right:3px;color:#cfcfcf">' + b.thresh_avoid_lbl + '</span>'
+        +     '<span class="absolute" style="left:' + b.thresh_invest_pct + '%;padding-left:3px;color:#cfcfcf">' + b.thresh_invest_lbl + '</span>'
+        +   '</div>'
+        +   '<div class="relative h-3 text-[8px] font-label-caps uppercase tracking-tight">'
+        +     '<span class="absolute left-0" style="color:#ff8a80">Avoid</span>'
+        +     '<span class="absolute -translate-x-1/2" style="left:50%;color:#9a9a9a">Wait</span>'
+        +     '<span class="absolute right-0" style="color:#00ff88">Invest</span>'
+        +   '</div>'
+        + '</div></div>';
+    }
+
+    function renderMetricCards(a) {
+      document.getElementById('metric-cards').innerHTML = a.signals.map(metricCardHTML).join('');
+    }
+
+    // ---- chart (ported from the previous dashboard) ----
     function sliceChartData(c, w) {
       var n = { '6m': 26, '1y': 52, '2y': 104 }[w];
       if (!n) return c;
@@ -286,108 +428,33 @@
       return { dates: c.dates.slice(start), prices: c.prices.slice(start), scores: c.scores.slice(start) };
     }
 
-    function setChartWindow(w) {
-      chartWindow = w;
-      try { localStorage.setItem('kairos-chart-window', w); } catch (e) {}
-      ['6m','1y','2y','all'].forEach(function (k) {
-        document.getElementById('cw-' + k).classList.toggle('active', k === w);
-      });
-      renderChart(sliceChartData(BY_ID[currentId].chart, chartWindow));
-    }
-    window.setChartWindow = setChartWindow;
-
-    function zoneColor(s) {
-      return s >= 80 ? '#00e676' : s >= 60 ? '#00c853' : s >= 40 ? '#ffd740' : s >= 20 ? '#ff9800' : '#ff5252';
-    }
-
-    function renderChips() {
-      const row = document.getElementById('chip-row');
-      row.innerHTML = ASSETS.map(function (a) {
-        const col = zoneColor(a.spectrum_pos);
-        const sp = a.trend.day.spark;
-        const mx = Math.max.apply(null, sp.map(p => p.score));
-        const mn = Math.min.apply(null, sp.map(p => p.score)) - 3;
-        const bars = sp.map(function (p, i) {
-          const h = Math.max(Math.round(((p.score - mn) / (mx - mn)) * 100), 12);
-          const last = i === sp.length - 1;
-          return '<div style="height:' + h + '%;' + (last ? 'background:' + col + ';' : '') + '"></div>';
-        }).join('');
-        const active = a.id === currentId;
-        return '<div class="chip' + (active ? ' active' : '') + '" style="' + (active ? 'border-color:' + a.accent_color : '') + '" onclick="setAsset(\'' + a.id + '\')">'
-          + '<div class="chip-top"><span class="chip-name">' + a.short_label + '</span><span class="chip-verdict" style="color:' + col + '">' + a.spectrum_verdict + '</span></div>'
-          + '<div class="chip-score" style="color:' + col + '">' + a.spectrum_pos.toFixed(1) + '</div>'
-          + '<div class="chip-spark">' + bars + '</div></div>';
-      }).join('') + '<div class="chip-add">+ more coming</div>';
-    }
-
-    function signalBarHTML(sig) {
-      const b = sig.bar;
-      if (!b.has_data) return '<span style="color:#444;font-size:0.8rem">No data</span>';
-      return '<div class="sig-bar-wrap">'
-        + '<span class="sig-status ' + b.status_class + '">' + b.status_text + '</span>'
-        + '<div class="bar-outer"><div class="bar-track">'
-        + '<div class="seg-avoid" style="width:' + b.avoid_pct + '%"></div>'
-        + '<div class="seg-wait" style="width:' + b.wait_pct + '%"></div>'
-        + '<div class="seg-invest" style="width:' + b.invest_pct + '%"></div></div>'
-        + '<div class="thresh-line" style="left:' + b.thresh_avoid_pct + '%"></div>'
-        + '<div class="thresh-line" style="left:' + b.thresh_invest_pct + '%"></div>'
-        + '<div class="sig-cursor" style="left:' + b.cursor_pct + '%"></div></div>'
-        + '<div class="bar-labels">'
-        + '<span class="bar-label edge-l">' + b.edge_left + '</span>'
-        + '<span class="bar-label" style="left:' + b.thresh_avoid_pct + '%;color:#555">' + b.thresh_avoid_lbl + '</span>'
-        + '<span class="bar-label" style="left:' + b.thresh_invest_pct + '%;color:#555">' + b.thresh_invest_lbl + '</span>'
-        + '<span class="bar-label edge-r" style="left:100%">' + b.edge_right + '</span></div></div>';
-    }
-
-    function renderTable(a) {
-      document.getElementById('signal-tbody').innerHTML = a.signals.map(function (sig) {
-        return '<tr><td>' + sig.display_name + '</td><td>' + sig.reading + '</td>'
-          + '<td class="trend-col"><span class="trend-arrow" data-key="' + sig.key + '"></span></td>'
-          + '<td>' + signalBarHTML(sig) + '</td></tr>';
-      }).join('');
-      document.getElementById('meth-tbody').innerHTML = a.methodology.map(function (m) {
-        return '<tr><td>' + m.display_name + '</td><td>' + Math.round(m.weight * 100) + '%</td>'
-          + '<td>' + Math.round(m.precision * 100) + '%</td><td>' + Math.round(m.recall * 100) + '%</td>'
-          + '<td>' + m.f1.toFixed(2) + '</td></tr>';
-      }).join('');
-    }
-
     function renderChart(d) {
-      var a = BY_ID[currentId];
       var zoneBandsPlugin = {
         id: 'zoneBands',
         beforeDraw: function (ch) {
-          var ctx = ch.ctx;
-          var yAxis = ch.scales.yScore;
-          var xAxis = ch.scales.x;
-          var zones = [
-            { min: 80, max: 100, color: '#00e67610' },
-            { min: 60, max: 80,  color: '#00c85310' },
+          var ctx = ch.ctx, yAxis = ch.scales.yScore, xAxis = ch.scales.x;
+          [
+            { min: 80, max: 100, color: '#00ff8810' },
+            { min: 60, max: 80,  color: '#00C85310' },
             { min: 40, max: 60,  color: '#ffffff08' },
             { min: 20, max: 40,  color: '#ff980010' },
-            { min: 0,  max: 20,  color: '#ff525210' },
-          ];
-          zones.forEach(function (z) {
+            { min: 0,  max: 20,  color: '#FF3B3010' },
+          ].forEach(function (z) {
             ctx.fillStyle = z.color;
-            ctx.fillRect(
-              xAxis.left,
-              yAxis.getPixelForValue(z.max),
-              xAxis.right - xAxis.left,
-              yAxis.getPixelForValue(z.min) - yAxis.getPixelForValue(z.max)
-            );
+            ctx.fillRect(xAxis.left, yAxis.getPixelForValue(z.max), xAxis.right - xAxis.left, yAxis.getPixelForValue(z.min) - yAxis.getPixelForValue(z.max));
           });
         },
       };
       if (chart) chart.destroy();
-      chart = new Chart(document.getElementById('chart'), {
+      chart = new Chart(document.getElementById('detail-chart'), {
         type: 'line',
         data: { labels: d.dates, datasets: [
-          { label: a.display_name + ' Price (USD)', data: d.prices, yAxisID: 'yPrice', borderColor: a.accent_color, borderWidth: 1.5, pointRadius: 0, tension: 0.1 },
-          { label: 'Composite Score', data: d.scores, yAxisID: 'yScore', borderColor: '#4dd0a7', borderWidth: 2, pointRadius: 0, tension: 0.1 },
+          { label: 'Price (USD)', data: d.prices, yAxisID: 'yPrice', borderColor: '#00ff88', borderWidth: 2, pointRadius: 0, tension: 0.1 },
+          { label: 'Composite Score', data: d.scores, yAxisID: 'yScore', borderColor: '#fdb878', borderWidth: 1.5, borderDash: [4, 2], pointRadius: 0, tension: 0.1 },
         ]},
         options: {
-          responsive: true, interaction: { mode: 'index', intersect: false },
-          plugins: { legend: { labels: { color: '#888', boxWidth: 12, font: { size: 11 } } } },
+          responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+          plugins: { legend: { labels: { color: '#aaaaaa', boxWidth: 12, font: { size: 11 } } } },
           scales: {
             x: { ticks: { color: '#555', maxTicksLimit: 8, font: { size: 10 } }, grid: { color: '#1a1a1a' } },
             yPrice: { type: 'logarithmic', position: 'left', ticks: { color: '#555', font: { size: 10 } }, grid: { color: '#1a1a1a' } },
@@ -398,111 +465,86 @@
       });
     }
 
-    function applyTrend(a) {
-      const t = a.trend[currentWindow];
-      const sign = t.delta >= 0 ? '+' : '';
-      const arr = t.delta > 0.5 ? '↑' : t.delta < -0.5 ? '↓' : '→';
-      const col = t.delta > 0.5 ? '#00c853' : t.delta < -0.5 ? '#ff5252' : '#888';
-      const lbl = { day: 'yesterday', week: 'last week', month: 'last month' }[currentWindow];
-      const de = document.getElementById('trend-delta');
-      de.textContent = arr + ' ' + sign + t.delta.toFixed(1) + ' pts vs ' + lbl;
-      de.style.color = col;
-
-      const scores = t.spark.map(p => p.score);
-      const mx = Math.max.apply(null, scores), mn = Math.min.apply(null, scores) - 3;
-      document.getElementById('sparkline').innerHTML = t.spark.map(function (p, i) {
-        const h = Math.round(((p.score - mn) / (mx - mn)) * 30) + 4;
-        const last = i === t.spark.length - 1;
-        const op = (0.35 + 0.65 * (i / Math.max(1, t.spark.length - 1))).toFixed(2);
-        return '<div class="spark-bar" style="width:' + (last ? 10 : 8) + 'px;height:' + h + 'px;background:' + (last ? zoneColor(p.score) : '#2a2a2a') + ';opacity:' + op + ';">'
-          + '<div class="spark-tip">' + p.label + '<br><strong style="color:' + zoneColor(p.score) + '">' + p.score + ' — ' + p.verdict + '</strong></div></div>';
-      }).join('');
-      document.getElementById('spark-lbl').textContent = { day: 'last 7 days', week: 'last 7 weeks', month: 'last 7 months' }[currentWindow];
-
-      const arrowChar = { '1': '↑', '0': '→', '-1': '↓' }, arrowCol = { '1': '#00c853', '0': '#ffd740', '-1': '#ff5252' };
-      document.querySelectorAll('.trend-arrow[data-key]').forEach(function (el) {
-        const v = String(t.arrows[el.getAttribute('data-key')]);
-        el.textContent = arrowChar[v] || '→';
-        el.style.color = arrowCol[v] || '#ffd740';
+    function setChartWindow(w) {
+      chartWindow = w;
+      try { localStorage.setItem('kairos-chart-window', w); } catch (e) {}
+      document.querySelectorAll('.cw-pill').forEach(function (el) {
+        const active = el.getAttribute('data-cw') === w;
+        el.classList.toggle('bg-on-surface', active);
+        el.classList.toggle('text-deep-abyss', active);
+        el.classList.toggle('font-bold', active);
+        el.classList.toggle('text-on-surface-variant', !active);
       });
-      ['day', 'week', 'month'].forEach(function (k) {
-        document.getElementById('tw-' + k).classList.toggle('active', k === currentWindow);
-      });
+      if (detailId) renderChart(sliceChartData(BY_ID[detailId].chart, chartWindow));
     }
 
-    function setTrendWindow(w) {
-      currentWindow = w;
-      try { localStorage.setItem('kairos-trend-window', w); } catch (e) {}
-      applyTrend(BY_ID[currentId]);
-    }
-    window.setTrendWindow = setTrendWindow;
-
-    function toggleBreakdown() {
-      var t = document.getElementById('breakdown-toggle');
-      var p = document.getElementById('breakdown-panel');
-      var isOpen = p.classList.toggle('open');
-      t.classList.toggle('open', isOpen);
-      var arrow = isOpen ? '&#9663;' : '&#9657;';
-      t.innerHTML = arrow + ' How is ' + t.getAttribute('data-score') + ' calculated?';
-    }
-    window.toggleBreakdown = toggleBreakdown;
-
-    function renderAsset(a) {
-      document.getElementById('meta').innerHTML = a.price_unit + a.price.toLocaleString() + '&ensp;·&ensp;Updated ' + UPDATED_AT;
-
-      // spectrum verdict + cursor
-      var sv = document.getElementById('spectrum-verdict');
-      sv.textContent = a.spectrum_verdict;
-      sv.style.color = a.score_color;
-      document.getElementById('spec-cursor').style.left = a.spectrum_pos + '%';
-      document.getElementById('spec-cursor-label').textContent = a.spectrum_pos.toFixed(1);
-      document.getElementById('distance').innerHTML = '<strong style="color:' + a.score_color + '">' + a.distance_text + '</strong>';
-
-      // breakdown panel — populate and reset closed on every asset switch
-      var bkToggle = document.getElementById('breakdown-toggle');
-      bkToggle.setAttribute('data-score', a.spectrum_pos.toFixed(1));
-      bkToggle.innerHTML = '&#9657; How is ' + a.spectrum_pos.toFixed(1) + ' calculated?';
-      bkToggle.classList.remove('open');
-      document.getElementById('breakdown-panel').classList.remove('open');
-
-      var sellVal = document.getElementById('bk-sell-score');
-      sellVal.textContent = a.sell_composite.toFixed(1);
-      sellVal.style.color = a.sell_composite >= 25 ? '#ff9800' : '#ff5252';
-      document.getElementById('bk-sell-verdict').textContent =
-        a.sell_composite === 0 ? 'LOW — inactive' : a.sell_verdict;
-
-      var buyVal = document.getElementById('bk-buy-score');
-      buyVal.textContent = a.composite.toFixed(1);
-      buyVal.style.color = zoneColor(a.composite);
-      document.getElementById('bk-buy-verdict').textContent = a.verdict;
-
-      document.getElementById('bk-formula').innerHTML =
-        '50 + (' + a.composite.toFixed(1) + ' − ' + a.sell_composite.toFixed(1) + ') / 2'
-        + '<br>= <strong style="color:' + a.score_color + '">' + a.spectrum_pos.toFixed(1) + '</strong>';
-
-      document.getElementById('bk-hint').textContent = a.sell_composite < 25
-        ? 'Sell pressure only pulls the gauge left when ≥ 25. At '
-          + a.sell_composite.toFixed(1) + ' there is no headwind — buy pressure drives the position.'
-        : 'Both buy and sell pressure are active. The gauge position reflects the net signal.';
-
-      renderTable(a);
-      ['6m','1y','2y','all'].forEach(function (k) {
-        document.getElementById('cw-' + k).classList.toggle('active', k === chartWindow);
-      });
-      renderChart(sliceChartData(a.chart, chartWindow));
-      applyTrend(a);
+    // ---- view switching ----
+    function showView(which) {
+      document.getElementById('view-index').classList.toggle('hidden-view', which !== 'index');
+      document.getElementById('view-details').classList.toggle('hidden-view', which !== 'details');
+      window.scrollTo(0, 0);
     }
 
-    function setAsset(id) {
-      currentId = id;
-      try { localStorage.setItem('kairos-asset', id); } catch (e) {}
-      renderChips();
-      renderAsset(BY_ID[id]);
-    }
-    window.setAsset = setAsset;
+    function openDetails(id, skipHash) {
+      const a = BY_ID[id];
+      if (!a) return;
+      detailId = id;
+      document.getElementById('detail-name').textContent = a.display_name;
+      document.getElementById('detail-subtitle').textContent = a.display_name.toUpperCase() + ' DETAILS';
+      document.getElementById('detail-price').textContent = a.price_unit + a.price.toLocaleString() + '.00';
 
-    renderChips();
-    renderAsset(BY_ID[currentId]);
+      const chg = a.price_change_24h;
+      const chgEl = document.getElementById('detail-change');
+      chgEl.textContent = (chg >= 0 ? '+' : '') + chg.toFixed(1) + '% (24H)';
+      chgEl.style.color = chg >= 0 ? '#00ff88' : '#ffb4ab';
+
+      document.getElementById('detail-hero-score').textContent = a.spectrum_pos.toFixed(1);
+      const vEl = document.getElementById('detail-verdict');
+      vEl.textContent = displayVerdict(a.spectrum_verdict);
+      vEl.style.color = a.score_color;
+      document.getElementById('detail-desc').textContent = a.verdict_description;
+
+      renderMetricCards(a);
+      setDetailWindow(detailWindow);
+      showView('details');
+      setChartWindow(chartWindow); // also renders the chart for this asset
+      if (!skipHash) { try { history.pushState({ view: 'details', id: id }, '', '#' + id); } catch (e) {} }
+    }
+
+    function closeDetails() {
+      detailId = null;
+      showView('index');
+    }
+
+    // ---- event wiring ----
+    document.querySelectorAll('.tf-pill').forEach(function (el) {
+      el.addEventListener('click', function () { setTimeframe(el.getAttribute('data-tf')); });
+    });
+    document.querySelectorAll('.cw-pill').forEach(function (el) {
+      el.addEventListener('click', function () { setChartWindow(el.getAttribute('data-cw')); });
+    });
+    document.querySelectorAll('.dtf-pill').forEach(function (el) {
+      el.addEventListener('click', function () { setDetailWindow(el.getAttribute('data-dtf')); });
+    });
+    // Tapping anywhere else closes any open score-history tooltip (mobile).
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.spark-bar.tip-open').forEach(function (el) { el.classList.remove('tip-open'); });
+    });
+    document.getElementById('detail-back').addEventListener('click', function () {
+      if (history.state && history.state.view === 'details') { history.back(); } else { closeDetails(); }
+    });
+
+    // Back/forward + refresh-with-hash routing
+    window.addEventListener('popstate', function (e) {
+      if (e.state && e.state.view === 'details' && BY_ID[e.state.id]) { openDetails(e.state.id, true); }
+      else { closeDetails(); }
+    });
+
+    // ---- initial render ----
+    renderIndexHeader();
+    setTimeframe(timeframe);
+    var initialId = (location.hash || '').replace('#', '');
+    if (BY_ID[initialId]) { openDetails(initialId, true); } else { showView('index'); }
   </script>
 
   <script>

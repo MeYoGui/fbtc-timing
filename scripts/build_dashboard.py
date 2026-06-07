@@ -52,6 +52,32 @@ def format_reading(name: str, raw) -> str:
     return f"{raw:.3f}"
 
 
+def compute_price_change_24h(price_df: pd.DataFrame) -> float:
+    """Percent change between the two most recent non-null daily prices.
+
+    Returns 0.0 when there is no prior price or the prior price is zero,
+    so the dashboard always has a numeric value to render.
+    """
+    prices = price_df.dropna(subset=["price"])["price"]
+    if len(prices) < 2:
+        return 0.0
+    last, prev = float(prices.iloc[-1]), float(prices.iloc[-2])
+    if prev == 0:
+        return 0.0
+    return round((last / prev - 1) * 100, 2)
+
+
+def verdict_description(spectrum_verdict: str) -> str:
+    """One-sentence plain-language summary shown under the details-view verdict."""
+    return {
+        "STRONG BUY":  "Momentum and on-chain metrics suggest highly favorable entry conditions.",
+        "BUY":         "Conditions favor accumulation, though not at peak conviction.",
+        "HOLD":        "Signals are mixed — no decisive edge in either direction.",
+        "SELL":        "Indicators are cooling; consider trimming exposure.",
+        "TAKE PROFIT": "Metrics are stretched — historically a zone for taking profit.",
+    }.get(spectrum_verdict, "Signals are mixed — no decisive edge in either direction.")
+
+
 def get_score_color(verdict: str) -> str:
     return {
         "STRONG BUY":  "#00e676",
@@ -266,6 +292,7 @@ def _assemble_asset(cfg) -> dict:
         distance_text = "Take profit zone"
 
     current_price = price_df.dropna(subset=["price"])["price"].iloc[-1]
+    price_change_24h = compute_price_change_24h(price_df)
 
     methodology = [
         {
@@ -285,6 +312,8 @@ def _assemble_asset(cfg) -> dict:
         "accent_color":     cfg.accent_color,
         "price_unit":       cfg.price_unit,
         "price":            round(float(current_price)),
+        "price_change_24h": price_change_24h,
+        "verdict_description": verdict_description(spectrum_verdict),
         "composite":        composite,
         "verdict":          verdict,
         "sell_composite":   sell_composite,

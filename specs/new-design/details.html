@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kairos Terminal - Bitcoin Details</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=JetBrains+Mono:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface": "#e5e2e1",
+                    "error": "#ffb4ab",
+                    "secondary-container": "#c5020b",
+                    "secondary-fixed": "#ffdad5",
+                    "surface-charcoal": "#161616",
+                    "on-tertiary-fixed": "#2d1600",
+                    "inverse-on-surface": "#313030",
+                    "surface-container": "#201f1f",
+                    "surface-variant": "#353534",
+                    "outline": "#859585",
+                    "on-secondary-fixed": "#410001",
+                    "secondary-fixed-dim": "#ffb4aa",
+                    "sell-urgent": "#FF3B30",
+                    "surface-bright": "#3a3939",
+                    "on-primary-fixed": "#00210b",
+                    "primary": "#75ff9e",
+                    "border-subtle": "rgba(255, 255, 255, 0.08)",
+                    "primary-fixed-dim": "#00e475",
+                    "on-background": "#e5e2e1",
+                    "tertiary-container": "#ffba79",
+                    "on-primary": "#003918",
+                    "buy-steady": "#00C853",
+                    "background": "#131313",
+                    "tertiary": "#ffdec4",
+                    "outline-variant": "#3b4a3d",
+                    "on-primary-fixed-variant": "#005226",
+                    "on-primary-container": "#00612e",
+                    "inverse-surface": "#e5e2e1",
+                    "surface": "#131313",
+                    "surface-tint": "#00e475",
+                    "on-secondary-container": "#ffd2cc",
+                    "on-tertiary": "#4b2800",
+                    "on-tertiary-fixed-variant": "#6a3c03",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-highest": "#353534",
+                    "surface-dim": "#131313",
+                    "primary-fixed": "#62ff96",
+                    "on-secondary": "#690003",
+                    "tertiary-fixed-dim": "#fdb878",
+                    "on-surface-variant": "#bacbb9",
+                    "surface-container-lowest": "#0e0e0e",
+                    "surface-container-low": "#1c1b1b",
+                    "error-container": "#93000a",
+                    "on-error": "#690005",
+                    "surface-container-high": "#2a2a2a",
+                    "hold-neutral": "#D0D0D0",
+                    "on-tertiary-container": "#794810",
+                    "tertiary-fixed": "#ffdcbf",
+                    "primary-container": "#00e676",
+                    "on-secondary-fixed-variant": "#930005",
+                    "inverse-primary": "#006d35",
+                    "secondary": "#ffb4aa",
+                    "buy-vibrant": "#00E676"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "stack-md": "16px",
+                    "stack-lg": "24px",
+                    "container-padding": "16px",
+                    "stack-sm": "8px",
+                    "gutter": "12px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": ["Inter"],
+                    "data-sm": ["JetBrains Mono"],
+                    "data-lg": ["JetBrains Mono"],
+                    "label-caps": ["JetBrains Mono"],
+                    "headline-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "body-base": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "data-sm": ["13px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "data-lg": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "label-caps": ["11px", {"lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-base": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .pulse-ring {
+            animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        .pulse-ring-delayed {
+            animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite 1s;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex flex-col antialiased pb-24 selection:bg-buy-vibrant/30">
+<!-- TopAppBar (from JSON styles, suppressed BottomNavBar due to Detail view nature) -->
+<header class="flex justify-between items-center px-container-padding h-14 w-full z-50 bg-background/80 backdrop-blur-md docked full-width top-0 border-b border-border-subtle sticky top-0">
+<button aria-label="Go back" class="active:scale-95 transition-transform hover:bg-surface-bright/10 text-primary flex items-center justify-center p-2 -ml-2 rounded-full">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="font-headline-md text-headline-md font-bold tracking-tighter text-primary">KAIROS TERMINAL</div>
+<button aria-label="Settings" class="active:scale-95 transition-transform hover:bg-surface-bright/10 text-primary flex items-center justify-center p-2 -mr-2 rounded-full">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</header>
+<main class="flex-1 max-w-[1200px] mx-auto w-full flex flex-col">
+<!-- Context Header -->
+<div class="px-container-padding pt-stack-lg pb-stack-sm flex justify-between items-end border-b border-border-subtle/50">
+<div>
+<h1 class="font-display-lg text-display-lg text-inverse-surface">Bitcoin</h1>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-caps text-label-caps text-on-surface-variant">BITCOIN DETAILS</span>
+<span class="h-1 w-1 bg-buy-vibrant rounded-full shadow-[0_0_5px_#00E676]"></span>
+<span class="font-data-sm text-data-sm text-buy-vibrant">LIVE</span>
+</div>
+</div>
+<div class="text-right">
+<div class="font-data-lg text-data-lg text-inverse-surface">$64,230.00</div>
+<div class="font-data-sm text-data-sm text-buy-vibrant mt-1">+2.4% (24H)</div>
+</div>
+</div>
+<!-- Hero Section: Pulse Verdict -->
+<section class="flex flex-col items-center justify-center py-12 px-container-padding relative overflow-hidden">
+<!-- Subtle background grid -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(theme(colors.on-surface-variant) 1px, transparent 1px); background-size: 24px 24px;"></div>
+<div class="relative w-48 h-48 flex items-center justify-center">
+<!-- Pulse animations -->
+<div class="absolute inset-0 rounded-full border border-buy-vibrant/30 pulse-ring pointer-events-none"></div>
+<div class="absolute inset-0 rounded-full border border-buy-vibrant/10 pulse-ring-delayed pointer-events-none"></div>
+<div class="absolute inset-4 rounded-full bg-buy-vibrant/5 blur-2xl pointer-events-none"></div>
+<!-- Central Node -->
+<div class="relative z-10 w-32 h-32 rounded-full bg-surface-charcoal border border-border-subtle flex flex-col items-center justify-center shadow-[0_0_40px_rgba(0,230,118,0.15)] ring-1 ring-buy-vibrant/50 backdrop-blur-md">
+<span class="font-data-lg text-data-lg text-inverse-surface text-[32px] leading-none mb-1">83.1</span>
+<span class="font-label-caps text-label-caps text-on-surface-variant">COMPOSITE</span>
+</div>
+</div>
+<div class="mt-8 flex flex-col items-center">
+<h2 class="font-display-lg text-display-lg text-buy-vibrant tracking-[0.2em] uppercase drop-shadow-[0_0_12px_rgba(0,230,118,0.4)]">Strong Buy</h2>
+<p class="font-body-base text-body-base text-on-surface-variant mt-2 max-w-sm text-center">Momentum and on-chain metrics suggest highly favorable entry conditions.</p>
+</div>
+</section>
+<!-- Metric Cards -->
+<section class="px-container-padding grid grid-cols-1 md:grid-cols-3 gap-stack-md py-stack-md relative z-10"><!-- MVRV Z-Score -->
+<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col hover:border-buy-vibrant/30 transition-colors group">
+<div class="flex justify-between items-start mb-6">
+<span class="font-label-caps text-label-caps text-on-surface-variant group-hover:text-inverse-surface transition-colors">MVRV Z-SCORE</span>
+<span class="font-data-lg text-data-lg text-primary-container drop-shadow-[0_0_8px_rgba(0,230,118,0.2)]">-0.34</span>
+</div>
+<div class="mt-auto w-full">
+<div class="flex justify-between font-label-caps text-label-caps text-surface-variant mb-1 text-[9px]">
+<span>TAKE PROFIT</span>
+<span>STRONG BUY</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full relative overflow-hidden flex">
+<div class="h-full bg-sell-urgent/20 w-1/4"></div>
+<div class="h-full bg-surface-variant w-1/2"></div>
+<div class="h-full bg-buy-vibrant/20 w-1/4"></div>
+<div class="absolute top-0 bottom-0 w-1 bg-buy-vibrant shadow-[0_0_5px_#00E676]" style="left: 75%;"></div>
+</div>
+</div>
+</div>
+<!-- 200-Week MA -->
+<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col hover:border-buy-vibrant/30 transition-colors group">
+<div class="flex justify-between items-start mb-6">
+<span class="font-label-caps text-label-caps text-on-surface-variant group-hover:text-inverse-surface transition-colors">200-WEEK MA</span>
+<span class="font-data-lg text-data-lg text-error drop-shadow-[0_0_8px_rgba(255,180,171,0.2)]">-1.4%</span>
+</div>
+<div class="mt-auto w-full">
+<div class="flex justify-between font-label-caps text-label-caps text-surface-variant mb-1 text-[9px]">
+<span>TAKE PROFIT</span>
+<span>STRONG BUY</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full relative overflow-hidden flex">
+<div class="h-full bg-sell-urgent/20 w-1/4"></div>
+<div class="h-full bg-surface-variant w-1/2"></div>
+<div class="h-full bg-buy-vibrant/20 w-1/4"></div>
+<div class="absolute top-0 bottom-0 w-1 bg-error shadow-[0_0_5px_#ffb4ab]" style="left: 85%;"></div>
+</div>
+</div>
+</div>
+<!-- Monthly RSI -->
+<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col hover:border-buy-vibrant/30 transition-colors group">
+<div class="flex justify-between items-start mb-6">
+<span class="font-label-caps text-label-caps text-on-surface-variant group-hover:text-inverse-surface transition-colors">MONTHLY RSI</span>
+<span class="font-data-lg text-data-lg text-tertiary-container drop-shadow-[0_0_8px_rgba(255,186,121,0.2)]">47</span>
+</div>
+<div class="mt-auto w-full">
+<div class="flex justify-between font-label-caps text-label-caps text-surface-variant mb-1 text-[9px]">
+<span>TAKE PROFIT</span>
+<span>STRONG BUY</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full relative overflow-hidden flex">
+<div class="h-full bg-sell-urgent/20 w-1/4"></div>
+<div class="h-full bg-surface-variant w-1/2"></div>
+<div class="h-full bg-buy-vibrant/20 w-1/4"></div>
+<div class="absolute top-0 bottom-0 w-1 bg-tertiary-container shadow-[0_0_5px_#ffba79]" style="left: 47%;"></div>
+</div>
+</div>
+</div>
+<!-- Pi Cycle -->
+<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col hover:border-buy-vibrant/30 transition-colors group">
+<div class="flex justify-between items-start mb-6">
+<span class="font-label-caps text-label-caps text-on-surface-variant group-hover:text-inverse-surface transition-colors">PI CYCLE</span>
+<span class="font-data-sm text-data-sm text-primary-container drop-shadow-[0_0_8px_rgba(0,230,118,0.2)]">-61.1%</span>
+</div>
+<div class="mt-auto w-full">
+<div class="flex justify-between font-label-caps text-label-caps text-surface-variant mb-1 text-[9px]">
+<span>TAKE PROFIT</span>
+<span>STRONG BUY</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full relative overflow-hidden flex">
+<div class="h-full bg-sell-urgent/20 w-1/4"></div>
+<div class="h-full bg-surface-variant w-1/2"></div>
+<div class="h-full bg-buy-vibrant/20 w-1/4"></div>
+<div class="absolute top-0 bottom-0 w-1 bg-buy-vibrant shadow-[0_0_5px_#00E676]" style="left: 80%;"></div>
+</div>
+</div>
+</div>
+<!-- Puell Multiple -->
+<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col hover:border-buy-vibrant/30 transition-colors group">
+<div class="flex justify-between items-start mb-6">
+<span class="font-label-caps text-label-caps text-on-surface-variant group-hover:text-inverse-surface transition-colors">PUELL MULTIPLE</span>
+<span class="font-data-lg text-data-lg text-primary-container drop-shadow-[0_0_8px_rgba(0,230,118,0.2)]">0.72</span>
+</div>
+<div class="mt-auto w-full">
+<div class="flex justify-between font-label-caps text-label-caps text-surface-variant mb-1 text-[9px]">
+<span>TAKE PROFIT</span>
+<span>STRONG BUY</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full relative overflow-hidden flex">
+<div class="h-full bg-sell-urgent/20 w-1/4"></div>
+<div class="h-full bg-surface-variant w-1/2"></div>
+<div class="h-full bg-buy-vibrant/20 w-1/4"></div>
+<div class="absolute top-0 bottom-0 w-1 bg-buy-vibrant shadow-[0_0_5px_#00E676]" style="left: 82%;"></div>
+</div>
+</div>
+</div>
+<!-- Fear & Greed -->
+<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col hover:border-buy-vibrant/30 transition-colors group">
+<div class="flex justify-between items-start mb-6">
+<span class="font-label-caps text-label-caps text-on-surface-variant group-hover:text-inverse-surface transition-colors">FEAR &amp; GREED</span>
+<span class="font-data-lg text-data-lg text-primary-container drop-shadow-[0_0_8px_rgba(0,230,118,0.2)]">12 / 100</span>
+</div>
+<div class="mt-auto w-full">
+<div class="flex justify-between font-label-caps text-label-caps text-surface-variant mb-1 text-[9px]">
+<span>TAKE PROFIT</span>
+<span>STRONG BUY</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-highest rounded-full relative overflow-hidden flex">
+<div class="h-full bg-sell-urgent/20 w-1/4"></div>
+<div class="h-full bg-surface-variant w-1/2"></div>
+<div class="h-full bg-buy-vibrant/20 w-1/4"></div>
+<div class="absolute top-0 bottom-0 w-1 bg-buy-vibrant shadow-[0_0_5px_#00E676]" style="left: 88%;"></div>
+</div>
+</div>
+</div></section>
+<!-- Historical Chart Section -->
+<section class="px-container-padding py-stack-md flex-1 pb-stack-lg">
+<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col h-64 md:h-80 relative overflow-hidden">
+<div class="flex justify-between items-center mb-4 z-10">
+<span class="font-label-caps text-label-caps text-inverse-surface">PRICE (USD) VS COMPOSITE</span>
+<div class="flex gap-3">
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-buy-vibrant shadow-[0_0_4px_#00E676]"></span>
+<span class="font-data-sm text-data-sm text-on-surface-variant text-[10px]">PRICE</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary-container"></span>
+<span class="font-data-sm text-data-sm text-on-surface-variant text-[10px]">SCORE</span>
+</div>
+</div>
+</div>
+<!-- Chart Area -->
+<div class="flex-1 relative border-l border-b border-border-subtle/50 ml-6 mb-4">
+<!-- Y-Axis Labels (Left - Price) -->
+<div class="absolute -left-8 top-0 h-full flex flex-col justify-between font-data-sm text-data-sm text-surface-variant text-[9px] py-1">
+<span>70k</span>
+<span>50k</span>
+<span>30k</span>
+</div>
+<!-- X-Axis Labels (Bottom - Time) -->
+<div class="absolute -bottom-5 left-0 w-full flex justify-between font-data-sm text-data-sm text-surface-variant text-[9px] px-1">
+<span>JAN</span>
+<span>MAR</span>
+<span>MAY</span>
+<span>JUL</span>
+<span>NOW</span>
+</div>
+<!-- Grid Lines -->
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+<div class="w-full h-px bg-border-subtle/20"></div>
+<div class="w-full h-px bg-border-subtle/20"></div>
+<div class="w-full h-px bg-border-subtle/20"></div>
+</div>
+<div class="absolute inset-0 flex justify-between pointer-events-none">
+<div class="h-full w-px bg-border-subtle/20"></div>
+<div class="h-full w-px bg-border-subtle/20"></div>
+<div class="h-full w-px bg-border-subtle/20"></div>
+<div class="h-full w-px bg-border-subtle/20"></div>
+<div class="h-full w-px bg-border-subtle/20"></div>
+</div>
+<!-- SVG Chart Lines -->
+<svg class="absolute inset-0 h-full w-full z-10" preserveaspectratio="none" viewbox="0 0 100 100">
+<!-- Composite Score Line (Orange, dashed) -->
+<path d="M0,60 L20,55 L40,70 L60,40 L80,50 L100,20" fill="none" stroke="theme(colors.tertiary-container)" stroke-dasharray="4,2" stroke-opacity="0.7" stroke-width="1.5"></path>
+<!-- Price Line (Neon Emerald) -->
+<path d="M0,80 Q10,85 20,70 T40,65 T60,45 T80,30 T100,10" fill="none" stroke="theme(colors.buy-vibrant)" stroke-width="2" style="filter: drop-shadow(0 0 6px rgba(0,230,118,0.5));"></path>
+<!-- Current Price Node -->
+<circle cx="100" cy="10" fill="theme(colors.surface-charcoal)" r="3" stroke="theme(colors.buy-vibrant)" stroke-width="2" style="filter: drop-shadow(0 0 8px rgba(0,230,118,0.8));"></circle>
+</svg>
+<!-- Subtle Chart Fill -->
+<svg class="absolute inset-0 h-full w-full z-0 pointer-events-none" preserveaspectratio="none" viewbox="0 0 100 100">
+<defs>
+<lineargradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="theme(colors.buy-vibrant)" stop-opacity="0.15"></stop>
+<stop offset="100%" stop-color="theme(colors.surface-charcoal)" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,80 Q10,85 20,70 T40,65 T60,45 T80,30 T100,10 L100,100 L0,100 Z" fill="url(#chartFill)"></path>
+</svg>
+</div>
+</div>
+</section>
+</main>
+<!-- Prominent Footer Alerts Button -->
+<div class="fixed bottom-0 w-full px-container-padding py-4 bg-background/90 backdrop-blur-xl border-t border-border-subtle z-50">
+<div class="max-w-[1200px] mx-auto">
+<button class="w-full bg-buy-vibrant hover:bg-primary-container text-on-primary-container font-headline-md text-headline-md py-3 rounded-xl shadow-[0_0_20px_rgba(0,230,118,0.3)] hover:shadow-[0_0_30px_rgba(0,230,118,0.5)] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group border border-buy-steady/50">
+<span class="material-symbols-outlined transition-transform group-hover:rotate-12" style="font-variation-settings: 'FILL' 1;">notifications_active</span>
+<span class="tracking-wide">SET ALERTS</span>
+</button>
+</div>
+</div>
+</body></html>
