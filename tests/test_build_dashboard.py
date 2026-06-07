@@ -185,3 +185,33 @@ def test_compute_historical_scores_uses_passed_signal_names():
 def test_format_reading_handles_new_eth_signals():
     assert format_reading("mayer_multiple", 1.234) == "1.23× 200DMA"
     assert format_reading("eth_btc_ratio", -0.5) == "-0.50 z (ETH/BTC)"
+
+
+# ── compute_price_change_24h ─────────────────────────────────────────────────
+from build_dashboard import compute_price_change_24h
+
+
+def test_price_change_24h_positive():
+    df = pd.DataFrame({"price": [100.0, 102.5]})
+    assert compute_price_change_24h(df) == 2.5
+
+
+def test_price_change_24h_negative():
+    df = pd.DataFrame({"price": [100.0, 95.0]})
+    assert compute_price_change_24h(df) == -5.0
+
+
+def test_price_change_24h_skips_trailing_nan():
+    # Last valid pair is 100 -> 110 ; the NaN row must be ignored
+    df = pd.DataFrame({"price": [100.0, 110.0, np.nan]})
+    assert compute_price_change_24h(df) == 10.0
+
+
+def test_price_change_24h_single_row_returns_zero():
+    df = pd.DataFrame({"price": [100.0]})
+    assert compute_price_change_24h(df) == 0.0
+
+
+def test_price_change_24h_zero_prev_returns_zero():
+    df = pd.DataFrame({"price": [0.0, 50.0]})
+    assert compute_price_change_24h(df) == 0.0
