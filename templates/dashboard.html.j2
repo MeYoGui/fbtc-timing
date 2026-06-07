@@ -208,7 +208,7 @@
   <script>
     const ASSETS = {{ assets_json }};
     const DEFAULT_ASSET = "{{ default_asset }}";
-    const UPDATED_AT = "{{ updated_at }}";
+    const UPDATED_AT = {{ updated_at | tojson }};
     const BY_ID = Object.fromEntries(ASSETS.map(a => [a.id, a]));
 
     // ---- shared helpers ----
