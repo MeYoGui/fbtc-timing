@@ -67,6 +67,17 @@ def compute_price_change_24h(price_df: pd.DataFrame) -> float:
     return round((last / prev - 1) * 100, 2)
 
 
+def verdict_description(spectrum_verdict: str) -> str:
+    """One-sentence plain-language summary shown under the details-view verdict."""
+    return {
+        "STRONG BUY":  "Momentum and on-chain metrics suggest highly favorable entry conditions.",
+        "BUY":         "Conditions favor accumulation, though not at peak conviction.",
+        "HOLD":        "Signals are mixed — no decisive edge in either direction.",
+        "SELL":        "Indicators are cooling; consider trimming exposure.",
+        "TAKE PROFIT": "Metrics are stretched — historically a zone for taking profit.",
+    }.get(spectrum_verdict, "Signals are mixed — no decisive edge in either direction.")
+
+
 def get_score_color(verdict: str) -> str:
     return {
         "STRONG BUY":  "#00e676",

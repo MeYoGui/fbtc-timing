@@ -215,3 +215,22 @@ def test_price_change_24h_single_row_returns_zero():
 def test_price_change_24h_zero_prev_returns_zero():
     df = pd.DataFrame({"price": [0.0, 50.0]})
     assert compute_price_change_24h(df) == 0.0
+
+
+# ── verdict_description ──────────────────────────────────────────────────────
+from build_dashboard import verdict_description
+
+
+def test_verdict_description_strong_buy():
+    assert verdict_description("STRONG BUY") == (
+        "Momentum and on-chain metrics suggest highly favorable entry conditions."
+    )
+
+
+def test_verdict_description_each_verdict_is_nonempty():
+    for v in ("STRONG BUY", "BUY", "HOLD", "SELL", "TAKE PROFIT"):
+        assert len(verdict_description(v)) > 0
+
+
+def test_verdict_description_unknown_falls_back_to_hold_copy():
+    assert verdict_description("???") == verdict_description("HOLD")
