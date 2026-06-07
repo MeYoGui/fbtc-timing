@@ -260,7 +260,12 @@
           + '<span class="spark-tip" style="color:' + col + '">' + p.label + ' — ' + p.score.toFixed(1) + '</span></div>';
       }).join('');
     }
-    function toggleTip(ev, el) { ev.stopPropagation(); el.classList.toggle('tip-open'); }
+    function toggleTip(ev, el) {
+      ev.stopPropagation();
+      var wasOpen = el.classList.contains('tip-open');
+      document.querySelectorAll('.spark-bar.tip-open').forEach(function (b) { b.classList.remove('tip-open'); });
+      if (!wasOpen) el.classList.add('tip-open');
+    }
 
     function miniBarsHTML(a) {
       return sparkBarsHTML(a.trend[timeframe].spark);
@@ -400,8 +405,8 @@
         +     '<div class="absolute" style="top:50%;left:' + b.cursor_pct + '%;transform:translate(-50%,-50%);width:2px;height:12px;background:#fff;border-radius:2px;box-shadow:0 0 8px rgba(255,255,255,0.95)"></div>'
         +   '</div>'
         +   '<div class="relative h-3 mt-1 text-[8px] font-data-sm">'
-        +     '<span class="absolute -translate-x-1/2" style="left:' + b.thresh_avoid_pct + '%;color:#cfcfcf">' + b.thresh_avoid_lbl + '</span>'
-        +     '<span class="absolute -translate-x-1/2" style="left:' + b.thresh_invest_pct + '%;color:#cfcfcf">' + b.thresh_invest_lbl + '</span>'
+        +     '<span class="absolute" style="right:' + (100 - b.thresh_avoid_pct) + '%;padding-right:3px;color:#cfcfcf">' + b.thresh_avoid_lbl + '</span>'
+        +     '<span class="absolute" style="left:' + b.thresh_invest_pct + '%;padding-left:3px;color:#cfcfcf">' + b.thresh_invest_lbl + '</span>'
         +   '</div>'
         +   '<div class="relative h-3 text-[8px] font-label-caps uppercase tracking-tight">'
         +     '<span class="absolute left-0" style="color:#ff8a80">Avoid</span>'
@@ -520,6 +525,10 @@
     });
     document.querySelectorAll('.dtf-pill').forEach(function (el) {
       el.addEventListener('click', function () { setDetailWindow(el.getAttribute('data-dtf')); });
+    });
+    // Tapping anywhere else closes any open score-history tooltip (mobile).
+    document.addEventListener('click', function () {
+      document.querySelectorAll('.spark-bar.tip-open').forEach(function (el) { el.classList.remove('tip-open'); });
     });
     document.getElementById('detail-back').addEventListener('click', function () {
       if (history.state && history.state.view === 'details') { history.back(); } else { closeDetails(); }
