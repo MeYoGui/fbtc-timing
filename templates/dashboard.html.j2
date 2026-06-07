@@ -356,7 +356,7 @@
         +   '<div class="relative h-3.5 mb-1 text-[8px] font-label-caps uppercase tracking-tight">'
         +     '<span class="absolute left-0" style="color:#ff8a80">Avoid</span>'
         +     '<span class="absolute -translate-x-1/2" style="left:' + b.thresh_avoid_pct + '%;color:#cfcfcf">' + b.thresh_avoid_lbl + '</span>'
-        +     '<span class="absolute -translate-x-1/2" style="left:50%;color:#9a9a9a">Wait</span>'
+        +     '<span class="absolute -translate-x-1/2" style="left:' + ((b.thresh_avoid_pct + b.thresh_invest_pct) / 2) + '%;color:#9a9a9a">Wait</span>'
         +     '<span class="absolute -translate-x-1/2" style="left:' + b.thresh_invest_pct + '%;color:#cfcfcf">' + b.thresh_invest_lbl + '</span>'
         +     '<span class="absolute right-0" style="color:#00ff88">Invest</span>'
         +   '</div>'
