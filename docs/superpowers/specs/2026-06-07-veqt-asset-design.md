@@ -14,34 +14,37 @@ This is the framework's deliberately-deferred **non-crypto asset** path: it need
 - **Asset:** VEQT only (100% equity → cleanest entry signal).
 - **Intent:** Conservative entry-timing tilt; sell side muted.
 - **Weights:** Proxy backtest on S&P 500 (^GSPC), applied live to VEQT.
-- **Signals:** 4 — Drawdown-from-ATH, Mayer Multiple, Monthly RSI, VIX fear.
-- **Data:** Yahoo Finance v8 chart API (keyless, requires User-Agent).
+- **Signals:** a **7-candidate pool**, pruned by the proxy backtest to those that earn weight. Contrarian/value: Drawdown-from-ATH, Mayer Multiple, Monthly RSI, VIX fear; valuation: Shiller CAPE; trend/stress (counterbalancing, `invert`): 12-month momentum, VIX term structure.
+- **Data:** Yahoo Finance v8 chart API (keyless, UA) for prices + VIX + VIX3M; Shiller/multpl (keyless) for CAPE.
 
 ## Data layer
 
 A new keyless **Yahoo v8 fetcher** module (`assets/yahoo.py`). Endpoint pattern:
 `https://query2.finance.yahoo.com/v8/finance/chart/<SYMBOL>?range=max&interval=1d` with a browser `User-Agent` header (verified: VEQT.TO, ^GSPC, ^VIX all return JSON; without a UA, requests are rate-limited). Helper parses `chart.result[0].timestamp` + `indicators.quote[0].close` into a `date`/`price` DataFrame.
 
-Two compositions, both merging the **VIX** series on `date`:
-- **Live fetch** (`veqt.fetch`): `VEQT.TO` close (CAD, 2019→) + `^VIX` → columns `date, price, vix`.
-- **Proxy fetch** (`veqt.proxy_fetch`): `^GSPC` close (1927→) + `^VIX` (1990→) → columns `date, price, vix`. (Pre-1990 rows have NaN vix; the VIX signal yields neutral there, which is fine — the other three signals still train on the full range.)
+Two compositions, both merging the auxiliary series on `date` (forward-filled where a series is monthly/sparser): `vix` (^VIX, 1990→), `vix3m` (^VIX3M, 2006→), and `cape` (Shiller PE10, monthly, 1871→ via a keyless multpl scrape / Shiller dataset).
+- **Live fetch** (`veqt.fetch`): `VEQT.TO` close (CAD, 2019→) + vix + vix3m + cape → `date, price, vix, vix3m, cape`.
+- **Proxy fetch** (`veqt.proxy_fetch`): `^GSPC` close (1927→) + vix + vix3m + cape → same columns. Auxiliary series that don't reach back to 1927 (vix→1990, vix3m→2006) are NaN early; the dependent signals yield **neutral** on NaN rows, so the price-only signals still train on the full 1927→ span.
 
 **Risk:** Yahoo is unofficial and rate-limits; the fetcher must send a UA and retry with backoff. Less stable than the crypto sources (documented risk, not a blocker).
 
-## Signal set
+## Signal set — 7-candidate pool, pruned by the backtest
 
-All four fit the existing pipeline. Three are price-only and need **no window changes** (the crypto-calibrated windows that assume 7-day data don't bite here because these use day-count or cadence-independent windows that are already correct for ~252-trading-day-per-year equity data):
+We do **not** pre-commit to a fixed set. Because the proxy backtest runs on 1927→ S&P 500, we compute all seven candidates on the proxy, derive per-signal precision/recall + weights, and **keep only those that earn meaningful weight** for the live VEQT config. This lets the long history prune redundant/weak signals empirically. The price-only signals need **no window changes** (their windows are day-count or cadence-independent, already correct for ~252-trading-day equity years).
 
 | Signal | Compute | Direction | Notes |
 |---|---|---|---|
-| **Drawdown-from-ATH** | **new** `compute_drawdown_from_ath` | low = buy | `price / price.expanding().max()` → 1.0 at ATH, 0.70 = 30% below. Deep drawdown (low ratio) = buy. Cadence-independent. Primary entry signal. |
-| **Mayer Multiple** | reuse `compute_mayer_multiple` | low = buy | `price / 200-day MA`. 200 *trading* days = the standard equity 200-day MA; existing `rolling(200)` is already correct. |
+| **Drawdown-from-ATH** | **new** `compute_drawdown_from_ath` | low = buy | `price / price.expanding().max()` → 1.0 at ATH, 0.70 = 30% below. Deep drawdown = buy. Cadence-independent. Primary entry signal. |
+| **Mayer Multiple** | reuse `compute_mayer_multiple` | low = buy | `price / 200-day MA`. 200 *trading* days = standard equity 200-day MA; existing `rolling(200)` already correct. |
 | **Monthly RSI** | reuse `compute_monthly_rsi` | low = buy | Monthly resample is cadence-independent. Oversold = buy. |
-| **VIX fear** | **new** `compute_vix` | **high = buy** (inverted) | Pass-through of the `vix` column. High volatility/panic = good entry. |
+| **VIX fear** | **new** `compute_vix` | **high = buy** (`invert`) | Pass-through of `vix`. High volatility/panic = good entry. |
+| **Shiller CAPE** | **new** `compute_cape` | low = buy | Pass-through of `cape` (ffilled monthly). Cheap valuation = buy. *Caveat:* US-only, structurally elevated for a decade → may rarely fire buy; the backtest decides if it earns weight. |
+| **12-month momentum** | **new** `compute_momentum_12m` | **high = buy** (`invert`) | `price / price.shift(252)`. Trend-following filter that **counterbalances** the contrarian dip-buyers — "buy the dip, but only once the long trend hasn't broken / is turning up." |
+| **VIX term structure** | **new** `compute_vix_term` | **high = buy** (`invert`) | `vix / vix3m`; > 1 (backwardation) = acute panic = buy. *Caveat:* vix3m only from 2006, so this is trainable on ~3 stress events; likely low/no weight — included because requested. |
 
-### Inverted-signal support (for VIX)
+### Inverted-signal support (VIX fear, 12-month momentum, VIX term structure)
 
-The pipeline currently assumes "lower raw = more buy-favorable" everywhere. VIX is the opposite. To support it cleanly (and reusably for any future momentum-style signal) **without ugly negative raw values in the UI**, add an `invert: bool = False` field to `SignalSpec`:
+The pipeline currently assumes "lower raw = more buy-favorable" everywhere. Three of the candidates are the opposite (high = buy). To support them cleanly **without ugly negative raw values in the UI**, add an `invert: bool = False` field to `SignalSpec` (now justified by three real consumers, and reusable for any future momentum-style signal):
 
 - `compute_signals.signal_score`: when `invert`, swap the comparisons — `value >= invest_thresh → 100` (buy), `value <= avoid_thresh → 0` (avoid).
 - `compute_signals.sell_signal_score`: when `invert`, sell when `value < sell_thresh` (low VIX = complacency).
@@ -86,7 +89,7 @@ CONFIG = AssetConfig(
     accent_color="#c0392b", price_unit="C$",
     fetch=fetch, proxy_fetch=proxy_fetch,
     good_entry=good_entry, good_exit=good_exit,
-    signals=[ drawdown_from_ath, mayer_multiple, monthly_rsi, vix ],  # SignalSpecs
+    signals=[ ... ],  # the SignalSpecs that earned weight in the proxy backtest (pruned from the 7-candidate pool)
     weight_overrides=None,
     strong_buy_cutoff=<calibrated, default 85>,
 )
@@ -96,18 +99,19 @@ Appended to `assets/registry.py` `ASSETS` (third entry → third chip). No templ
 ## Testing
 
 - `tests/test_yahoo.py` — fetcher parses a recorded Yahoo JSON fixture into `date/price` (+ vix merge); handles missing/NaN closes.
-- `tests/test_signals.py` — `compute_drawdown_from_ath` (ATH→1.0, post-drawdown < 1) and `compute_vix` pass-through on a synthetic frame.
+- `tests/test_signals.py` — new computes on synthetic frames: `compute_drawdown_from_ath` (ATH→1.0, post-drawdown < 1), `compute_vix`/`compute_cape` pass-through, `compute_momentum_12m` (`price/price.shift(252)`), `compute_vix_term` (`vix/vix3m`); NaN-input → neutral handling for the sparse/late-start series.
 - `tests/test_compute_signals.py` — `signal_score`/`sell_signal_score` with `invert=True` (high value → buy; low value → avoid/sell).
-- `tests/test_framework.py` — VEQT registry/config: 4 signals, `proxy_fetch` set, `price_unit="C$"`, `invert` on the VIX spec; data-independent scoring-parity test for VEQT (pin logic with a fixture, refresh-safe).
+- `tests/test_framework.py` — VEQT registry/config: the pruned signal set is non-empty, `proxy_fetch` set, `price_unit="C$"`, `invert=True` on each high-is-buy spec (VIX / momentum / VIX-term, whichever survive pruning); data-independent scoring-parity test for VEQT (pin logic with a fixture, refresh-safe).
 - `tests/test_veqt.py` — `good_entry` on a synthetic equity series (drawdown + forward recovery → True; shallow dip → False); proxy-vs-live separation (compute runs on whichever frame is passed).
 - Full suite green.
 
 ## Risks / open items (documented)
 
-- **Yahoo stability** — unofficial API; mitigate with UA + retry/backoff; accept lower reliability than crypto sources.
-- **US proxy vs global VEQT** — S&P 500 ≠ VEQT's global mix, but equity drawdowns are globally correlated and VEQT is ~45% US; an acknowledged approximation.
+- **Data-source stability** — Yahoo (prices/VIX/VIX3M) is unofficial → UA + retry/backoff; the CAPE scrape (multpl/Shiller) is a second fragile keyless dependency. Both less reliable than the crypto sources. Each aux series must fail soft (NaN → neutral), never break the daily run.
+- **US proxy vs global VEQT** — S&P 500 ≠ VEQT's global mix, but equity drawdowns are globally correlated and VEQT is ~45% US; an acknowledged approximation. CAPE/VIX are likewise US gauges applied to a global ETF.
 - **Proxy→live transfer** — weights/thresholds trained on ^GSPC applied to VEQT; relies on scale-free ratios transferring. Reasonable, not guaranteed.
-- **VIX pre-1990** — proxy rows before 1990 have no VIX; that signal is neutral there while the other three train on the full span.
+- **Short aux histories** — VIX→1990, VIX3M→2006: the VIX-term signal trains on only ~3 stress events and may not earn weight (kept because requested). Early proxy rows are neutral for these.
+- **CAPE regime drift** — structurally elevated for a decade; may behave as a near-permanent "avoid." The backtest decides its weight rather than assuming it helps.
 - **Philosophical** — timing overlay on a buy-and-hold product; the conservative entry-tilt framing (muted sell) keeps it honest.
 
 ## Out of scope (v1)
