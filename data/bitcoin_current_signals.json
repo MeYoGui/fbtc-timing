@@ -1,14 +1,14 @@
 {
-  "date": "2026-06-08",
+  "date": "2026-06-09",
   "signals": {
     "mvrv_zscore": {
-      "raw": -0.32277577517938527,
+      "raw": -0.33360124629896437,
       "score": 50,
       "sell_score": 0
     },
     "ma_200w": {
-      "raw": 1.0205756276736548,
-      "score": 50,
+      "raw": 0.9963746233996014,
+      "score": 100,
       "sell_score": 0
     },
     "monthly_rsi": {
@@ -17,7 +17,7 @@
       "sell_score": 0
     },
     "pi_cycle": {
-      "raw": 0.3897158414490918,
+      "raw": 0.39001784227158287,
       "score": 100,
       "sell_score": 0
     },
@@ -27,7 +27,7 @@
       "sell_score": 0
     },
     "fear_greed": {
-      "raw": 8.0,
+      "raw": 10.0,
       "score": 100,
       "sell_score": 0
     }
