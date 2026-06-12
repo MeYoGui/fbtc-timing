@@ -1,13 +1,13 @@
 {
-  "date": "2026-06-10",
+  "date": "2026-06-11",
   "signals": {
     "mvrv_zscore": {
-      "raw": -0.907944433397575,
+      "raw": -0.8585261951361826,
       "score": 50,
       "sell_score": 0
     },
     "ma_200w": {
-      "raw": 0.655531753107518,
+      "raw": 0.6770047351499366,
       "score": 100,
       "sell_score": 0
     },
@@ -17,17 +17,17 @@
       "sell_score": 0
     },
     "eth_btc_ratio": {
-      "raw": -0.7180531536631016,
+      "raw": -0.7184753383150729,
       "score": 50,
       "sell_score": 0
     },
     "mayer_multiple": {
-      "raw": 0.6653811089688342,
+      "raw": 0.6887348801872006,
       "score": 50,
       "sell_score": 0
     },
     "fear_greed": {
-      "raw": 9.0,
+      "raw": 12.0,
       "score": 100,
       "sell_score": 0
     }
