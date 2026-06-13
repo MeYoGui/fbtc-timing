@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-11",
+  "date": "2026-06-12",
   "composite_score": 68.9,
   "verdict": "BUY",
   "sell_composite": 0.0,
@@ -10,14 +10,14 @@
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.8585261951361826,
+      "raw": -0.865318183651517,
       "score": 50,
       "sell_score": 0,
       "status": "neutral"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 0.6770047351499366,
+      "raw": 0.6732471047308233,
       "score": 100,
       "sell_score": 0,
       "status": "buy"
@@ -31,14 +31,14 @@
     },
     "eth_btc_ratio": {
       "display_name": "ETH/BTC Ratio",
-      "raw": -0.7184753383150729,
+      "raw": -0.724670303836454,
       "score": 50,
       "sell_score": 0,
       "status": "neutral"
     },
     "mayer_multiple": {
       "display_name": "Mayer Multiple",
-      "raw": 0.6887348801872006,
+      "raw": 0.6866868214555774,
       "score": 50,
       "sell_score": 0,
       "status": "neutral"
