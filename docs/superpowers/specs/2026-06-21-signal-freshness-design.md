@@ -108,6 +108,9 @@ data/{id}_signal_history.csv ─ as_of ────┼─▶ compute_signals.py 
   ```
 - Uniform muted grey on every card. No tint, icon, or alarm styling — a lagging signal is
   conveyed solely by showing an older date.
+- Use a muted-but-legible grey (lighter than `text-outline` #444, which mockup review showed
+  is too faint on the #0a0a0a card — target ~#777). Confirm legibility during implementation
+  via a screenshot of the real built dashboard.
 - The existing no-data branch (`No data`) may also show the cadence-only caption.
 
 ## Testing
