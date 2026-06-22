@@ -1,7 +1,9 @@
 import json
 import math
 import pandas as pd
+from datetime import date
 from pathlib import Path
+from typing import Optional
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from assets.base import AssetConfig
@@ -15,6 +17,25 @@ from assets.signals import (
 )
 
 DATA_DIR = Path(__file__).parent.parent / "data"
+
+
+def last_change_date(dates: pd.Series, raw: pd.Series) -> Optional[date]:
+    """Date the non-NaN raw value last changed (last day it differed from the
+    previous kept value). A single distinct value -> its first date. Empty -> None.
+
+    One rule covers all cadence cases: a monthly signal forward-filled to daily
+    lands on its last month boundary; an API-lagged signal (trailing NaN) lands
+    on its last real datapoint; a normally-moving daily signal lands on today."""
+    s = pd.Series(raw).reset_index(drop=True)
+    d = pd.Series(pd.to_datetime(dates)).reset_index(drop=True)
+    mask = s.notna()
+    s = s[mask].reset_index(drop=True)
+    d = d[mask].reset_index(drop=True)
+    if len(s) == 0:
+        return None
+    changed = s.ne(s.shift())          # index 0 is always True (shift -> NaN)
+    last_idx = changed[changed].index[-1]
+    return d.iloc[last_idx].date()
 
 
 def _sanitize_float(v):
@@ -94,10 +115,12 @@ def _process_asset(cfg: AssetConfig) -> None:
         raw, score, sell_score = _last_valid(
             f"{spec.key}_raw", spec.key, f"{spec.key}_sell"
         )
+        as_of = last_change_date(signals["date"], signals[f"{spec.key}_raw"])
         current["signals"][spec.key] = {
             "raw": _sanitize_float(raw),
             "score": score,
             "sell_score": sell_score,
+            "as_of": as_of.isoformat() if as_of is not None else None,
         }
 
     (DATA_DIR / f"{cfg.id}_current_signals.json").write_text(json.dumps(current, indent=2))
