@@ -78,6 +78,22 @@ def _sanitize_float(v):
         return None
 
 
+def build_signal_entry(data: dict, display_name: str, cadence: str) -> dict:
+    """Assemble one signal's output object for {id}_score.json. Additive: carries
+    cadence + as_of through for the dashboard; does not affect any score math."""
+    score = data["score"]
+    status = "buy" if score == 100 else ("avoid" if score == 0 else "neutral")
+    return {
+        "display_name": display_name,
+        "raw": _sanitize_float(data["raw"]),
+        "score": score,
+        "sell_score": data.get("sell_score", 0),
+        "status": status,
+        "cadence": cadence,
+        "as_of": data.get("as_of"),
+    }
+
+
 def _signal_meta(cfg) -> dict:
     return {
         s.key: {
@@ -103,6 +119,7 @@ def _score_asset(cfg) -> None:
     current = json.loads(current_path.read_text())
     weights = json.loads(weights_path.read_text())
     names = {s.key: s.display_name for s in cfg.signals}
+    cadences = {s.key: s.cadence for s in cfg.signals}
 
     composite = compute_score(current["signals"], weights)
     verdict = get_verdict(composite)
@@ -134,13 +151,7 @@ def _score_asset(cfg) -> None:
         "spectrum_verdict": spectrum_verdict,
         "strong_buy_cutoff": cfg.strong_buy_cutoff,
         "signals": {
-            name: {
-                "display_name": names[name],
-                "raw": _sanitize_float(data["raw"]),
-                "score": data["score"],
-                "sell_score": data.get("sell_score", 0),
-                "status": "buy" if data["score"] == 100 else ("avoid" if data["score"] == 0 else "neutral"),
-            }
+            name: build_signal_entry(data, names[name], cadences[name])
             for name, data in current["signals"].items()
         },
         "weights": {name: weights["signals"][name]["weight"] for name in weights["signals"]},

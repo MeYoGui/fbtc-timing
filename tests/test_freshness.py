@@ -53,3 +53,39 @@ def test_last_change_single_distinct_value_returns_first_date():
     d = _dates(4)
     raw = pd.Series([5.0, 5.0, 5.0, 5.0])
     assert last_change_date(d, raw) == d.iloc[0].date()
+
+
+from score import build_signal_entry, compute_score, SIGNAL_DISPLAY
+
+
+def test_build_signal_entry_includes_cadence_and_as_of():
+    entry = build_signal_entry(
+        {"raw": 47.0, "score": 50, "sell_score": 0, "as_of": "2026-05-31"},
+        display_name="Monthly RSI", cadence="monthly",
+    )
+    assert entry["cadence"] == "monthly"
+    assert entry["as_of"] == "2026-05-31"
+    assert entry["status"] == "neutral"
+    assert entry["display_name"] == "Monthly RSI"
+    assert entry["score"] == 50
+
+
+def test_build_signal_entry_status_mapping():
+    assert build_signal_entry({"raw": 0, "score": 100}, "x", "daily")["status"] == "buy"
+    assert build_signal_entry({"raw": 0, "score": 0}, "x", "daily")["status"] == "avoid"
+    assert build_signal_entry({"raw": 0, "score": 50}, "x", "daily")["status"] == "neutral"
+
+
+def test_build_signal_entry_missing_as_of_is_none():
+    entry = build_signal_entry({"raw": 1.0, "score": 100}, "x", "daily")
+    assert entry["as_of"] is None
+    assert entry["sell_score"] == 0
+
+
+def test_compute_score_ignores_extra_signal_keys():
+    """Regression guard: the math must not react to the new fields."""
+    base = {name: {"score": 100} for name in SIGNAL_DISPLAY}
+    extra = {name: {"score": 100, "cadence": "daily", "as_of": "2026-06-20", "raw": 1.2}
+             for name in SIGNAL_DISPLAY}
+    weights = {"signals": {name: {"weight": 1 / 6} for name in SIGNAL_DISPLAY}}
+    assert compute_score(base, weights) == compute_score(extra, weights)
