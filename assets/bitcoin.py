@@ -169,7 +169,7 @@ CONFIG = AssetConfig(
                    range_lo=0.5, range_hi=3.0, fmt="{:.1f}×"),
         SignalSpec("monthly_rsi", "Monthly RSI", compute_monthly_rsi,
                    invest_thresh=40.0, avoid_thresh=70.0, sell_thresh=78.0,
-                   range_lo=0.0, range_hi=100.0, fmt="{:.0f}"),
+                   range_lo=0.0, range_hi=100.0, fmt="{:.0f}", cadence="monthly"),
         SignalSpec("pi_cycle", "Pi Cycle", compute_pi_cycle_ratio,
                    invest_thresh=0.9, avoid_thresh=1.0, sell_thresh=1.0,
                    range_lo=0.0, range_hi=1.5, fmt="{:.1f}"),

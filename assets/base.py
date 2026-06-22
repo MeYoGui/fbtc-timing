@@ -17,6 +17,7 @@ class SignalSpec:
     range_lo: float
     range_hi: float
     fmt: str
+    cadence: str = "daily"    # natural update rate: "daily" or "monthly"
 
 
 @dataclass
