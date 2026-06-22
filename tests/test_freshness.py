@@ -89,3 +89,38 @@ def test_compute_score_ignores_extra_signal_keys():
              for name in SIGNAL_DISPLAY}
     weights = {"signals": {name: {"weight": 1 / 6} for name in SIGNAL_DISPLAY}}
     assert compute_score(base, weights) == compute_score(extra, weights)
+
+
+from build_dashboard import next_refresh_date, format_freshness
+
+
+def test_next_refresh_mid_month_is_month_end():
+    import datetime
+    assert next_refresh_date("2026-06-21", "monthly") == datetime.date(2026, 6, 30)
+
+
+def test_next_refresh_on_month_end_is_same_day():
+    import datetime
+    assert next_refresh_date("2026-06-30", "monthly") == datetime.date(2026, 6, 30)
+
+
+def test_next_refresh_daily_is_none():
+    assert next_refresh_date("2026-06-21", "daily") is None
+
+
+def test_format_freshness_daily_current():
+    assert format_freshness("daily", "2026-06-20", "2026-06-20") == "Daily · as of Jun 20"
+
+
+def test_format_freshness_daily_lagging():
+    assert format_freshness("daily", "2026-06-18", "2026-06-20") == "Daily · as of Jun 18"
+
+
+def test_format_freshness_monthly():
+    assert format_freshness("monthly", "2026-05-31", "2026-06-21") == \
+        "Monthly · as of May 31 · next Jun 30"
+
+
+def test_format_freshness_no_data_is_cadence_only():
+    assert format_freshness("daily", None, "2026-06-20") == "Daily"
+    assert format_freshness("monthly", None, "2026-06-20") == "Monthly"

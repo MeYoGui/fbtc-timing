@@ -52,6 +52,36 @@ def format_reading(name: str, raw) -> str:
     return f"{raw:.3f}"
 
 
+def next_refresh_date(data_date, cadence: str):
+    """Date a monthly signal can next change = the month-end on/after the data date.
+    Daily signals have no scheduled refresh date -> None."""
+    if cadence != "monthly":
+        return None
+    return (pd.Timestamp(data_date) + pd.offsets.MonthEnd(0)).date()
+
+
+def _fmt_md(value) -> str:
+    """Format a date/ISO-string as 'Mon D' (e.g. 'Jun 20'), no leading zero —
+    matches the spark-label style already used in this module."""
+    ts = pd.Timestamp(value)
+    return f"{ts.strftime('%b')} {ts.day}"
+
+
+def format_freshness(cadence: str, as_of, data_date) -> str:
+    """Muted per-signal caption. Examples:
+      Daily · as of Jun 20
+      Monthly · as of May 31 · next Jun 30
+    Falls back to the cadence label alone when the signal has no data yet."""
+    label = "Monthly" if cadence == "monthly" else "Daily"
+    if not as_of:
+        return label
+    parts = [label, f"as of {_fmt_md(as_of)}"]
+    nxt = next_refresh_date(data_date, cadence)
+    if nxt is not None:
+        parts.append(f"next {_fmt_md(nxt)}")
+    return " · ".join(parts)
+
+
 def compute_price_change_24h(price_df: pd.DataFrame) -> float:
     """Percent change between the two most recent non-null daily prices.
 
@@ -271,6 +301,7 @@ def _assemble_asset(cfg) -> dict:
             "display_name": data["display_name"],
             "reading": format_reading(spec.key, data["raw"]),
             "bar": compute_signal_bar(spec.key, data["raw"], data["score"], signal_meta[spec.key]),
+            "freshness": format_freshness(data.get("cadence", "daily"), data.get("as_of"), current_score["date"]),
         })
 
     composite = current_score["composite_score"]
