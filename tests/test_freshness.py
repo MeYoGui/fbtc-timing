@@ -91,6 +91,20 @@ def test_compute_score_ignores_extra_signal_keys():
     assert compute_score(base, weights) == compute_score(extra, weights)
 
 
+def test_freshness_feature_does_not_move_the_math():
+    """Stronger guard: freeze the composite + spectrum formulas to concrete values so
+    a future change to the scoring math (not just extra keys) fails loudly. Uses a
+    fixed synthetic signal set with NON-equal weights — the live data files update
+    daily, so snapshotting them would be flaky; this locks the formula instead."""
+    from score import compute_spectrum_pos
+    weights = {"signals": {"a": {"weight": 0.5}, "b": {"weight": 0.25}, "c": {"weight": 0.25}}}
+    signals = {"a": {"score": 100}, "b": {"score": 50}, "c": {"score": 0}}
+    assert compute_score(signals, weights) == 62.5          # 100*.5 + 50*.25 + 0*.25
+    # spectrum = 50 + (buy - effective_sell)/2; sell < 25 is ignored
+    assert compute_spectrum_pos(57.6, 0.0) == 78.8
+    assert compute_spectrum_pos(66.2, 0.0) == 83.1
+
+
 from build_dashboard import next_refresh_date, format_freshness
 
 
