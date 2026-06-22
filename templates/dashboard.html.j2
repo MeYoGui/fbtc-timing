@@ -392,7 +392,9 @@
       if (!b || !b.has_data) {
         return '<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col">'
           + '<span class="font-label-caps text-label-caps text-on-surface-variant">' + sig.display_name + '</span>'
-          + '<span class="font-data-sm text-data-sm text-outline mt-6">No data</span></div>';
+          + '<span class="font-data-sm text-data-sm text-outline mt-6">No data</span>'
+          + (sig.freshness ? '<div class="text-[10px] font-data-sm mt-1" style="color:#777">' + sig.freshness + '</div>' : '')
+          + '</div>';
       }
       const col = metricColor(b.status_class);
       return '<div class="bg-surface-charcoal border border-border-subtle rounded-xl p-stack-md flex flex-col hover:border-cyber-emerald/30 transition-colors group">'
@@ -400,6 +402,7 @@
         +   '<span class="font-label-caps text-label-caps text-on-surface-variant group-hover:text-on-surface transition-colors">' + sig.display_name + '</span>'
         +   '<span class="font-data-lg text-data-lg text-right" style="color:' + col + ';text-shadow:0 0 8px ' + col + '33;">' + sig.reading + '</span>'
         + '</div>'
+        + (sig.freshness ? '<div class="text-[10px] font-data-sm mt-1 mb-1" style="color:#777">' + sig.freshness + '</div>' : '')
         + '<div class="mt-auto w-full">'
         +   '<div class="relative w-full">'
         +     '<div class="h-1.5 w-full rounded-full overflow-hidden flex">'
