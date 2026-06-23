@@ -1,5 +1,5 @@
 {
-  "date": "2026-06-21",
+  "date": "2026-06-22",
   "composite_score": 68.9,
   "verdict": "BUY",
   "sell_composite": 0.0,
@@ -10,14 +10,14 @@
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.8416069445671255,
+      "raw": -0.8266456718020317,
       "score": 50,
       "sell_score": 0,
       "status": "neutral"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 0.6912300679816873,
+      "raw": 0.6985172412987162,
       "score": 100,
       "sell_score": 0,
       "status": "buy"
@@ -31,21 +31,21 @@
     },
     "eth_btc_ratio": {
       "display_name": "ETH/BTC Ratio",
-      "raw": -0.6918687338531921,
+      "raw": -0.6897260165560405,
       "score": 50,
       "sell_score": 0,
       "status": "neutral"
     },
     "mayer_multiple": {
       "display_name": "Mayer Multiple",
-      "raw": 0.7219563192571188,
+      "raw": 0.7317765094951815,
       "score": 50,
       "sell_score": 0,
       "status": "neutral"
     },
     "fear_greed": {
       "display_name": "Fear & Greed",
-      "raw": 23.0,
+      "raw": 20.0,
       "score": 100,
       "sell_score": 0,
       "status": "buy"
