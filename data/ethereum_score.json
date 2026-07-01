@@ -1,66 +1,66 @@
 {
-  "date": "2026-06-29",
-  "composite_score": 68.9,
+  "date": "2026-06-30",
+  "composite_score": 73.3,
   "verdict": "BUY",
   "sell_composite": 0.0,
   "sell_verdict": "LOW",
-  "spectrum_pos": 84.5,
+  "spectrum_pos": 86.7,
   "spectrum_verdict": "BUY",
   "strong_buy_cutoff": 88.0,
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.8766924348833818,
+      "raw": -0.9067435103645002,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-06-29"
+      "as_of": "2026-06-30"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 0.6516016696327295,
+      "raw": 0.6349971544331084,
       "score": 100,
       "sell_score": 0,
       "status": "buy",
       "cadence": "daily",
-      "as_of": "2026-06-29"
+      "as_of": "2026-06-30"
     },
     "monthly_rsi": {
       "display_name": "Monthly RSI",
-      "raw": 43.41898117959762,
-      "score": 50,
+      "raw": 39.99193252964748,
+      "score": 100,
       "sell_score": 0,
-      "status": "neutral",
+      "status": "buy",
       "cadence": "monthly",
-      "as_of": "2026-05-31"
+      "as_of": "2026-06-30"
     },
     "eth_btc_ratio": {
       "display_name": "ETH/BTC Ratio",
-      "raw": -0.6991513700756881,
+      "raw": -0.6967273484637648,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-06-29"
+      "as_of": "2026-06-30"
     },
     "mayer_multiple": {
       "display_name": "Mayer Multiple",
-      "raw": 0.6988887127763413,
+      "raw": 0.6833417555427048,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-06-29"
+      "as_of": "2026-06-30"
     },
     "fear_greed": {
       "display_name": "Fear & Greed",
-      "raw": 12.0,
+      "raw": 15.0,
       "score": 100,
       "sell_score": 0,
       "status": "buy",
       "cadence": "daily",
-      "as_of": "2026-06-29"
+      "as_of": "2026-06-30"
     }
   },
   "weights": {

@@ -1,41 +1,41 @@
 {
-  "date": "2026-06-29",
+  "date": "2026-06-30",
   "signals": {
     "mvrv_zscore": {
-      "raw": -0.8766924348833818,
+      "raw": -0.9067435103645002,
       "score": 50,
       "sell_score": 0,
-      "as_of": "2026-06-29"
+      "as_of": "2026-06-30"
     },
     "ma_200w": {
-      "raw": 0.6516016696327295,
+      "raw": 0.6349971544331084,
       "score": 100,
       "sell_score": 0,
-      "as_of": "2026-06-29"
+      "as_of": "2026-06-30"
     },
     "monthly_rsi": {
-      "raw": 43.41898117959762,
-      "score": 50,
-      "sell_score": 0,
-      "as_of": "2026-05-31"
-    },
-    "eth_btc_ratio": {
-      "raw": -0.6991513700756881,
-      "score": 50,
-      "sell_score": 0,
-      "as_of": "2026-06-29"
-    },
-    "mayer_multiple": {
-      "raw": 0.6988887127763413,
-      "score": 50,
-      "sell_score": 0,
-      "as_of": "2026-06-29"
-    },
-    "fear_greed": {
-      "raw": 12.0,
+      "raw": 39.99193252964748,
       "score": 100,
       "sell_score": 0,
-      "as_of": "2026-06-29"
+      "as_of": "2026-06-30"
+    },
+    "eth_btc_ratio": {
+      "raw": -0.6967273484637648,
+      "score": 50,
+      "sell_score": 0,
+      "as_of": "2026-06-30"
+    },
+    "mayer_multiple": {
+      "raw": 0.6833417555427048,
+      "score": 50,
+      "sell_score": 0,
+      "as_of": "2026-06-30"
+    },
+    "fear_greed": {
+      "raw": 15.0,
+      "score": 100,
+      "sell_score": 0,
+      "as_of": "2026-06-30"
     }
   }
 }
