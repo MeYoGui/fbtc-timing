@@ -3,97 +3,97 @@
   "in_sample": {
     "bands": {
       "STRONG BUY": {
-        "days": 105,
-        "mean_fwd_return": 3.0163,
+        "days": 103,
+        "mean_fwd_return": 2.9135,
         "median_fwd_return": 1.1293,
-        "pct_positive": 0.981
+        "pct_positive": 0.9806
       },
-      "INVEST": {
-        "days": 29,
-        "mean_fwd_return": 4.4415,
-        "median_fwd_return": 1.9711,
-        "pct_positive": 0.9655
+      "BUY": {
+        "days": 278,
+        "mean_fwd_return": 12.1892,
+        "median_fwd_return": 12.9257,
+        "pct_positive": 0.9532
       },
-      "CLOSE": {
-        "days": 591,
-        "mean_fwd_return": 48.4574,
-        "median_fwd_return": 15.3831,
-        "pct_positive": 0.9679
+      "HOLD": {
+        "days": 717,
+        "mean_fwd_return": 48.9802,
+        "median_fwd_return": 14.1153,
+        "pct_positive": 0.8438
       },
       "WAIT": {
-        "days": 2077,
-        "mean_fwd_return": 10.1111,
-        "median_fwd_return": 0.3364,
-        "pct_positive": 0.6062
+        "days": 2277,
+        "mean_fwd_return": 5.2541,
+        "median_fwd_return": 0.1429,
+        "pct_positive": 0.5446
       },
       "AVOID": {
-        "days": 603,
-        "mean_fwd_return": 1.4311,
-        "median_fwd_return": -0.3054,
-        "pct_positive": 0.4245
+        "days": 50,
+        "mean_fwd_return": 3.3127,
+        "median_fwd_return": -0.6011,
+        "pct_positive": 0.14
       }
     },
     "invest_precision": {
-      "precision": 0.6798,
-      "recall": 0.1009,
-      "f1": 0.1757,
-      "tp": 121,
-      "fp": 57,
-      "fn": 1078
+      "precision": 0.6873,
+      "recall": 0.2969,
+      "f1": 0.4147,
+      "tp": 356,
+      "fp": 162,
+      "fn": 843
     },
     "timing_edge": {
-      "invest_mean_fwd_return": 3.3248,
-      "buy_and_hold_mean_fwd_return": 14.9626,
-      "edge": -11.6378,
-      "invest_days": 134
+      "invest_mean_fwd_return": 9.6816,
+      "buy_and_hold_mean_fwd_return": 14.872,
+      "edge": -5.1904,
+      "invest_days": 381
     }
   },
   "out_of_sample": {
     "bands": {
       "STRONG BUY": {
-        "days": 7,
-        "mean_fwd_return": 14.409,
-        "median_fwd_return": 14.3513,
+        "days": 6,
+        "mean_fwd_return": 14.062,
+        "median_fwd_return": 14.1518,
         "pct_positive": 1.0
       },
-      "INVEST": {
-        "days": 4,
-        "mean_fwd_return": 9.313,
-        "median_fwd_return": 8.7641,
+      "BUY": {
+        "days": 35,
+        "mean_fwd_return": 7.4763,
+        "median_fwd_return": 1.5172,
         "pct_positive": 1.0
       },
-      "CLOSE": {
-        "days": 338,
-        "mean_fwd_return": 10.7766,
-        "median_fwd_return": 11.994,
-        "pct_positive": 0.997
+      "HOLD": {
+        "days": 455,
+        "mean_fwd_return": 10.9956,
+        "median_fwd_return": 12.2262,
+        "pct_positive": 0.967
       },
       "WAIT": {
-        "days": 1091,
-        "mean_fwd_return": 2.093,
-        "median_fwd_return": 0.1662,
-        "pct_positive": 0.5793
+        "days": 1305,
+        "mean_fwd_return": 0.8081,
+        "median_fwd_return": 0.2018,
+        "pct_positive": 0.5785
       },
       "AVOID": {
-        "days": 505,
-        "mean_fwd_return": 0.6241,
-        "median_fwd_return": 0.207,
-        "pct_positive": 0.6099
+        "days": 164,
+        "mean_fwd_return": -0.215,
+        "median_fwd_return": -0.2121,
+        "pct_positive": 0.3171
       }
     },
     "invest_precision": {
       "precision": 1.0,
-      "recall": 0.0129,
-      "f1": 0.0254,
-      "tp": 11,
+      "recall": 0.048,
+      "f1": 0.0915,
+      "tp": 41,
       "fp": 0,
-      "fn": 844
+      "fn": 814
     },
     "timing_edge": {
-      "invest_mean_fwd_return": 12.5559,
-      "buy_and_hold_mean_fwd_return": 3.2798,
-      "edge": 9.2761,
-      "invest_days": 11
+      "invest_mean_fwd_return": 8.44,
+      "buy_and_hold_mean_fwd_return": 3.2409,
+      "edge": 5.1992,
+      "invest_days": 41
     }
   }
 }
