@@ -37,6 +37,39 @@ MIN_PERIODS_Z = 365           # pre-registered; not tuned
 COVERAGE_PCTS = [0.05, 0.10]  # pre-registered coverage levels
 
 
+def walk_forward_fixed(price_df, signals_df, cfg, signal_names,
+                       weight_fn=None, step_days=STEP_DAYS) -> pd.Series:
+    """Leak-fixed walk-forward. Difference vs validate_composite.walk_forward:
+    good-entry TRAINING labels are recomputed at each step from prices known at
+    decision time t (price_df.iloc[:t]), so cycle-range stats cannot leak a
+    cycle's eventual high/low into weights. weight_fn, when given, bypasses
+    precision weighting entirely (fixed-weight variants)."""
+    merged = price_df[["date", "price"]].merge(
+        signals_df, on="date", how="inner").reset_index(drop=True)
+    assert len(merged) == len(price_df), "signals must align 1:1 with price history"
+    n = len(merged)
+    oos = pd.Series(np.nan, index=merged.index)
+    t = WARMUP_DAYS
+    while t < n - HOLDING_DAYS:
+        cutoff = t - HOLDING_DAYS
+        if cutoff >= WARMUP_DAYS // 2:
+            if weight_fn is not None:
+                weights = weight_fn(signal_names)
+            else:
+                known = price_df.iloc[:t].reset_index(drop=True)
+                good_known = cfg.good_entry(known)   # causal: prices < t only
+                train = merged.iloc[:cutoff]
+                train_good = good_known.iloc[:cutoff]
+                stats = compute_signal_stats(train, train_good, signal_names)
+                weights = derive_weights(
+                    stats, signal_names, getattr(cfg, "weight_overrides", None))
+            wdict = {"signals": {s: {"weight": weights[s]} for s in signal_names}}
+            oos.iloc[t:t + step_days] = composite_series(
+                merged.iloc[t:t + step_days], wdict, signal_names).values
+        t += step_days
+    return oos
+
+
 def edge_at_coverage(oos: pd.Series, fwd: pd.Series, pct: float) -> dict:
     """Mean forward return of the top pct fraction of scored days, by composite,
     minus the mean over all scored days. Coverage-matched: comparable across
