@@ -2,13 +2,13 @@
 
 Date: 2026-07-02
 Experiment: `data/experiments/bitcoin_model_fixes.json`
-Pre-registered rules: `.superpowers/sdd/task-7-brief.md`
+Pre-registered rules: Task 7 of `docs/superpowers/plans/2026-07-01-btc-model-fixes-experiment.md`
 
 ---
 
 ## 1. Comparison table (from `bitcoin_model_fixes_report.md`)
 
-| run | edge@5% | edge@10% | precision@10% | IC | scored days |
+| run | edge@5% | edge@10% | precision@10% | IC | scored days (OOS) |
 |---|---|---|---|---|---|
 | stage1_fixed_labels | -0.2911 | -0.2268 | 1.0 | 0.249 | 3870 |
 | stage1c_causal_z | -0.1623 | -0.2244 | 1.0 | 0.2491 | 3870 |
@@ -16,7 +16,7 @@ Pre-registered rules: `.superpowers/sdd/task-7-brief.md`
 | stage2_family | -0.3874 | -0.8783 | 0.7623 | 0.2506 | 3870 |
 | stage2_continuous_family | -0.237 | -0.5924 | 0.8605 | 0.2251 | 3870 |
 
-All coverage metrics are at 10% of scored days (381 days out of 3870), matching the same day-count across ternary and continuous scoring variants to allow fair comparison.
+Coverage metrics use 10% of eligible days — edge@10% uses days with a valid 548-day forward return (381 of 3813), precision@10% uses all scored days (387 of 3870) — with the same day-count across ternary and continuous variants for fair comparison.
 
 ---
 
@@ -76,7 +76,7 @@ For reference, the honest baseline `stage1c_causal_z` per-cycle:
 | 2020-05-11 | +0.9064 |
 | 2024-04-19 | +0.0025 |
 
-Also positive in the same two cycles. The 2024 cycle has only 24 scored OOS days; the positive edge there is economically tiny and statistically meaningless given sample size.
+Also positive in the same two cycles. The 2024 cycle has only 24 scored OOS days; the positive edge there is economically tiny and statistically meaningless given sample size. The baseline's 2024 value (+0.0025 on 24 days) clears zero by an even thinner margin and carries the same statistical-meaninglessness caveat.
 
 **Result: robustness check PASSES for `stage2_continuous`. Recorded for the record — rule 5 overrides.**
 
