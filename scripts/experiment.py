@@ -266,7 +266,7 @@ def main():
         ic = results["runs"][label]["spearman_ic"]
         print(f"  edge@10%={e10}  IC={ic}")
 
-    (OUT_DIR / "bitcoin_model_fixes.json").write_text(json.dumps(results, indent=2))
+    (OUT_DIR / "bitcoin_model_fixes.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
 
     lines = ["# BTC model-fixes experiment — OOS comparison", "",
              "| run | edge@5% | edge@10% | precision@10% | IC | scored days |",
@@ -283,7 +283,7 @@ def main():
     for label, r in results["runs"].items():
         cycles = {c: v["edge"] for c, v in r["edge_by_cycle_10pct"].items()}
         lines.append(f"- **{label}**: {cycles}")
-    (OUT_DIR / "bitcoin_model_fixes_report.md").write_text("\n".join(lines))
+    (OUT_DIR / "bitcoin_model_fixes_report.md").write_text("\n".join(lines), encoding="utf-8")
     print(f"report written to {OUT_DIR / 'bitcoin_model_fixes_report.md'}")
 
 

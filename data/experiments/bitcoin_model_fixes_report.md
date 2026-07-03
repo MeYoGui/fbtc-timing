@@ -1,4 +1,4 @@
-# BTC model-fixes experiment — OOS comparison
+# BTC model-fixes experiment â€” OOS comparison
 
 | run | edge@5% | edge@10% | precision@10% | IC | scored days |
 |---|---|---|---|---|---|
