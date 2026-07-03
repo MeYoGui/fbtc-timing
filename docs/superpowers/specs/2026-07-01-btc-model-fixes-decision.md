@@ -93,7 +93,7 @@ Checking:
 | stage2_family | -0.8783 | YES |
 | stage2_continuous_family | -0.5924 | YES |
 
-All five values are negative. **Kill criterion FIRES.**
+All four values in scope are negative. **Kill criterion FIRES.**
 
 **Conclusion (verbatim per pre-registered rule): no demonstrated timing edge once leaks are removed.**
 
