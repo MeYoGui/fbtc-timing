@@ -145,7 +145,7 @@ def evaluate(oos: pd.Series, eval_good: pd.Series, fwd: pd.Series, dates: pd.Ser
     truth for EVALUATION is allowed to know the future; TRAINING labels are not."""
     scored = oos.notna()
     d = pd.DataFrame({"c": oos.values, "fwd": fwd.values}).dropna()
-    ic = d["c"].corr(d["fwd"], method="spearman") if len(d) > 2 else None
+    ic = d["c"].rank().corr(d["fwd"].rank()) if len(d) > 2 else None
     return {
         "scored_days": int(scored.sum()),
         "timing_edge_at60": timing_edge(oos, fwd),
