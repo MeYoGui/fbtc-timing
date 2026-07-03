@@ -36,6 +36,26 @@ OUT_DIR = DATA_DIR / "experiments"
 MIN_PERIODS_Z = 365           # pre-registered; not tuned
 COVERAGE_PCTS = [0.05, 0.10]  # pre-registered coverage levels
 
+FAMILIES = {
+    "valuation": ["mvrv_zscore"],
+    "trend":     ["ma_200w", "pi_cycle", "monthly_rsi"],
+    "miners":    ["puell"],
+    "sentiment": ["fear_greed"],
+}
+
+
+def family_equal_weights(signal_names: list) -> dict:
+    """Equal weight per family, equal split within each family. Parameter-free
+    by design — the robustness variant, not the clever one."""
+    known = {m for members in FAMILIES.values() for m in members}
+    assert set(signal_names) == known, f"signals/FAMILIES mismatch: {set(signal_names) ^ known}"
+    w = {}
+    fam_w = 1.0 / len(FAMILIES)
+    for members in FAMILIES.values():
+        for m in members:
+            w[m] = round(fam_w / len(members), 4)
+    return w
+
 
 def walk_forward_fixed(price_df, signals_df, cfg, signal_names,
                        weight_fn=None, step_days=STEP_DAYS) -> pd.Series:

@@ -126,3 +126,22 @@ def test_walk_forward_fixed_is_causal_where_legacy_is_not():
         "legacy walk_forward unexpectedly causal — synthetic spike too weak, "
         "or the leak was already fixed upstream"
     )
+
+
+def test_family_equal_weights_sum_to_one_and_split_within_family():
+    from experiment import FAMILIES, family_equal_weights
+    names = [m for members in FAMILIES.values() for m in members]
+    w = family_equal_weights(names)
+    assert set(w) == set(names)
+    assert sum(w.values()) == pytest.approx(1.0, abs=1e-3)
+    # 4 families -> each family totals 0.25; trend has 3 members
+    assert w["mvrv_zscore"] == pytest.approx(0.25, abs=1e-3)
+    assert w["ma_200w"] == pytest.approx(0.25 / 3, abs=1e-3)
+    assert w["puell"] == pytest.approx(0.25, abs=1e-3)
+    assert w["fear_greed"] == pytest.approx(0.25, abs=1e-3)
+
+
+def test_family_equal_weights_rejects_unknown_signal():
+    from experiment import family_equal_weights
+    with pytest.raises(AssertionError):
+        family_equal_weights(["mvrv_zscore", "not_a_signal"])
