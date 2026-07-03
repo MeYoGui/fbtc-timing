@@ -23,7 +23,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 sys.path.insert(0, str(Path(__file__).parent))
 
 from assets import bitcoin
+from assets.signals import compute_mvrv_zscore_expanding
 from backtest import compute_signal_stats, derive_weights
+from compute_signals import score_series, continuous_score_series
 from validate_composite import (
     HOLDING_DAYS, STEP_DAYS, WARMUP_DAYS,
     band_report, composite_series, forward_returns, invest_precision,
@@ -182,19 +184,107 @@ def run_legacy_parity() -> dict:
     }
 
 
+def build_signal_history(price_df, specs, causal_z: bool, continuous: bool) -> pd.DataFrame:
+    """Rebuild the signal history from raw price/on-chain data under variant
+    flags. Mirrors compute_signals.compute_all_signals but swaps the z-score
+    compute and/or the scoring function. Sell columns are irrelevant here."""
+    out = pd.DataFrame({"date": price_df["date"]})
+    for spec in specs:
+        compute = spec.compute
+        if causal_z and spec.key == "mvrv_zscore":
+            compute = lambda df: compute_mvrv_zscore_expanding(df, MIN_PERIODS_Z)
+        raw = compute(price_df)
+        out[f"{spec.key}_raw"] = raw
+        if continuous:
+            out[spec.key] = continuous_score_series(raw, spec.invest_thresh, spec.avoid_thresh)
+        else:
+            out[spec.key] = score_series(raw, spec.invest_thresh, spec.avoid_thresh)
+    return out
+
+
+def run_variant(price_df, cfg, causal_z: bool, continuous: bool, family_weights: bool) -> dict:
+    signal_names = [s.key for s in cfg.signals]
+    signals_df = build_signal_history(price_df, cfg.signals, causal_z, continuous)
+    merged = price_df[["date", "price"]].merge(signals_df, on="date", how="inner").reset_index(drop=True)
+    fwd = forward_returns(merged["price"])
+    eval_good = _good_aligned_to(merged, price_df, cfg.good_entry(price_df))  # hindsight OK for eval
+    weight_fn = family_equal_weights if family_weights else None
+    oos = walk_forward_fixed(price_df, signals_df, cfg, signal_names, weight_fn=weight_fn)
+    result = evaluate(oos, eval_good, fwd, merged["date"])
+    result["flags"] = {"causal_z": causal_z, "continuous": continuous,
+                       "family_weights": family_weights}
+    return result
+
+
+def zscore_threshold_diagnostics(price_df) -> dict:
+    """Where do the calibrated z thresholds (-0.5 / 1.5) sit in each version's
+    distribution? Large percentile drift means Phase B must revisit thresholds."""
+    from assets.signals import compute_mvrv_zscore
+    full = compute_mvrv_zscore(price_df).dropna()
+    expanding = compute_mvrv_zscore_expanding(price_df, MIN_PERIODS_Z).dropna()
+    def pct_below(s, x):
+        return round(float((s < x).mean()), 4)
+    return {
+        "full_history": {"pct_below_invest(-0.5)": pct_below(full, -0.5),
+                         "pct_above_avoid(1.5)": round(1 - pct_below(full, 1.5), 4)},
+        "expanding":    {"pct_below_invest(-0.5)": pct_below(expanding, -0.5),
+                         "pct_above_avoid(1.5)": round(1 - pct_below(expanding, 1.5), 4)},
+    }
+
+
+STAGES = [
+    # (label, causal_z, continuous, family_weights)
+    ("stage1_fixed_labels",        False, False, False),
+    ("stage1c_causal_z",           True,  False, False),
+    ("stage2_continuous",          True,  True,  False),
+    ("stage2_family",              True,  False, True),
+    ("stage2_continuous_family",   True,  True,  True),
+]
+
+
 def main():
     OUT_DIR.mkdir(exist_ok=True)
+    cfg = bitcoin.CONFIG
+    price_df, _ = load_btc()
+
     stored = json.loads((DATA_DIR / "bitcoin_validation.json").read_text())["out_of_sample"]
     parity = run_legacy_parity()
-    match = (
-        parity["timing_edge"]["edge"] == stored["timing_edge"]["edge"]
-        and parity["invest_precision"]["precision"] == stored["invest_precision"]["precision"]
-    )
+    match = (parity["timing_edge"]["edge"] == stored["timing_edge"]["edge"]
+             and parity["invest_precision"]["precision"] == stored["invest_precision"]["precision"])
     print(f"legacy parity: edge={parity['timing_edge']['edge']} "
           f"(stored {stored['timing_edge']['edge']}) -> {'PASS' if match else 'FAIL'}")
-    (OUT_DIR / "legacy_parity.json").write_text(json.dumps(parity, indent=2))
     if not match:
         sys.exit(1)
+
+    results = {"legacy_parity": parity,
+               "zscore_threshold_diagnostics": zscore_threshold_diagnostics(price_df),
+               "runs": {}}
+    for label, cz, cont, fam in STAGES:
+        print(f"running {label} ...")
+        results["runs"][label] = run_variant(price_df, cfg, cz, cont, fam)
+        e10 = results["runs"][label]["edge_at_coverage"]["0.1"]["edge"]
+        ic = results["runs"][label]["spearman_ic"]
+        print(f"  edge@10%={e10}  IC={ic}")
+
+    (OUT_DIR / "bitcoin_model_fixes.json").write_text(json.dumps(results, indent=2))
+
+    lines = ["# BTC model-fixes experiment — OOS comparison", "",
+             "| run | edge@5% | edge@10% | precision@10% | IC | scored days |",
+             "|---|---|---|---|---|---|"]
+    for label, r in results["runs"].items():
+        lines.append("| {} | {} | {} | {} | {} | {} |".format(
+            label,
+            r["edge_at_coverage"]["0.05"]["edge"],
+            r["edge_at_coverage"]["0.1"]["edge"],
+            r["precision_at_coverage"]["0.1"]["precision"],
+            r["spearman_ic"],
+            r["scored_days"]))
+    lines += ["", "## Per-cycle edge@10%", ""]
+    for label, r in results["runs"].items():
+        cycles = {c: v["edge"] for c, v in r["edge_by_cycle_10pct"].items()}
+        lines.append(f"- **{label}**: {cycles}")
+    (OUT_DIR / "bitcoin_model_fixes_report.md").write_text("\n".join(lines))
+    print(f"report written to {OUT_DIR / 'bitcoin_model_fixes_report.md'}")
 
 
 if __name__ == "__main__":

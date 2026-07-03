@@ -145,3 +145,35 @@ def test_family_equal_weights_rejects_unknown_signal():
     from experiment import family_equal_weights
     with pytest.raises(AssertionError):
         family_equal_weights(["mvrv_zscore", "not_a_signal"])
+
+
+def test_build_signal_history_variant_flags():
+    from experiment import build_signal_history
+    from assets import bitcoin
+    n = 2500
+    dates = pd.date_range("2013-01-01", periods=n, freq="D")
+    rng = np.random.default_rng(11)
+    price = 100 * np.exp(np.arange(n) / 900)
+    df = pd.DataFrame({
+        "date": dates, "price": price,
+        "market_cap": price * 1e7,
+        "mvrv": rng.normal(2.0, 0.8, size=n),
+        "miner_revenue": rng.uniform(1e6, 5e6, size=n),
+        "fear_greed": rng.uniform(0, 100, size=n),
+    })
+    specs = bitcoin.CONFIG.signals
+
+    ternary = build_signal_history(df, specs, causal_z=False, continuous=False)
+    assert set(ternary["mvrv_zscore"].dropna().unique()) <= {0, 50, 100}
+
+    cont = build_signal_history(df, specs, causal_z=False, continuous=True)
+    mid = cont["mvrv_zscore"].dropna()
+    assert ((0 <= mid) & (mid <= 100)).all()
+    assert len(set(mid.unique()) - {0.0, 50.0, 100.0}) > 0  # actually interpolates
+
+    causal = build_signal_history(df, specs, causal_z=True, continuous=False)
+    # expanding z with min_periods=365: first 364 raws NaN -> neutral 50
+    assert causal["mvrv_zscore_raw"].iloc[:364].isna().all()
+    assert (causal["mvrv_zscore"].iloc[:364] == 50).all()
+    # non-mvrv signals identical across the causal_z flag
+    pd.testing.assert_series_equal(causal["ma_200w"], ternary["ma_200w"])
