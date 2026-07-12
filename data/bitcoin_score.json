@@ -1,30 +1,30 @@
 {
-  "date": "2026-07-10",
-  "composite_score": 57.6,
+  "date": "2026-07-11",
+  "composite_score": 54.5,
   "verdict": "HOLD",
   "sell_composite": 0.0,
   "sell_verdict": "LOW",
-  "spectrum_pos": 78.8,
+  "spectrum_pos": 77.2,
   "spectrum_verdict": "BUY",
   "strong_buy_cutoff": 85.0,
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.3090880537274953,
+      "raw": -0.31078429081103953,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-07-10"
+      "as_of": "2026-07-11"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 1.0213594024531454,
+      "raw": 1.017272625554323,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-07-10"
+      "as_of": "2026-07-11"
     },
     "monthly_rsi": {
       "display_name": "Monthly RSI",
@@ -37,30 +37,30 @@
     },
     "pi_cycle": {
       "display_name": "Pi Cycle",
-      "raw": 0.3997201413545682,
+      "raw": 0.4002105497244162,
       "score": 100,
       "sell_score": 0,
       "status": "buy",
       "cadence": "daily",
-      "as_of": "2026-07-10"
+      "as_of": "2026-07-11"
     },
     "puell": {
       "display_name": "Puell Multiple",
-      "raw": 0.6284124090298127,
+      "raw": 0.7681671834138959,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-07-10"
+      "as_of": "2026-07-11"
     },
     "fear_greed": {
       "display_name": "Fear & Greed",
-      "raw": 23.0,
-      "score": 100,
+      "raw": 26.0,
+      "score": 50,
       "sell_score": 0,
-      "status": "buy",
+      "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-07-10"
+      "as_of": "2026-07-11"
     }
   },
   "weights": {
