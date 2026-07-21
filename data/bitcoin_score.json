@@ -1,5 +1,5 @@
 {
-  "date": "2026-07-19",
+  "date": "2026-07-20",
   "composite_score": 54.5,
   "verdict": "HOLD",
   "sell_composite": 0.0,
@@ -10,21 +10,21 @@
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.3034333708175569,
+      "raw": -0.2994347946394814,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-07-19"
+      "as_of": "2026-07-20"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 1.025306547822181,
+      "raw": 1.0331598073843926,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-07-19"
+      "as_of": "2026-07-20"
     },
     "monthly_rsi": {
       "display_name": "Monthly RSI",
@@ -37,30 +37,30 @@
     },
     "pi_cycle": {
       "display_name": "Pi Cycle",
-      "raw": 0.40393608562639854,
+      "raw": 0.4044440873343826,
       "score": 100,
       "sell_score": 0,
       "status": "buy",
       "cadence": "daily",
-      "as_of": "2026-07-19"
+      "as_of": "2026-07-20"
     },
     "puell": {
       "display_name": "Puell Multiple",
-      "raw": 0.860271049407216,
+      "raw": 0.7813451894844193,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-07-19"
+      "as_of": "2026-07-20"
     },
     "fear_greed": {
       "display_name": "Fear & Greed",
-      "raw": 28.0,
+      "raw": 29.0,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-07-19"
+      "as_of": "2026-07-20"
     }
   },
   "weights": {
