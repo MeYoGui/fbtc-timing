@@ -1,66 +1,66 @@
 {
-  "date": "2026-07-30",
-  "composite_score": 54.5,
-  "verdict": "HOLD",
+  "date": "2026-07-31",
+  "composite_score": 66.2,
+  "verdict": "BUY",
   "sell_composite": 0.0,
   "sell_verdict": "LOW",
-  "spectrum_pos": 77.2,
+  "spectrum_pos": 83.1,
   "spectrum_verdict": "BUY",
   "strong_buy_cutoff": 85.0,
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.30178478660319846,
+      "raw": -0.3165481140938268,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-07-30"
+      "as_of": "2026-07-31"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 1.0222623014732135,
-      "score": 50,
-      "sell_score": 0,
-      "status": "neutral",
-      "cadence": "daily",
-      "as_of": "2026-07-30"
-    },
-    "monthly_rsi": {
-      "display_name": "Monthly RSI",
-      "raw": 40.715816982626635,
-      "score": 50,
-      "sell_score": 0,
-      "status": "neutral",
-      "cadence": "monthly",
-      "as_of": "2026-06-30"
-    },
-    "pi_cycle": {
-      "display_name": "Pi Cycle",
-      "raw": 0.4091622715369745,
+      "raw": 0.990990274856323,
       "score": 100,
       "sell_score": 0,
       "status": "buy",
       "cadence": "daily",
-      "as_of": "2026-07-30"
+      "as_of": "2026-07-31"
+    },
+    "monthly_rsi": {
+      "display_name": "Monthly RSI",
+      "raw": 43.17032745941599,
+      "score": 50,
+      "sell_score": 0,
+      "status": "neutral",
+      "cadence": "monthly",
+      "as_of": "2026-07-31"
+    },
+    "pi_cycle": {
+      "display_name": "Pi Cycle",
+      "raw": 0.4093679283263402,
+      "score": 100,
+      "sell_score": 0,
+      "status": "buy",
+      "cadence": "daily",
+      "as_of": "2026-07-31"
     },
     "puell": {
       "display_name": "Puell Multiple",
-      "raw": 0.8152070011216184,
+      "raw": 0.8490160520623233,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-07-30"
+      "as_of": "2026-07-31"
     },
     "fear_greed": {
       "display_name": "Fear & Greed",
-      "raw": 28.0,
-      "score": 50,
+      "raw": 25.0,
+      "score": 100,
       "sell_score": 0,
-      "status": "neutral",
+      "status": "buy",
       "cadence": "daily",
-      "as_of": "2026-07-30"
+      "as_of": "2026-07-31"
     }
   },
   "weights": {
