@@ -127,6 +127,27 @@ def _process_asset(cfg: AssetConfig) -> None:
     print(f"  {cfg.id}: signals for {current['date']}")
 
 
+def continuous_score(value: float, invest_thresh: float, avoid_thresh: float) -> float:
+    """Piecewise-linear 0-100 score between the same calibrated thresholds the
+    ternary scorer uses: exactly 100.0 at/below invest_thresh, exactly 0.0
+    at/above avoid_thresh, linear in between, 50.0 for NaN. Exactness at the
+    ends matters: compute_signal_stats treats score == 100 as a buy-fire.
+    Assumes higher raw value = worse (true of every current SignalSpec)."""
+    assert invest_thresh < avoid_thresh, "invest_thresh must be below avoid_thresh"
+    if pd.isna(value):
+        return 50.0
+    if value <= invest_thresh:
+        return 100.0
+    if value >= avoid_thresh:
+        return 0.0
+    return round(100.0 * (avoid_thresh - value) / (avoid_thresh - invest_thresh), 2)
+
+
+def continuous_score_series(series: pd.Series, invest_thresh: float,
+                            avoid_thresh: float) -> pd.Series:
+    return series.apply(lambda v: continuous_score(v, invest_thresh, avoid_thresh))
+
+
 def main():
     for cfg in ASSETS:
         print(f"Computing signals for {cfg.display_name}...")
