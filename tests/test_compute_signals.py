@@ -10,6 +10,7 @@ from compute_signals import (
     compute_puell_multiple,
     compute_pi_cycle_ratio,
     signal_score,
+    continuous_score,
 )
 
 
@@ -68,3 +69,26 @@ def test_pi_cycle_ratio_constant_price():
     valid = ratio.dropna()
     # 111DMA / (2 × 350DMA) = price / (2 × price) = 0.5 when price is constant
     assert valid.iloc[-1] == pytest.approx(0.5, abs=1e-6)
+
+
+def test_continuous_score_boundaries_and_midpoint():
+    assert continuous_score(-0.5, -0.5, 1.5) == 100.0   # at invest thresh
+    assert continuous_score(-2.0, -0.5, 1.5) == 100.0   # beyond invest
+    assert continuous_score(1.5, -0.5, 1.5) == 0.0      # at avoid thresh
+    assert continuous_score(3.0, -0.5, 1.5) == 0.0      # beyond avoid
+    assert continuous_score(0.5, -0.5, 1.5) == 50.0     # exact midpoint
+
+
+def test_continuous_score_is_monotone_decreasing():
+    values = [continuous_score(v, 1.0, 1.2) for v in (1.0, 1.05, 1.1, 1.15, 1.2)]
+    assert values == sorted(values, reverse=True)
+    assert values[0] == 100.0 and values[-1] == 0.0
+
+
+def test_continuous_score_nan_is_neutral():
+    assert continuous_score(float("nan"), 1.0, 1.2) == 50.0
+
+
+def test_continuous_score_requires_ordered_thresholds():
+    with pytest.raises(AssertionError):
+        continuous_score(0.5, 1.2, 1.0)  # invest must be < avoid
