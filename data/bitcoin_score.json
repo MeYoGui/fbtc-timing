@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-23",
+  "date": "2026-09-24",
   "composite_score": 42.8,
   "verdict": "HOLD",
   "sell_composite": 0.0,
@@ -10,21 +10,21 @@
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.15673546259960036,
+      "raw": -0.15725029353020803,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-09-23"
+      "as_of": "2026-09-24"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 1.2878834827123176,
+      "raw": 1.2862051414167417,
       "score": 0,
       "sell_score": 0,
       "status": "avoid",
       "cadence": "daily",
-      "as_of": "2026-09-23"
+      "as_of": "2026-09-24"
     },
     "monthly_rsi": {
       "display_name": "Monthly RSI",
@@ -37,12 +37,12 @@
     },
     "pi_cycle": {
       "display_name": "Pi Cycle",
-      "raw": 0.433607018761516,
+      "raw": 0.43553744128656263,
       "score": 100,
       "sell_score": 0,
       "status": "buy",
       "cadence": "daily",
-      "as_of": "2026-09-23"
+      "as_of": "2026-09-24"
     },
     "puell": {
       "display_name": "Puell Multiple",
