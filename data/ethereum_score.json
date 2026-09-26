@@ -1,5 +1,5 @@
 {
-  "date": "2026-09-24",
+  "date": "2026-09-25",
   "composite_score": 31.1,
   "verdict": "WAIT",
   "sell_composite": 0.0,
@@ -10,21 +10,21 @@
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.3011646048996339,
+      "raw": -0.3038200696525998,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-09-24"
+      "as_of": "2026-09-25"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 1.0693470042492597,
+      "raw": 1.0700075523923707,
       "score": 0,
       "sell_score": 0,
       "status": "avoid",
       "cadence": "daily",
-      "as_of": "2026-09-24"
+      "as_of": "2026-09-25"
     },
     "monthly_rsi": {
       "display_name": "Monthly RSI",
@@ -37,21 +37,21 @@
     },
     "eth_btc_ratio": {
       "display_name": "ETH/BTC Ratio",
-      "raw": -0.4720325553641584,
+      "raw": -0.4652399546720178,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-09-24"
+      "as_of": "2026-09-25"
     },
     "mayer_multiple": {
       "display_name": "Mayer Multiple",
-      "raw": 1.2860741703480127,
+      "raw": 1.2852783873715339,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-09-24"
+      "as_of": "2026-09-25"
     },
     "fear_greed": {
       "display_name": "Fear & Greed",
