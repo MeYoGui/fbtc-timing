@@ -1,0 +1,587 @@
+{
+  "legacy_parity": {
+    "timing_edge": {
+      "invest_mean_fwd_return": 2.3222,
+      "buy_and_hold_mean_fwd_return": 2.5727,
+      "edge": -0.2506,
+      "invest_days": 400
+    },
+    "invest_precision": {
+      "precision": 1.0,
+      "recall": 0.203,
+      "f1": 0.3376,
+      "tp": 400,
+      "fp": 0,
+      "fn": 1570
+    },
+    "bands": {
+      "STRONG BUY": {
+        "days": 24,
+        "mean_fwd_return": 1.9481,
+        "median_fwd_return": 1.8994,
+        "pct_positive": 1.0
+      },
+      "BUY": {
+        "days": 376,
+        "mean_fwd_return": 2.3461,
+        "median_fwd_return": 2.245,
+        "pct_positive": 1.0
+      },
+      "HOLD": {
+        "days": 2454,
+        "mean_fwd_return": 2.9341,
+        "median_fwd_return": 1.5007,
+        "pct_positive": 0.8207
+      },
+      "WAIT": {
+        "days": 882,
+        "mean_fwd_return": 1.9207,
+        "median_fwd_return": 0.5131,
+        "pct_positive": 0.6361
+      },
+      "AVOID": {
+        "days": 76,
+        "mean_fwd_return": -0.2089,
+        "median_fwd_return": -0.1791,
+        "pct_positive": 0.1447
+      }
+    }
+  },
+  "zscore_threshold_diagnostics": {
+    "full_history": {
+      "pct_below_invest(-0.5)": 0.0172,
+      "pct_above_avoid(1.5)": 0.0115
+    },
+    "expanding": {
+      "pct_below_invest(-0.5)": 0.0007,
+      "pct_above_avoid(1.5)": 0.0
+    }
+  },
+  "runs": {
+    "stage1_fixed_labels": {
+      "scored_days": 3870,
+      "timing_edge_at60": {
+        "invest_mean_fwd_return": 2.3222,
+        "buy_and_hold_mean_fwd_return": 2.5727,
+        "edge": -0.2506,
+        "invest_days": 400
+      },
+      "invest_precision_at60": {
+        "precision": 1.0,
+        "recall": 0.203,
+        "f1": 0.3376,
+        "tp": 400,
+        "fp": 0,
+        "fn": 1570
+      },
+      "spearman_ic": 0.249,
+      "edge_at_coverage": {
+        "0.05": {
+          "coverage_days": 190,
+          "top_mean_fwd": 2.2816,
+          "all_mean_fwd": 2.5727,
+          "edge": -0.2911
+        },
+        "0.1": {
+          "coverage_days": 381,
+          "top_mean_fwd": 2.3459,
+          "all_mean_fwd": 2.5727,
+          "edge": -0.2268
+        }
+      },
+      "precision_at_coverage": {
+        "0.05": {
+          "coverage_days": 193,
+          "precision": 1.0
+        },
+        "0.1": {
+          "coverage_days": 387,
+          "precision": 1.0
+        }
+      },
+      "edge_by_cycle_10pct": {
+        "2012-11-28": {
+          "coverage_days": 72,
+          "top_mean_fwd": 2.5833,
+          "all_mean_fwd": 4.7108,
+          "edge": -2.1276
+        },
+        "2016-07-09": {
+          "coverage_days": 140,
+          "top_mean_fwd": 2.4467,
+          "all_mean_fwd": 3.353,
+          "edge": -0.9063
+        },
+        "2020-05-11": {
+          "coverage_days": 143,
+          "top_mean_fwd": 2.0522,
+          "all_mean_fwd": 1.1458,
+          "edge": 0.9064
+        },
+        "2024-04-19": {
+          "coverage_days": 24,
+          "top_mean_fwd": 0.2109,
+          "all_mean_fwd": 0.2084,
+          "edge": 0.0025
+        }
+      },
+      "bands": {
+        "STRONG BUY": {
+          "days": 24,
+          "mean_fwd_return": 1.9481,
+          "median_fwd_return": 1.8994,
+          "pct_positive": 1.0
+        },
+        "BUY": {
+          "days": 376,
+          "mean_fwd_return": 2.3461,
+          "median_fwd_return": 2.245,
+          "pct_positive": 1.0
+        },
+        "HOLD": {
+          "days": 2454,
+          "mean_fwd_return": 2.9341,
+          "median_fwd_return": 1.5007,
+          "pct_positive": 0.8207
+        },
+        "WAIT": {
+          "days": 882,
+          "mean_fwd_return": 1.9207,
+          "median_fwd_return": 0.5131,
+          "pct_positive": 0.6361
+        },
+        "AVOID": {
+          "days": 76,
+          "mean_fwd_return": -0.2089,
+          "median_fwd_return": -0.1791,
+          "pct_positive": 0.1447
+        }
+      },
+      "flags": {
+        "causal_z": false,
+        "continuous": false,
+        "family_weights": false
+      }
+    },
+    "stage1c_causal_z": {
+      "scored_days": 3870,
+      "timing_edge_at60": {
+        "invest_mean_fwd_return": 2.3251,
+        "buy_and_hold_mean_fwd_return": 2.5727,
+        "edge": -0.2476,
+        "invest_days": 398
+      },
+      "invest_precision_at60": {
+        "precision": 1.0,
+        "recall": 0.202,
+        "f1": 0.3361,
+        "tp": 398,
+        "fp": 0,
+        "fn": 1572
+      },
+      "spearman_ic": 0.2491,
+      "edge_at_coverage": {
+        "0.05": {
+          "coverage_days": 190,
+          "top_mean_fwd": 2.4104,
+          "all_mean_fwd": 2.5727,
+          "edge": -0.1623
+        },
+        "0.1": {
+          "coverage_days": 381,
+          "top_mean_fwd": 2.3483,
+          "all_mean_fwd": 2.5727,
+          "edge": -0.2244
+        }
+      },
+      "precision_at_coverage": {
+        "0.05": {
+          "coverage_days": 193,
+          "precision": 1.0
+        },
+        "0.1": {
+          "coverage_days": 387,
+          "precision": 1.0
+        }
+      },
+      "edge_by_cycle_10pct": {
+        "2012-11-28": {
+          "coverage_days": 72,
+          "top_mean_fwd": 2.6213,
+          "all_mean_fwd": 4.7108,
+          "edge": -2.0896
+        },
+        "2016-07-09": {
+          "coverage_days": 140,
+          "top_mean_fwd": 2.4467,
+          "all_mean_fwd": 3.353,
+          "edge": -0.9063
+        },
+        "2020-05-11": {
+          "coverage_days": 143,
+          "top_mean_fwd": 2.0522,
+          "all_mean_fwd": 1.1458,
+          "edge": 0.9064
+        },
+        "2024-04-19": {
+          "coverage_days": 24,
+          "top_mean_fwd": 0.2109,
+          "all_mean_fwd": 0.2084,
+          "edge": 0.0025
+        }
+      },
+      "bands": {
+        "STRONG BUY": {
+          "days": 0,
+          "mean_fwd_return": null,
+          "median_fwd_return": null,
+          "pct_positive": null
+        },
+        "BUY": {
+          "days": 398,
+          "mean_fwd_return": 2.3251,
+          "median_fwd_return": 2.2052,
+          "pct_positive": 1.0
+        },
+        "HOLD": {
+          "days": 2456,
+          "mean_fwd_return": 2.9331,
+          "median_fwd_return": 1.5037,
+          "pct_positive": 0.8208
+        },
+        "WAIT": {
+          "days": 882,
+          "mean_fwd_return": 1.9207,
+          "median_fwd_return": 0.5131,
+          "pct_positive": 0.6361
+        },
+        "AVOID": {
+          "days": 76,
+          "mean_fwd_return": -0.2089,
+          "median_fwd_return": -0.1791,
+          "pct_positive": 0.1447
+        }
+      },
+      "flags": {
+        "causal_z": true,
+        "continuous": false,
+        "family_weights": false
+      }
+    },
+    "stage2_continuous": {
+      "scored_days": 3870,
+      "timing_edge_at60": {
+        "invest_mean_fwd_return": 1.9149,
+        "buy_and_hold_mean_fwd_return": 2.5727,
+        "edge": -0.6578,
+        "invest_days": 1581
+      },
+      "invest_precision_at60": {
+        "precision": 0.7394,
+        "recall": 0.5934,
+        "f1": 0.6584,
+        "tp": 1169,
+        "fp": 412,
+        "fn": 801
+      },
+      "spearman_ic": 0.2966,
+      "edge_at_coverage": {
+        "0.05": {
+          "coverage_days": 190,
+          "top_mean_fwd": 2.1989,
+          "all_mean_fwd": 2.5727,
+          "edge": -0.3739
+        },
+        "0.1": {
+          "coverage_days": 381,
+          "top_mean_fwd": 2.3954,
+          "all_mean_fwd": 2.5727,
+          "edge": -0.1774
+        }
+      },
+      "precision_at_coverage": {
+        "0.05": {
+          "coverage_days": 193,
+          "precision": 1.0
+        },
+        "0.1": {
+          "coverage_days": 387,
+          "precision": 1.0
+        }
+      },
+      "edge_by_cycle_10pct": {
+        "2012-11-28": {
+          "coverage_days": 72,
+          "top_mean_fwd": 3.1676,
+          "all_mean_fwd": 4.7108,
+          "edge": -1.5433
+        },
+        "2016-07-09": {
+          "coverage_days": 140,
+          "top_mean_fwd": 2.2618,
+          "all_mean_fwd": 3.353,
+          "edge": -1.0912
+        },
+        "2020-05-11": {
+          "coverage_days": 143,
+          "top_mean_fwd": 2.3944,
+          "all_mean_fwd": 1.1458,
+          "edge": 1.2486
+        },
+        "2024-04-19": {
+          "coverage_days": 24,
+          "top_mean_fwd": 0.2573,
+          "all_mean_fwd": 0.2084,
+          "edge": 0.0489
+        }
+      },
+      "bands": {
+        "STRONG BUY": {
+          "days": 480,
+          "mean_fwd_return": 2.3365,
+          "median_fwd_return": 2.1874,
+          "pct_positive": 1.0
+        },
+        "BUY": {
+          "days": 1101,
+          "mean_fwd_return": 1.7311,
+          "median_fwd_return": 1.3468,
+          "pct_positive": 0.8601
+        },
+        "HOLD": {
+          "days": 1512,
+          "mean_fwd_return": 4.3476,
+          "median_fwd_return": 2.3686,
+          "pct_positive": 0.8241
+        },
+        "WAIT": {
+          "days": 688,
+          "mean_fwd_return": 0.3275,
+          "median_fwd_return": -0.0699,
+          "pct_positive": 0.4549
+        },
+        "AVOID": {
+          "days": 31,
+          "mean_fwd_return": -0.6132,
+          "median_fwd_return": -0.6573,
+          "pct_positive": 0.0
+        }
+      },
+      "flags": {
+        "causal_z": true,
+        "continuous": true,
+        "family_weights": false
+      }
+    },
+    "stage2_family": {
+      "scored_days": 3870,
+      "timing_edge_at60": {
+        "invest_mean_fwd_return": 1.5977,
+        "buy_and_hold_mean_fwd_return": 2.5727,
+        "edge": -0.975,
+        "invest_days": 635
+      },
+      "invest_precision_at60": {
+        "precision": 0.5858,
+        "recall": 0.1888,
+        "f1": 0.2856,
+        "tp": 372,
+        "fp": 263,
+        "fn": 1598
+      },
+      "spearman_ic": 0.2506,
+      "edge_at_coverage": {
+        "0.05": {
+          "coverage_days": 190,
+          "top_mean_fwd": 2.1854,
+          "all_mean_fwd": 2.5727,
+          "edge": -0.3874
+        },
+        "0.1": {
+          "coverage_days": 381,
+          "top_mean_fwd": 1.6944,
+          "all_mean_fwd": 2.5727,
+          "edge": -0.8783
+        }
+      },
+      "precision_at_coverage": {
+        "0.05": {
+          "coverage_days": 193,
+          "precision": 0.9845
+        },
+        "0.1": {
+          "coverage_days": 387,
+          "precision": 0.7623
+        }
+      },
+      "edge_by_cycle_10pct": {
+        "2012-11-28": {
+          "coverage_days": 72,
+          "top_mean_fwd": 1.4077,
+          "all_mean_fwd": 4.7108,
+          "edge": -3.3031
+        },
+        "2016-07-09": {
+          "coverage_days": 140,
+          "top_mean_fwd": 1.8107,
+          "all_mean_fwd": 3.353,
+          "edge": -1.5423
+        },
+        "2020-05-11": {
+          "coverage_days": 143,
+          "top_mean_fwd": 2.145,
+          "all_mean_fwd": 1.1458,
+          "edge": 0.9993
+        },
+        "2024-04-19": {
+          "coverage_days": 24,
+          "top_mean_fwd": 0.4487,
+          "all_mean_fwd": 0.2084,
+          "edge": 0.2403
+        }
+      },
+      "bands": {
+        "STRONG BUY": {
+          "days": 57,
+          "mean_fwd_return": 2.1921,
+          "median_fwd_return": 2.0862,
+          "pct_positive": 1.0
+        },
+        "BUY": {
+          "days": 578,
+          "mean_fwd_return": 1.5391,
+          "median_fwd_return": 1.0302,
+          "pct_positive": 0.7716
+        },
+        "HOLD": {
+          "days": 1804,
+          "mean_fwd_return": 3.8033,
+          "median_fwd_return": 2.3008,
+          "pct_positive": 0.8731
+        },
+        "WAIT": {
+          "days": 1284,
+          "mean_fwd_return": 1.544,
+          "median_fwd_return": 0.6063,
+          "pct_positive": 0.7048
+        },
+        "AVOID": {
+          "days": 89,
+          "mean_fwd_return": -0.5726,
+          "median_fwd_return": -0.6429,
+          "pct_positive": 0.0337
+        }
+      },
+      "flags": {
+        "causal_z": true,
+        "continuous": false,
+        "family_weights": true
+      }
+    },
+    "stage2_continuous_family": {
+      "scored_days": 3870,
+      "timing_edge_at60": {
+        "invest_mean_fwd_return": 2.4174,
+        "buy_and_hold_mean_fwd_return": 2.5727,
+        "edge": -0.1553,
+        "invest_days": 1557
+      },
+      "invest_precision_at60": {
+        "precision": 0.6596,
+        "recall": 0.5213,
+        "f1": 0.5824,
+        "tp": 1027,
+        "fp": 530,
+        "fn": 943
+      },
+      "spearman_ic": 0.2251,
+      "edge_at_coverage": {
+        "0.05": {
+          "coverage_days": 190,
+          "top_mean_fwd": 2.3358,
+          "all_mean_fwd": 2.5727,
+          "edge": -0.237
+        },
+        "0.1": {
+          "coverage_days": 381,
+          "top_mean_fwd": 1.9803,
+          "all_mean_fwd": 2.5727,
+          "edge": -0.5924
+        }
+      },
+      "precision_at_coverage": {
+        "0.05": {
+          "coverage_days": 193,
+          "precision": 1.0
+        },
+        "0.1": {
+          "coverage_days": 387,
+          "precision": 0.8605
+        }
+      },
+      "edge_by_cycle_10pct": {
+        "2012-11-28": {
+          "coverage_days": 72,
+          "top_mean_fwd": 2.218,
+          "all_mean_fwd": 4.7108,
+          "edge": -2.4928
+        },
+        "2016-07-09": {
+          "coverage_days": 140,
+          "top_mean_fwd": 2.0368,
+          "all_mean_fwd": 3.353,
+          "edge": -1.3161
+        },
+        "2020-05-11": {
+          "coverage_days": 143,
+          "top_mean_fwd": 2.2107,
+          "all_mean_fwd": 1.1458,
+          "edge": 1.0649
+        },
+        "2024-04-19": {
+          "coverage_days": 24,
+          "top_mean_fwd": 0.2901,
+          "all_mean_fwd": 0.2084,
+          "edge": 0.0816
+        }
+      },
+      "bands": {
+        "STRONG BUY": {
+          "days": 405,
+          "mean_fwd_return": 1.9564,
+          "median_fwd_return": 1.8916,
+          "pct_positive": 0.9778
+        },
+        "BUY": {
+          "days": 1152,
+          "mean_fwd_return": 2.5795,
+          "median_fwd_return": 1.4034,
+          "pct_positive": 0.7943
+        },
+        "HOLD": {
+          "days": 1262,
+          "mean_fwd_return": 4.2939,
+          "median_fwd_return": 2.7195,
+          "pct_positive": 0.8954
+        },
+        "WAIT": {
+          "days": 907,
+          "mean_fwd_return": 0.7436,
+          "median_fwd_return": 0.3267,
+          "pct_positive": 0.5987
+        },
+        "AVOID": {
+          "days": 86,
+          "mean_fwd_return": -0.5808,
+          "median_fwd_return": -0.6446,
+          "pct_positive": 0.0233
+        }
+      },
+      "flags": {
+        "causal_z": true,
+        "continuous": true,
+        "family_weights": true
+      }
+    }
+  }
+}
