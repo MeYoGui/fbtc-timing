@@ -1,30 +1,30 @@
 {
-  "date": "2026-10-28",
-  "composite_score": 42.8,
+  "date": "2026-10-29",
+  "composite_score": 51.4,
   "verdict": "HOLD",
   "sell_composite": 0.0,
   "sell_verdict": "LOW",
-  "spectrum_pos": 71.4,
+  "spectrum_pos": 75.7,
   "spectrum_verdict": "BUY",
   "strong_buy_cutoff": 85.0,
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.18767494148254377,
+      "raw": -0.2103092606333609,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-10-28"
+      "as_of": "2026-10-29"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 1.208699064386256,
-      "score": 0,
+      "raw": 1.1626477687504444,
+      "score": 50,
       "sell_score": 0,
-      "status": "avoid",
+      "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-10-28"
+      "as_of": "2026-10-29"
     },
     "monthly_rsi": {
       "display_name": "Monthly RSI",
@@ -37,12 +37,12 @@
     },
     "pi_cycle": {
       "display_name": "Pi Cycle",
-      "raw": 0.49070950316930284,
+      "raw": 0.4919449658090177,
       "score": 100,
       "sell_score": 0,
       "status": "buy",
       "cadence": "daily",
-      "as_of": "2026-10-28"
+      "as_of": "2026-10-29"
     },
     "puell": {
       "display_name": "Puell Multiple",
