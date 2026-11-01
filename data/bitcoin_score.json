@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-30",
+  "date": "2026-10-31",
   "composite_score": 54.5,
   "verdict": "HOLD",
   "sell_composite": 0.0,
@@ -10,39 +10,39 @@
   "signals": {
     "mvrv_zscore": {
       "display_name": "MVRV Z-Score",
-      "raw": -0.2182064672738508,
+      "raw": -0.21606131530201617,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-10-30"
+      "as_of": "2026-10-31"
     },
     "ma_200w": {
       "display_name": "200-Week MA",
-      "raw": 1.1457959371155475,
+      "raw": 1.1493836807904076,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "daily",
-      "as_of": "2026-10-30"
+      "as_of": "2026-10-31"
     },
     "monthly_rsi": {
       "display_name": "Monthly RSI",
-      "raw": 53.27249392624078,
+      "raw": 50.23853972438561,
       "score": 50,
       "sell_score": 0,
       "status": "neutral",
       "cadence": "monthly",
-      "as_of": "2026-09-30"
+      "as_of": "2026-10-31"
     },
     "pi_cycle": {
       "display_name": "Pi Cycle",
-      "raw": 0.4930492284582573,
+      "raw": 0.49419440102334944,
       "score": 100,
       "sell_score": 0,
       "status": "buy",
       "cadence": "daily",
-      "as_of": "2026-10-30"
+      "as_of": "2026-10-31"
     },
     "puell": {
       "display_name": "Puell Multiple",
