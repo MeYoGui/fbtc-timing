@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from assets.signals import compute_mayer_multiple, compute_eth_btc_ratio_z
@@ -42,3 +43,30 @@ def test_eth_btc_ratio_z_handles_nonfinite_ratio():
     df = pd.DataFrame({"price": [1.0, 2.0, 3.0], "btc_price": [1.0, 0.0, 1.0]})
     z = compute_eth_btc_ratio_z(df)
     assert list(z.values) == [0.0, 0.0, 0.0]
+
+
+def test_expanding_zscore_is_truncation_invariant():
+    """Value at row i must not change when future rows are removed — the
+    property the full-history z-score violates."""
+    from assets.signals import compute_mvrv_zscore_expanding
+    rng = np.random.default_rng(3)
+    df = pd.DataFrame({"mvrv": rng.normal(2.0, 0.8, size=1200)})
+    full = compute_mvrv_zscore_expanding(df, min_periods=100)
+    trunc = compute_mvrv_zscore_expanding(df.iloc[:600].copy(), min_periods=100)
+    pd.testing.assert_series_equal(full.iloc[:600], trunc)
+
+
+def test_expanding_zscore_warmup_is_nan():
+    from assets.signals import compute_mvrv_zscore_expanding
+    df = pd.DataFrame({"mvrv": np.linspace(1.0, 3.0, 200)})
+    z = compute_mvrv_zscore_expanding(df, min_periods=100)
+    assert z.iloc[:99].isna().all()
+    assert z.iloc[99:].notna().all()
+
+
+def test_expanding_zscore_known_value():
+    from assets.signals import compute_mvrv_zscore_expanding
+    df = pd.DataFrame({"mvrv": [1.0, 2.0, 3.0, 6.0]})
+    z = compute_mvrv_zscore_expanding(df, min_periods=3)
+    # at row 3: history [1,2,3,6] -> mean 3.0, std (sample) ~2.1602
+    assert z.iloc[3] == pytest.approx((6.0 - 3.0) / 2.160246899469287)
