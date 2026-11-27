@@ -62,3 +62,16 @@ def compute_eth_btc_ratio_z(df: pd.DataFrame) -> pd.Series:
     if std == 0 or pd.isna(std):
         return pd.Series(np.zeros(len(df)), index=df.index)
     return (ratio - ratio.mean()) / std
+
+
+def compute_mvrv_zscore_expanding(df: pd.DataFrame, min_periods: int = 365) -> pd.Series:
+    """Causal MVRV z-score: mean/std over an expanding window ending at each
+    row, so the value on date t uses only data available on date t. The first
+    min_periods-1 rows are NaN (scored neutral downstream). Values are NOT
+    comparable to the full-history z-score early on — the expanding mean/std
+    drift as history accumulates."""
+    mvrv = df["mvrv"]
+    mean = mvrv.expanding(min_periods=min_periods).mean()
+    std = mvrv.expanding(min_periods=min_periods).std()
+    z = (mvrv - mean) / std
+    return z.replace([np.inf, -np.inf], np.nan)
